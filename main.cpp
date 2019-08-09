@@ -1347,13 +1347,353 @@ void test_edit_distance() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+int kth_of_two(const std::vector<int>& nums1, const std::vector<int>& nums2,
+        size_t i, size_t j, size_t k) {
+    if (i >= nums1.size()) {
+        return nums2[j + k - 1];
+    }
+    if (j >= nums2.size()) {
+        return nums1[i + k - 1];
+    }
+    if (k == 1) {
+        return std::min(nums1[i], nums2[j]);
+    }
+
+    // if exist the K th number
+    int mv1 = (i + k / 2 - 1 < nums1.size()) ? nums1[i + k / 2 - 1] : INT_MAX;
+    int mv2 = (j + k / 2 - 1 < nums2.size()) ? nums2[j + k / 2 - 1] : INT_MAX;
+    if (mv1 < mv2) {
+        return kth_of_two(nums1, nums2, i + k / 2, j, k - k / 2);
+    } else {
+        return kth_of_two(nums1, nums2, i, j + k / 2, k - k / 2);
+    }
+}
+
+double median_of_two(const std::vector<int>& nums1, const std::vector<int>& nums2) {
+    size_t i = nums1.size();
+    size_t j = nums2.size();
+    size_t left = (i + j + 1) / 2;
+    size_t right = (i + j + 2) / 2;
+    return (kth_of_two(nums1, nums2, 0, 0, left) + kth_of_two(nums1, nums2, 0, 0, right)) / 2.0;
+}
+
+double median_of_two_iteration(const std::vector<int>& nums1, const std::vector<int>& nums2) {
+    int i = nums1.size();
+    int j = nums2.size();
+    if (i > j) {
+        return median_of_two_iteration(nums2, nums1);
+    }
+    size_t l = 0;
+    size_t h = 2 * i;
+    size_t c1;
+    size_t c2;
+    int l1;
+    int l2;
+    int r1;
+    int r2;
+    while (l <= h) {
+        c1 = (l + h) / 2;
+        c2 = i + j - c1;
+        l1 = (c1 == 0) ? INT_MIN : nums1[(c1 - 1) / 2];
+        r1 = (c1 == 2 * i) ? INT_MAX : nums1[c1 / 2];
+        l2 = (c2 == 0) ? INT_MIN : nums2[(c2 - 1) / 2];
+        r2 = (c2 == 2 * j) ? INT_MAX : nums2[c2 / 2];
+
+        if (l1 > r2) {
+            h = c1 - 1;
+        } else if (l2 > r1) {
+            l = c1 + 1;
+        } else {
+            break;
+        }
+    }
+    return (std::max(l1, l2) + std::min(r1, r2)) / 2.0;
+}
+
 void test_median_of_two() {
+    std::cout << "recursive: " << std::endl;
+    std::cout << median_of_two({0}, {0}) << std::endl;
+    std::cout << median_of_two({1}, {1}) << std::endl;
+    std::cout << median_of_two({0}, {1}) << std::endl;
+    std::cout << median_of_two({1, 3}, {2}) << std::endl;
+    std::cout << median_of_two({1, 2}, {3, 4}) << std::endl;
+    std::cout << median_of_two({1, 2}, {2, 4}) << std::endl;
+    std::cout << median_of_two({4, 4}, {4, 4}) << std::endl;
+
+    std::cout << "\niteration: " << std::endl;
+    std::cout << median_of_two_iteration({0}, {0}) << std::endl;
+    std::cout << median_of_two_iteration({1}, {1}) << std::endl;
+    std::cout << median_of_two_iteration({0}, {1}) << std::endl;
+    std::cout << median_of_two_iteration({1, 3}, {2}) << std::endl;
+    std::cout << median_of_two_iteration({1, 2}, {3, 4}) << std::endl;
+    std::cout << median_of_two_iteration({1, 2}, {2, 4}) << std::endl;
+    std::cout << median_of_two_iteration({4, 4}, {4, 4}) << std::endl;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+ssize_t bin_search(const std::vector<int>& nums, int target) {
+    std::cout << "[";
+    for (auto num : nums) {
+        std::cout << num << " ";
+    }
+    std::cout << "] find " << target << ": ";
+
+    if (nums.empty()) {
+        return -1;
+    }
+
+    ssize_t l = 0;
+    ssize_t h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] == target) {
+            return mid;
+        }
+        if (nums[mid] < target) {
+            l = mid + 1;
+        } else {
+            h = mid - 1;
+        }
+    }
+    return -1;
+}
+
+ssize_t bin_search_1st_great_equal(const std::vector<int>& nums, int target) {
+    std::cout << "[";
+    for (auto num : nums) {
+        std::cout << num << " ";
+    }
+    std::cout << "] 1st great equal " << target << ": ";
+
+    if (nums.empty()) {
+        return -1;
+    }
+
+    ssize_t l = 0;
+    ssize_t h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] < target) {
+            l = mid + 1;
+        } else {
+            h = mid - 1;
+        }
+    }
+    return h + 1 >= nums.size() ? -1 : h + 1;
+}
+
+ssize_t bin_search_1st_great(const std::vector<int>& nums, int target) {
+    std::cout << "[";
+    for (auto num : nums) {
+        std::cout << num << " ";
+    }
+    std::cout << "] 1st great " << target << ": ";
+
+    if (nums.empty()) {
+        return -1;
+    }
+
+    ssize_t l = 0;
+    ssize_t h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] <= target) {
+            l = mid + 1;
+        } else {
+            h = mid - 1;
+        }
+    }
+    return h + 1 >= nums.size() ? -1 : h + 1;
+}
+
+void test_bin_search() {
+    std::cout << "binary search" << std::endl;
+    std::cout << bin_search({}, 1) << std::endl;
+    std::cout << bin_search({1}, 0) << std::endl;
+    std::cout << bin_search({1}, 2) << std::endl;
+    std::cout << bin_search({1}, 1) << std::endl;
+    std::cout << bin_search({1, 2}, 0) << std::endl;
+    std::cout << bin_search({1, 2}, 3) << std::endl;
+    std::cout << bin_search({1, 2}, 1) << std::endl;
+    std::cout << bin_search({1, 2}, 2) << std::endl;
+    std::cout << bin_search({1, 2, 3}, 0) << std::endl;
+    std::cout << bin_search({1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search({1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search({1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search({1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4}, 1) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4}, 2) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4}, 3) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4}, 4) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4, 5}, 1) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4, 5}, 2) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4, 5}, 3) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4, 5}, 4) << std::endl;
+    std::cout << bin_search({1, 2, 3, 4, 5}, 5) << std::endl;
+    std::cout << bin_search({1, 2, 2, 4, 5}, 2) << std::endl;
+    std::cout << bin_search({1, 2, 3, 3, 5}, 3) << std::endl;
+
+    std::cout << "\nbinary search 1st greater equal" << std::endl;
+    std::cout << bin_search_1st_great_equal({}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1}, 0) << std::endl;
+    std::cout << bin_search_1st_great_equal({1}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2}, 0) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2}, 3) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3}, 0) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 3) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 4) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 1) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 3) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 4) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 5) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 2, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_1st_great_equal({1, 2, 3, 3, 5}, 3) << std::endl;
+
+    std::cout << "\nbinary search 1st greater " << std::endl;
+    std::cout << bin_search_1st_great({}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1}, 0) << std::endl;
+    std::cout << bin_search_1st_great({1}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1, 2}, 0) << std::endl;
+    std::cout << bin_search_1st_great({1, 2}, 3) << std::endl;
+    std::cout << bin_search_1st_great({1, 2}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1, 2}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3}, 0) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4}, 3) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4}, 4) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 1) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 3) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 4) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 5) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 2, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_1st_great({1, 2, 3, 3, 5}, 3) << std::endl;
+}
+
+ssize_t bin_search_rotate(const std::vector<int>& nums, int target) {
+    std::cout << "[";
+    for (auto num : nums) {
+        std::cout << num << " ";
+    }
+    std::cout << "] find rotate " << target << ": ";
+
+    if (nums.empty()) {
+        return -1;
+    }
+
+    ssize_t l = 0;
+    ssize_t h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] == target) {
+            return mid;
+        }
+        if (nums[mid] < nums[h]) {
+            if (nums[mid] < target && nums[h] >= target) {
+                // right sorted and target in range
+                l = mid + 1;
+            } else {
+                h = mid - 1;
+            }
+        } else {
+            if (nums[mid] > target && nums[l] <= target) {
+                // left sorted and target in range
+                h = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+    }
+    return -1;
+}
+
+void test_bin_search_rotate() {
+    std::cout << "binary search rotate" << std::endl;
+    std::cout << bin_search_rotate({}, 1) << std::endl;
+    std::cout << bin_search_rotate({1}, 0) << std::endl;
+    std::cout << bin_search_rotate({1}, 2) << std::endl;
+    std::cout << bin_search_rotate({1}, 1) << std::endl;
+    std::cout << bin_search_rotate({1, 2}, 0) << std::endl;
+    std::cout << bin_search_rotate({1, 2}, 3) << std::endl;
+    std::cout << bin_search_rotate({1, 2}, 1) << std::endl;
+    std::cout << bin_search_rotate({1, 2}, 2) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3}, 0) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4}, 1) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4}, 2) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4}, 3) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4}, 4) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 1) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 3) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 4) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 5) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 2, 4, 5}, 2) << std::endl;
+    std::cout << bin_search_rotate({1, 2, 3, 3, 5}, 3) << std::endl;
+    std::cout << bin_search_rotate({}, 1) << std::endl;
+    std::cout << bin_search_rotate({1}, 0) << std::endl;
+    std::cout << bin_search_rotate({1}, 2) << std::endl;
+    std::cout << bin_search_rotate({1}, 1) << std::endl;
+    std::cout << bin_search_rotate({2, 1}, 0) << std::endl;
+    std::cout << bin_search_rotate({2, 1}, 3) << std::endl;
+    std::cout << bin_search_rotate({2, 1}, 1) << std::endl;
+    std::cout << bin_search_rotate({2, 1}, 2) << std::endl;
+    std::cout << bin_search_rotate({3, 1, 2}, 0) << std::endl;
+    std::cout << bin_search_rotate({3, 1, 2}, 1) << std::endl;
+    std::cout << bin_search_rotate({3, 1, 2}, 2) << std::endl;
+    std::cout << bin_search_rotate({3, 1, 2}, 3) << std::endl;
+    std::cout << bin_search_rotate({3, 1, 2}, 4) << std::endl;
+    std::cout << bin_search_rotate({3, 2, 1}, 0) << std::endl;
+    std::cout << bin_search_rotate({3, 2, 1}, 1) << std::endl;
+    std::cout << bin_search_rotate({3, 2, 1}, 2) << std::endl;
+    std::cout << bin_search_rotate({3, 2, 1}, 3) << std::endl;
+    std::cout << bin_search_rotate({3, 2, 1}, 4) << std::endl;
+    std::cout << bin_search_rotate({3, 4, 1, 2}, 1) << std::endl;
+    std::cout << bin_search_rotate({3, 4, 1, 2}, 2) << std::endl;
+    std::cout << bin_search_rotate({3, 4, 1, 2}, 3) << std::endl;
+    std::cout << bin_search_rotate({3, 4, 1, 2}, 4) << std::endl;
+    std::cout << bin_search_rotate({4, 1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search_rotate({4, 1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search_rotate({4, 1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search_rotate({4, 1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 1) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 2) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 3) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 4) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 5) << std::endl;
+    std::cout << bin_search_rotate({4, 5, 1, 2, 2}, 2) << std::endl;
+    std::cout << bin_search_rotate({3, 5, 1, 2, 3}, 3) << std::endl;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void test_kmp() {
 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void test_bin_search() {
+void rb_tree() {
 
 }
 
@@ -1372,6 +1712,9 @@ int main() {
 //    test_heap();
 //    test_skiplist();
 //    test_lcs();
-    test_edit_distance();
+//    test_edit_distance();
+//    test_median_of_two();
+//    test_bin_search();
+    test_bin_search_rotate();
     return 0;
 }
