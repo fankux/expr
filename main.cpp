@@ -219,6 +219,7 @@ TreeNode* create_tree() {
 void preorder_stack_travel(TreeNode* n) {
     std::vector<TreeNode*> stack;
 
+    std::cout << "preorder travel: ";
     while (n != nullptr || !stack.empty()) {
         if (n != nullptr) {
             std::cout << n->v << " ";
@@ -235,6 +236,7 @@ void preorder_stack_travel(TreeNode* n) {
 void inorder_stack_travel(TreeNode* n) {
     std::vector<TreeNode*> stack;
 
+    std::cout << "inorder travel: ";
     while (n != nullptr || !stack.empty()) {
         if (n != nullptr) {
             stack.emplace_back(n);
@@ -452,8 +454,17 @@ int next_node_of_inorder_travel(TreeNode* n) {
     return -1;
 }
 
+int tree_height(TreeNode* n) {
+    if (n == nullptr) {
+        return 0;
+    }
+
+    return std::max(tree_height(n->l), tree_height(n->r)) + 1;
+}
+
 void test_binary_tree_travel() {
     TreeNode* root = create_tree();
+    std::cout << "tree height: " << tree_height(root) << std::endl;
 
     std::cout << "recursive:" << std::endl;
     preorder_recursive_travel(root);
@@ -538,16 +549,181 @@ TreeNode a3(3);
 TreeNode a4(4);
 TreeNode a5(5);
 
+void bst_add(TreeNode*& root, int value) {
+    TreeNode* n = root;
+    TreeNode* p = n;
+    while (n) {
+        p = n;
+        if (value < n->v) {
+            n = n->l;
+        } else if (value > n->v) {
+            n = n->r;
+        } else {
+            return;
+        }
+    }
+
+    n = new TreeNode(value);
+    if (p == nullptr) {
+        root = n;
+    } else if (value < p->v) {
+        p->l = n;
+    } else if (value > p->v) {
+        p->r = n;
+    }
+}
+
+void bst_del(TreeNode*& root, int value) {
+    TreeNode* n = root;
+    TreeNode* p = nullptr;
+    while (n) {
+        if (value == n->v) {
+            break;
+        }
+
+        p = n;
+        if (value < n->v) {
+            n = n->l;
+        } else { // if (value > n->v)
+            n = n->r;
+        }
+    }
+
+    if (n == nullptr) {
+        return; // not exist
+    }
+
+    if (n->l == nullptr && n->r == nullptr) {
+        if (p == nullptr) {
+            delete root;
+            root = nullptr;
+            return;
+        }
+        if (value < p->v) {
+            p->l = nullptr;
+        } else { // if (value > p->v)
+            p->r = nullptr;
+        }
+        delete n;
+
+    } else if (n->l != nullptr) {
+        TreeNode* next = n->l;
+        TreeNode* pre_next = nullptr;
+        while (next->r) {
+            pre_next = next;
+            next = next->r;
+        }
+        n->v = next->v;
+        if (pre_next != nullptr) {
+            pre_next->r = nullptr;
+        } else {
+            n->l = nullptr;
+        }
+        delete next;
+
+    } else if (n->l == nullptr && n->r != nullptr) {
+        TreeNode* next = n->r;
+        TreeNode* pre_next = nullptr;
+        while (next->l) {
+            pre_next = next;
+            next = next->l;
+        }
+        n->v = next->v;
+        if (pre_next != nullptr) {
+            pre_next->r = nullptr;
+        } else {
+            n->r = nullptr;
+        }
+        delete next;
+    }
+}
+
 TreeNode* create_balance_tree() {
-    a3.l = &a1;
-    a3.r = &a5;
+//    a3.l = &a1;
+//    a3.r = &a5;
+//
+//    a1.l = &a0;
+//    a1.r = &a2;
+//
+//    a5.l = &a4;
 
-    a1.l = &a0;
-    a1.r = &a2;
+    TreeNode* root = nullptr;
+    bst_add(root, 3);
+    bst_add(root, 1);
+    bst_add(root, 0);
+    bst_add(root, 2);
+    bst_add(root, 5);
+    bst_add(root, 4);
 
-    a5.l = &a4;
+    return root;
+}
 
-    return &a3;
+void bst_left_rotate(TreeNode*& p) {
+    TreeNode* right = p->r;
+    if (right == nullptr) {
+        return;
+    }
+    p->r = right->l;
+    right->l = p;
+    p = right;
+}
+
+void bst_right_rotate(TreeNode*& p) {
+    TreeNode* left = p->l;
+    if (left == nullptr) {
+        return;
+    }
+    p->l = left->r;
+    left->r = p;
+    p = left;
+}
+
+void test_bst_add_del() {
+    TreeNode* root = create_balance_tree();
+    preorder_stack_travel(root);
+    std::cout << std::endl;
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_left_rotate(root);
+    preorder_stack_travel(root);
+    std::cout << std::endl;
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_right_rotate(root);
+    preorder_stack_travel(root);
+    std::cout << std::endl;
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_right_rotate(root);
+    preorder_stack_travel(root);
+    std::cout << std::endl;
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+
+    bst_del(root, 0);
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_del(root, 3);
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_del(root, 4);
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_del(root, 1);
+    bst_del(root, 2);
+    inorder_stack_travel(root);
+    std::cout << std::endl;
+
+    bst_del(root, 5);
+    inorder_stack_travel(root);
+    std::cout << std::endl;
 }
 
 void convert_tree_to_linkedlist(TreeNode* n, TreeNode** last) {
@@ -577,9 +753,6 @@ void test_convert_tree_to_linkedlist() {
     inorder_recursive_travel(root);
     std::cout << std::endl;
 
-    inorder_stack_travel(root);
-    std::cout << std::endl;
-
     TreeNode* head = root;
     while (head->l != nullptr) {
         head = head->l;
@@ -587,6 +760,7 @@ void test_convert_tree_to_linkedlist() {
 
     TreeNode* last = nullptr;
     convert_tree_to_linkedlist(root, &last);
+    std::cout << "convert_tree_to_linkedlist: ";
     while (head != nullptr) {
         std::cout << head->v << " ";
         head = head->r;
@@ -1885,6 +2059,7 @@ int main() {
 //    test_reverse_stack();
 //    test_binary_tree_travel();
 //    test_convert_tree_to_linkedlist();
+    test_bst_add_del();
 //    test_premutation();
 //    test_qsort();
 //    test_longest_palindrome();
@@ -1896,6 +2071,6 @@ int main() {
 //    test_median_of_two();
 //    test_bin_search();
 //    test_bin_search_rotate();
-    test_substr();
+//    test_substr();
     return 0;
 }
