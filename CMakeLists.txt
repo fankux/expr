@@ -3,4 +3,9 @@ project(expr)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(expr main.cpp)
+file(GLOB SRCS
+        *.h
+        *.hpp
+        *.cpp
+        )
+add_executable(expr ${SRCS})

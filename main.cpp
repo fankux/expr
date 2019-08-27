@@ -1897,7 +1897,7 @@ ssize_t substr_kmp(const std::string& str, const std::string& pattern) {
 
     ssize_t i = 0;
     ssize_t j = 0;
-    while (i < (ssize_t) str.size() && j < (ssize_t) pattern.size()) {
+    while (i < (ssize_t)str.size() && j < (ssize_t)pattern.size()) {
         if (j == -1 || str[i] == pattern[j]) {
             ++i;
             ++j;
@@ -2053,13 +2053,17 @@ void avl_tree() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "sums_of_collection.hpp"
+
 int main() {
+    test_util();
+
 //    test_print_rhombus();
 //    test_reverse_list();
 //    test_reverse_stack();
 //    test_binary_tree_travel();
 //    test_convert_tree_to_linkedlist();
-    test_bst_add_del();
+//    test_bst_add_del();
 //    test_premutation();
 //    test_qsort();
 //    test_longest_palindrome();
@@ -2072,5 +2076,8 @@ int main() {
 //    test_bin_search();
 //    test_bin_search_rotate();
 //    test_substr();
+
+//    test_two_sum();
+
     return 0;
 }
