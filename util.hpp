@@ -1,6 +1,9 @@
 
+#pragma once
+
 #include <ostream>
 #include <sstream>
+#include <functional>
 #include <vector>
 #include <deque>
 #include <list>
@@ -9,8 +12,31 @@
 #include <unordered_map>
 #include <unordered_set>
 
+static std::map<std::string, std::function<void()>> g_test_list;
+
+#define FTEST(name)                                 \
+static void test_func_##name();                     \
+class Test##name {                                  \
+public:                                             \
+    explicit Test##name(const std::string& n) {     \
+        g_test_list.emplace(n, test_func_##name);   \
+    }                                               \
+};                                                  \
+static Test##name _test_clazz_##name(#name);        \
+void test_func_##name()
+
 class LogStream {
 public:
+    explicit LogStream(int level) : _level(level) {
+        if (_level == 1) {
+            _level_str = "[INFO] ";
+        } else if (_level == 2) {
+            _level_str = "[WARN] ";
+        } else if (_level == 3) {
+            _level_str = "[FATAL] ";
+        }
+    }
+
     ~LogStream() {
         flush();
     }
@@ -139,20 +165,22 @@ public:
     }
 
     void flush() {
-        std::cout << _ss.str() << std::endl;
+        std::cout << _level_str << _ss.str() << std::endl;
         _ss.clear();
     }
 
 private:
     std::stringstream _ss;
+    int _level;
+    std::string _level_str;
 };
 
 template<typename T>
 class LogMessage {
 public:
-    explicit LogMessage(int line) {
+    explicit LogMessage(int line, int level) {
         if (_stream == nullptr) {
-            _stream = new T();
+            _stream = new T(level);
         }
     }
 
@@ -168,28 +196,28 @@ public:
 
 private:
     T* _stream = nullptr;
+    int _level;
 };
 
-#define LOG()  LogMessage<LogStream>(__LINE__).stream()
+#define LOG_INFO LogMessage<LogStream>(__LINE__, 1).stream()
+#define LOG(level)  LOG_##level
 
-void test_util() {
-
-    size_t idx = 9999;
-    LOG() << idx;
-    LOG() << std::vector<std::string>{"5", "8", "6", "4", "7"};
-    LOG() << std::list<std::string>{"5", "8", "6", "4", "7"};
-    LOG() << std::deque<std::string>{"5", "8", "6", "4", "7"};
-    LOG() << std::set<std::string>{"5", "8", "6", "4", "7"};
-    LOG() << std::unordered_set<std::string>{"5", "8", "6", "4", "7"};
-    LOG() << std::map<int, std::string>{{10, "10"}, {20, "20"}};
-    LOG() << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
-
-    LOG() << idx << std::vector<std::string>{"5", "8", "6", "4", "7"}
-            << std::list<std::string>{"5", "8", "6", "4", "7"}
-            << std::deque<std::string>{"5", "8", "6", "4", "7"}
-            << std::set<std::string>{"5", "8", "6", "4", "7"}
-            << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
-            << std::map<int, std::string>{{10, "10"}, {20, "20"}}
-            << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
-
-}
+//FTEST(test_util) {
+//    LOG(INFO) << 9999;
+//    LOG(INFO) << std::vector<std::string>{"5", "8", "6", "4", "7"};
+//    LOG(INFO) << std::list<std::string>{"5", "8", "6", "4", "7"};
+//    LOG(INFO) << std::deque<std::string>{"5", "8", "6", "4", "7"};
+//    LOG(INFO) << std::set<std::string>{"5", "8", "6", "4", "7"};
+//    LOG(INFO) << std::unordered_set<std::string>{"5", "8", "6", "4", "7"};
+//    LOG(INFO) << std::map<int, std::string>{{10, "10"}, {20, "20"}};
+//    LOG(INFO) << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
+//
+//    LOG(INFO) << idx << std::vector<std::string>{"5", "8", "6", "4", "7"}
+//            << std::list<std::string>{"5", "8", "6", "4", "7"}
+//            << std::deque<std::string>{"5", "8", "6", "4", "7"}
+//            << std::set<std::string>{"5", "8", "6", "4", "7"}
+//            << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
+//            << std::map<int, std::string>{{10, "10"}, {20, "20"}}
+//            << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
+//
+//}

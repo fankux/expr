@@ -1,10 +1,8 @@
 #include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <map>
 #include <limits.h>
 #include <string.h>
-#include <functional>
+
+#include "util.hpp"
 
 void print_rhombus(int n) {
     if (n <= 0) {
@@ -2054,9 +2052,9 @@ void avl_tree() {}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "sums_of_collection.hpp"
+#include "lock_map.hpp"
 
 int main() {
-    test_util();
 
 //    test_print_rhombus();
 //    test_reverse_list();
@@ -2078,6 +2076,12 @@ int main() {
 //    test_substr();
 
 //    test_two_sum();
+
+    for (auto& test : g_test_list) {
+        LOG(INFO) << "==== start: " << test.first << " ====";
+        test.second();
+        LOG(INFO) << "======== end ========\n";
+    }
 
     return 0;
 }
