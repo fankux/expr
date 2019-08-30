@@ -37,94 +37,6 @@ void test_print_rhombus() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct LinkNode {
-    explicit LinkNode(int value) : v(value) {}
-
-    int v;
-    LinkNode* next = nullptr;
-};
-
-LinkNode* create_list(const std::vector<int>& nums) {
-    LinkNode* root = nullptr;
-    LinkNode* cur = nullptr;
-    for (int num : nums) {
-        LinkNode* n = new LinkNode(num);
-        if (cur == nullptr) {
-            cur = n;
-            root = n;
-        } else {
-            cur->next = n;
-            cur = n;
-        }
-    }
-    return root;
-}
-
-void print_list(LinkNode* n) {
-    while (n) {
-        std::cout << n->v << ", ";
-        n = n->next;
-    }
-
-    std::cout << std::endl;
-}
-
-LinkNode* reverse_list(LinkNode* n) {
-    if (n == nullptr) {
-        return nullptr;
-    }
-    if (n->next == nullptr) {
-        return n;
-    }
-
-    LinkNode* pre = n;
-    n = n->next;
-    pre->next = nullptr;
-
-    while (n) {
-        LinkNode* next = n->next;
-
-        n->next = pre;
-        pre = n;
-        n = next;
-    }
-    return pre;
-}
-
-void test_reverse_list() {
-    LinkNode* root = create_list({});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3, 4});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3, 4, 5});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 void reverse_stack_put(std::vector<int>& stack, int value) {
     if (stack.empty()) {
         stack.push_back(value);
@@ -2051,6 +1963,7 @@ void avl_tree() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "list.hpp"
 #include "sums_of_collection.hpp"
 #include "lock_map.hpp"
 
@@ -2076,12 +1989,14 @@ int main() {
 //    test_substr();
 
 //    test_two_sum();
+//
+//    for (auto& test : g_test_list) {
+//        LOG(INFO) << "==== start: " << test.first << " ====";
+//        test.second();
+//        LOG(INFO) << "======== end ========\n";
+//    }
 
-    for (auto& test : g_test_list) {
-        LOG(INFO) << "==== start: " << test.first << " ====";
-        test.second();
-        LOG(INFO) << "======== end ========\n";
-    }
+    g_test_list["test_three_sum_closest"]();
 
     return 0;
 }

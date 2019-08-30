@@ -196,28 +196,28 @@ public:
 
 private:
     T* _stream = nullptr;
-    int _level;
+    int _level = 0;
 };
 
 #define LOG_INFO LogMessage<LogStream>(__LINE__, 1).stream()
 #define LOG(level)  LOG_##level
 
-//FTEST(test_util) {
-//    LOG(INFO) << 9999;
-//    LOG(INFO) << std::vector<std::string>{"5", "8", "6", "4", "7"};
-//    LOG(INFO) << std::list<std::string>{"5", "8", "6", "4", "7"};
-//    LOG(INFO) << std::deque<std::string>{"5", "8", "6", "4", "7"};
-//    LOG(INFO) << std::set<std::string>{"5", "8", "6", "4", "7"};
-//    LOG(INFO) << std::unordered_set<std::string>{"5", "8", "6", "4", "7"};
-//    LOG(INFO) << std::map<int, std::string>{{10, "10"}, {20, "20"}};
-//    LOG(INFO) << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
-//
-//    LOG(INFO) << idx << std::vector<std::string>{"5", "8", "6", "4", "7"}
-//            << std::list<std::string>{"5", "8", "6", "4", "7"}
-//            << std::deque<std::string>{"5", "8", "6", "4", "7"}
-//            << std::set<std::string>{"5", "8", "6", "4", "7"}
-//            << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
-//            << std::map<int, std::string>{{10, "10"}, {20, "20"}}
-//            << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
-//
-//}
+FTEST(test_util) {
+    LOG(INFO) << 9999;
+    LOG(INFO) << std::vector<std::string>{"5", "8", "6", "4", "7"};
+    LOG(INFO) << std::list<std::string>{"5", "8", "6", "4", "7"};
+    LOG(INFO) << std::deque<std::string>{"5", "8", "6", "4", "7"};
+    LOG(INFO) << std::set<std::string>{"5", "8", "6", "4", "7"};
+    LOG(INFO) << std::unordered_set<std::string>{"5", "8", "6", "4", "7"};
+    LOG(INFO) << std::map<int, std::string>{{10, "10"}, {20, "20"}};
+    LOG(INFO) << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
+
+    LOG(INFO) << 9999 << std::vector<std::string>{"5", "8", "6", "4", "7"}
+            << std::list<std::string>{"5", "8", "6", "4", "7"}
+            << std::deque<std::string>{"5", "8", "6", "4", "7"}
+            << std::set<std::string>{"5", "8", "6", "4", "7"}
+            << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
+            << std::map<int, std::string>{{10, "10"}, {20, "20"}}
+            << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
+
+}
