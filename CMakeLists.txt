@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 file(GLOB SRCS
         *.h
-        *.hpp
         *.cpp
         )
+
+link_libraries(
+        pthread
+)
+
 add_executable(expr ${SRCS})
