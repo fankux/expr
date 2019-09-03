@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stack>
 #include "util.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,11 +423,10 @@ TrieNode* create_trie(const std::vector<std::string>& dict) {
     for (auto& word : dict) {
         TrieNode* p = root;
         for (char c : word) {
-            if (p->nexts[c] != nullptr) {
-                p = p->nexts[c];
-            } else {
+            if (p->nexts[c] == nullptr) {
                 p->nexts[c] = new TrieNode(c);
             }
+            p = p->nexts[c];
         }
         p->end = true;
     }
@@ -445,7 +445,12 @@ void trie_level_travel(TrieNode* trie) {
             trie = q.front();
             q.pop_front();
 
-            ss << trie->v << " ";
+            if (trie->end) {
+                ss << "*";
+            }
+            if (trie->v != '\0') {
+                ss << trie->v << " ";
+            }
 
             for (auto& next : trie->nexts) {
                 if (next != nullptr) {
@@ -458,9 +463,58 @@ void trie_level_travel(TrieNode* trie) {
     }
 }
 
+std::string insert_spaces(const std::string& sentence, const std::vector<std::string>& dict) {
+    TrieNode* trie = create_trie(dict);
+    TrieNode* p = trie;
+
+    size_t i = 0;
+    size_t o = 0;
+    std::string res;
+    std::stack<std::tuple<size_t, size_t>> s;
+
+    while (i < sentence.size()) {
+        char c = sentence[i];
+
+        if (p->nexts[c]) {
+            res += c;
+            ++i;
+            ++o;
+            if (p->nexts[c]->end) {
+                s.emplace(std::make_tuple(i, o));
+            }
+
+            p = p->nexts[c];
+
+        } else {
+
+            p = trie;
+            if (p->nexts[c] == nullptr) {
+                if (s.empty()) {
+                    return "";
+                }
+
+                auto& tuple = s.top();
+                i = std::get<0>(tuple);
+                o = std::get<1>(tuple);
+                s.pop();
+
+                res.erase(o, res.size() - o);
+            }
+
+            res += ' ';
+            o = res.size();
+        }
+    }
+
+    return res;
+}
+
 FTEST(test_trie) {
-    TrieNode* trie = create_trie({"ab", "ac"});
-    trie_level_travel(trie);
+    LOG(INFO) << insert_spaces("abcdef", {"ab", "cd", "ef"});
+    LOG(INFO) << insert_spaces("abcdef", {"abc", "ab", "cd", "ef"});
+    LOG(INFO) << insert_spaces("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+    LOG(INFO) << insert_spaces("abcdef", {"abcde", "ab", "ef"});
+    LOG(INFO) << insert_spaces("abcdef", {"abcde", "ab", "cd", "ef"});
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
