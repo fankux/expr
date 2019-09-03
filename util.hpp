@@ -76,15 +76,19 @@ public:
         return *this;
     }
 
-//    inline LogStream& operator<<(size_t val) {
-//        _ss << val;
-//        return *this;
-//    }
-//
-//    inline LogStream& operator<<(ssize_t val) {
-//        _ss << val;
-//        return *this;
-//    }
+#ifdef __APPLE__
+
+    inline LogStream& operator<<(size_t val) {
+        _ss << val;
+        return *this;
+    }
+
+    inline LogStream& operator<<(ssize_t val) {
+        _ss << val;
+        return *this;
+    }
+
+#endif
 
     inline LogStream& operator<<(double val) {
         _ss << val;

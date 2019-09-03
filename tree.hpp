@@ -4,8 +4,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-class TreeNode {
-public:
+struct TreeNode {
     explicit TreeNode(int value) : v(value) {}
 
     TreeNode* p = nullptr;
@@ -35,7 +34,12 @@ TreeNode* create_tree(std::vector<TreeNode*>* nodes = nullptr) {
     TreeNode* n5 = new TreeNode(5);
 
     if (nodes != nullptr) {
-        nodes->emplace_back(n0, n1, n2, n3, n4, n5);
+        nodes->emplace_back(n0);
+        nodes->emplace_back(n1);
+        nodes->emplace_back(n2);
+        nodes->emplace_back(n3);
+        nodes->emplace_back(n4);
+        nodes->emplace_back(n5);
     }
 
     n0->l = n1;
@@ -380,21 +384,83 @@ FTEST(test_tree_height) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 int max_sum_path(TreeNode* p, int& sum, std::vector<std::vector<TreeNode*>>& path) {
+    // TODO...
     if (p == nullptr) {
         return 0;
     }
     int left = std::max(max_sum_path(p->l, sum, path), 0);
     int right = std::max(max_sum_path(p->r, sum, path), 0);
 
-    int sum_in = left+right+p->v;
+    int sum_in = left + right + p->v;
     if (sum_in >= sum) {
-        path.emplace_back(p);
+        path.emplace_back(std::vector<TreeNode*>{p});
         sum = sum_in;
     } else {
 
     }
 
     return std::max(left, right) + p->v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct TrieNode {
+    explicit TrieNode(char value) : v(value) {
+        for (auto& next : nexts) {
+            next = nullptr;
+        }
+    }
+
+    TrieNode* nexts[128]{nullptr};
+    char v = 0;
+    bool end = false;
+};
+
+TrieNode* create_trie(const std::vector<std::string>& dict) {
+    TrieNode* root = new TrieNode('\0');
+
+    for (auto& word : dict) {
+        TrieNode* p = root;
+        for (char c : word) {
+            if (p->nexts[c] != nullptr) {
+                p = p->nexts[c];
+            } else {
+                p->nexts[c] = new TrieNode(c);
+            }
+        }
+        p->end = true;
+    }
+
+    return root;
+}
+
+void trie_level_travel(TrieNode* trie) {
+    std::stringstream ss;
+
+    std::deque<TrieNode*> q;
+    q.emplace_back(trie);
+
+    while (!q.empty()) {
+        for (size_t i = q.size(); i > 0; --i) {
+            trie = q.front();
+            q.pop_front();
+
+            ss << trie->v << " ";
+
+            for (auto& next : trie->nexts) {
+                if (next != nullptr) {
+                    q.emplace_back(next);
+                }
+            }
+        }
+        LOG(INFO) << ss.str();
+        ss.str("");
+    }
+}
+
+FTEST(test_trie) {
+    TrieNode* trie = create_trie({"ab", "ac"});
+    trie_level_travel(trie);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1394,7 +1394,8 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_four_sum();
+//    test_four_sum();
+    test_trie();
 
     return 0;
 }
