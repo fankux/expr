@@ -61,6 +61,23 @@ TreeNode* create_tree(std::vector<TreeNode*>* nodes = nullptr) {
     return n0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+int tree_height(TreeNode* n) {
+    if (n == nullptr) {
+        return 0;
+    }
+
+    return std::max(tree_height(n->l), tree_height(n->r)) + 1;
+}
+
+FTEST(test_tree_height) {
+    TreeNode* root = create_tree();
+    LOG(INFO) << "tree height: " << tree_height(root);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void preorder_stack_travel(TreeNode* n) {
     std::vector<TreeNode*> stack;
 
@@ -276,30 +293,87 @@ void postorder_morris_travel(TreeNode* n) {
     }
 }
 
+void levelorder_recursive_travel_handle(TreeNode* n, int level, std::stringstream& ss) {
+    if (n == nullptr || level < 1) {
+        return;
+    }
+
+    if (level == 1) {
+        ss << n->v << " ";
+        return;
+    }
+    levelorder_recursive_travel_handle(n->l, level - 1, ss);
+    levelorder_recursive_travel_handle(n->r, level - 1, ss);
+}
+
+void levelorder_recursive_travel(TreeNode* n) {
+    std::stringstream ss;
+    int height = tree_height(n);
+
+    for (int i = 1; i <= height; ++i) {
+        levelorder_recursive_travel_handle(n, i, ss);
+    }
+    LOG(INFO) << ss.str();
+}
+
+void levelorder_stack_travel(TreeNode* n) {
+    if (n == nullptr) {
+        return;
+    }
+
+    std::stringstream ss;
+    std::deque<TreeNode*> q;
+    q.emplace_back(n);
+
+    while (!q.empty()) {
+        for (size_t i = q.size(); i > 0; --i) {
+            TreeNode* p = q.front();
+            q.pop_front();
+
+            ss << p->v << " ";
+
+            if (p->l) {
+                q.emplace_back(p->l);
+            }
+            if (p->r) {
+                q.emplace_back(p->r);
+            }
+        }
+    }
+
+    LOG(INFO) << ss.str();
+}
+
 FTEST(test_binary_tree_travel) {
     TreeNode* root = create_tree();
-    LOG(INFO) << "recursive:";
-    preorder_recursive_travel(root);
-    LOG(INFO);
-    inorder_recursive_travel(root);
-    LOG(INFO);
-    postorder_recursive_travel(root);
-    LOG(INFO);
+//    LOG(INFO) << "recursive:";
+//    preorder_recursive_travel(root);
+//    LOG(INFO);
+//    inorder_recursive_travel(root);
+//    LOG(INFO);
+//    postorder_recursive_travel(root);
+//    LOG(INFO);
+//
+//    LOG(INFO) << "\nstack:";
+//    preorder_stack_travel(root);
+//    LOG(INFO);
+//    inorder_stack_travel(root);
+//    LOG(INFO);
+//    postorder_stack_travel(root);
+//    LOG(INFO);
+//
+//    LOG(INFO) << "\nmorris:";
+//    preorder_morris_travel(root);
+//    LOG(INFO);
+//    inorder_morris_travel(root);
+//    LOG(INFO);
+//    postorder_stack_travel(root);
+//    LOG(INFO);
 
-    LOG(INFO) << "\nstack:";
-    preorder_stack_travel(root);
+    LOG(INFO) << "level:";
+    levelorder_stack_travel(root);
     LOG(INFO);
-    inorder_stack_travel(root);
-    LOG(INFO);
-    postorder_stack_travel(root);
-    LOG(INFO);
-
-    LOG(INFO) << "\nmorris:";
-    preorder_morris_travel(root);
-    LOG(INFO);
-    inorder_morris_travel(root);
-    LOG(INFO);
-    postorder_stack_travel(root);
+    levelorder_recursive_travel(root);
     LOG(INFO);
 }
 
@@ -365,21 +439,6 @@ FTEST(test_next_node_of_inorder_travel) {
     } else {
         LOG(INFO) << "no next";
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-int tree_height(TreeNode* n) {
-    if (n == nullptr) {
-        return 0;
-    }
-
-    return std::max(tree_height(n->l), tree_height(n->r)) + 1;
-}
-
-FTEST(test_tree_height) {
-    TreeNode* root = create_tree();
-    LOG(INFO) << "tree height: " << tree_height(root);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -464,6 +523,10 @@ void trie_level_travel(TrieNode* trie) {
 }
 
 std::string insert_spaces(const std::string& sentence, const std::vector<std::string>& dict) {
+    if (sentence.empty()) {
+        return "";
+    }
+
     TrieNode* trie = create_trie(dict);
     TrieNode* p = trie;
 
