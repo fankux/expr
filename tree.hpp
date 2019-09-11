@@ -1,6 +1,5 @@
 #pragma once
 
-#include<sys/ioctl.h>
 #include <stack>
 #include "util.hpp"
 
@@ -67,9 +66,7 @@ void print_tree(TreeNode* n) {
         return;
     }
 
-    struct winsize w;
-    w.ws_col = 50;
-//    ioctl(0, TIOCGWINSZ, &w);
+    int ws_col = 50;
 
     std::stringstream ss;
     std::deque<TreeNode*> q;
@@ -82,7 +79,7 @@ void print_tree(TreeNode* n) {
             q.pop_front();
 
             int value_len = p == nullptr ? 4 : std::to_string(p->v).size();
-            int remain_len = w.ws_col - value_len;
+            int remain_len = ws_col - value_len;
             int space_len = remain_len / 2;
             for (int k = 0; k < space_len; ++k) {
                 ss << " ";
@@ -113,7 +110,7 @@ void print_tree(TreeNode* n) {
                 break;
             }
         }
-        w.ws_col /= 2;
+        ws_col /= 2;
     }
 
     LOG(INFO) << "tree:\n" << ss.str();
@@ -630,7 +627,8 @@ void trie_level_travel(TrieNode* trie) {
     }
 }
 
-std::string insert_spaces(const std::string& sentence, const std::vector<std::string>& dict) {
+// TODO... All possible sentances
+std::string word_break(const std::string& sentence, const std::vector<std::string>& dict) {
     if (sentence.empty()) {
         return "";
     }
@@ -681,11 +679,11 @@ std::string insert_spaces(const std::string& sentence, const std::vector<std::st
 }
 
 FTEST(test_trie) {
-    LOG(INFO) << insert_spaces("abcdef", {"ab", "cd", "ef"});
-    LOG(INFO) << insert_spaces("abcdef", {"abc", "ab", "cd", "ef"});
-    LOG(INFO) << insert_spaces("abcdef", {"abc", "ab", "cde", "cd", "ef"});
-    LOG(INFO) << insert_spaces("abcdef", {"abcde", "ab", "ef"});
-    LOG(INFO) << insert_spaces("abcdef", {"abcde", "ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "cd", "ef"});
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
