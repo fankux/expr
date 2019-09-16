@@ -628,79 +628,118 @@ void trie_level_travel(TrieNode* trie) {
 }
 
 std::vector<std::string>
-wordBreak(const std::string& s, const std::vector<std::string>& wordDict) {
+word_break_trie(const std::string& s, const std::vector<std::string>& wordDict) {
     std::vector<std::string> ress;
     if (s.empty()) {
         return ress;
     }
+    size_t len = s.size();
+    std::vector<std::vector<size_t>> st(len);
+
+    std::function<void(size_t, std::vector<size_t>&)> bt;
+    bt = [&s, &ress, &st, &bt](size_t start, std::vector<size_t>& starts) {
+        if (start == s.size()) {
+            std::string entry;
+            for (int i = 1, n = starts.size(); i < n; ++i) {
+                if (i > 1) {
+                    entry += ' ';
+                }
+                entry += s.substr(starts[i - 1], starts[i] - starts[i - 1]);
+            }
+            ress.push_back(entry);
+            return;
+        }
+
+        for (auto& next : st[start]) {
+            starts.push_back(next);
+            bt(next, starts);
+            starts.pop_back();
+        }
+    };
 
     TrieNode* trie = create_trie(wordDict);
-    TrieNode* p = trie;
-    std::stack<std::tuple<size_t, size_t>> st;
+    TrieNode* p;
 
-    std::string res;
-    res.reserve(s.size() * 2);
-    size_t i = 0;
-    size_t o = 0;
-    bool go = true;
-
-    // [INFO] 7182728, cost: 15090011
-
-    while (go) {
-        char c;
-        size_t len = 0;
-        while (i < s.size() && p->nexts[s[i]]) {
-            c = s[i++];
-            res += c;
-            ++o;
-            ++len;
-            if (p->nexts[c]->end) {
-                st.emplace(std::make_tuple(i, o));
+    for (int i = len - 1; i >= 0; --i) {
+        p = trie;
+        size_t pos = i;
+        while (pos < len && p) {
+            TrieNode* n = p->nexts[s[pos]];
+            ++pos;
+            if (n && n->end &&
+                    (pos == len || !st[pos].empty())) { // pos here connect to next word or end
+                st[i].emplace_back(pos);
             }
-
-            p = p->nexts[c];
-        }
-
-        if (i >= s.size() && p->end) {
-            ress.emplace_back(res);
-            st.pop();
-        }
-
-        go = !st.empty();
-        if (go) { // continue to find other result
-            auto& tuple = st.top();
-            i = std::get<0>(tuple);
-            o = std::get<1>(tuple);
-            res.erase(o, res.size() - o);
-
-            res += ' ';
-            o = res.size();
-            st.pop();
-            p = trie;
+            p = n;
         }
     }
 
+    std::vector<size_t> starts{0};
+    bt(0, starts);
     return ress;
+}
+
+std::vector<std::string>
+word_break_hashmap(const std::string& s, const std::vector<std::string>& wordDict) {
+    std::vector<std::string> ans;
+
+    std::function<void(const std::string&, std::vector<std::vector<int>>&, int, std::string)> bt;
+    bt = [&ans, &bt](const std::string& s, std::vector<std::vector<int>>& res, int k,
+            std::string cur) {
+        if (k == 0) {
+            ans.push_back(cur);
+            ans.back().pop_back();
+            return;
+        }
+        for (int id: res[k]) {
+            bt(s, res, id, s.substr(id, k - id) + " " + cur);
+        }
+    };
+
+    std::unordered_set<std::string> dict(wordDict.begin(), wordDict.end());
+    int n = s.size();
+    std::vector<bool> dp(n + 1, false);
+    std::vector<std::vector<int>> res(n + 1);
+    dp[0] = true;
+    for (int i = 1; i < n + 1; i++) {
+        bool ok = false;
+        for (int j = 1; j <= i; j++) {
+            if (dp[j - 1] && dict.count(s.substr(j - 1, i - j + 1))) {
+                ok = true;
+                res[i].push_back(j - 1);
+            }
+        }
+        dp[i] = ok;
+    }
+    bt(s, res, n, "");
+    return ans;
+}
+
+std::vector<std::string>
+word_break(const std::string& s, const std::vector<std::string>& wordDict) {
+//    return word_break_hashmap(s, wordDict);
+    return word_break_trie(s, wordDict);
 }
 
 FTEST(test_trie) {
 
-//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "ef"});
-//    LOG(INFO) << wordBreak("abcdef", {"abcde", "fg"});
-//    LOG(INFO) << wordBreak("abcdef", {"ab", "cd", "ef"});
-//    LOG(INFO) << wordBreak("abcdef", {"abc", "ab", "cd", "ef"});
-//    LOG(INFO) << wordBreak("abcdef", {"abc", "ab", "cde", "cd", "ef"});
-//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "cd", "ef"});
-//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "abc", "cd", "ef", "d", "def"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "fg"});
+    LOG(INFO) << word_break("abcdef", {"ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "cd", "ef"});
+    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "abc", "cd", "ef", "d", "def"});
 
-//    LOG(INFO) << wordBreak("pineapplepenapple", {"apple", "pen", "applepen", "pine", "pineapple"});
-    // ["pineapple pen apple","pine applepen apple", "pine apple pen apple"]
+    LOG(INFO) << word_break("pineapplepenapple", {"apple", "pen", "applepen", "pine", "pineapple"});
 
     Timer timer;
-    LOG(INFO) << wordBreak("aaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"}).size() << ", cost: " << timer.elapsed();
+    auto res = word_break("aaaaaaaaaaaaaaaaaaaaaaaa",
+            {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"});
+    LOG(INFO) << res.size() << ", cost: " << timer.elapsed();
 
 //    timer.reset();
-//    LOG(INFO) << wordBreak("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"}).size() << "cost: " << timer.elapsed();
+//    LOG(INFO) << word_break("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"}).size() << "cost: " << timer.elapsed();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
