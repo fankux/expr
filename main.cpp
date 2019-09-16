@@ -1395,8 +1395,8 @@ int main() {
 //    }
 
 //    test_four_sum();
-//    test_trie();
-    test_binary_tree_travel();
+    test_trie();
+//    test_binary_tree_travel();
 
     return 0;
 }

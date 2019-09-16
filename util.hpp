@@ -11,6 +11,7 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <sys/time.h>
 
 static std::map<std::string, std::function<void()>> g_test_list;
 
@@ -205,6 +206,36 @@ private:
 
 #define LOG_INFO LogMessage<LogStream>(__LINE__, 1).stream()
 #define LOG(level)  LOG_##level
+
+class Timer {
+public:
+    Timer() {
+        reset();
+    }
+
+    inline void reset() {
+        struct timeval tm;
+        gettimeofday(&tm, nullptr);
+        _start_time = tm.tv_sec * 1000000 + tm.tv_usec;
+    }
+
+    inline uint64_t start_time() {
+        return _start_time;
+    }
+
+    static inline uint64_t now() {
+        struct timeval tm;
+        gettimeofday(&tm, nullptr);
+        return (tm.tv_sec * 1000000 + tm.tv_usec);
+    }
+
+    inline int64_t elapsed() {
+        return now() - _start_time;
+    }
+
+private:
+    uint64_t _start_time = 0;
+};
 
 FTEST(test_util) {
     LOG(INFO) << 9999;

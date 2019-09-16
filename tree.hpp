@@ -627,63 +627,80 @@ void trie_level_travel(TrieNode* trie) {
     }
 }
 
-// TODO... All possible sentances
-std::string word_break(const std::string& sentence, const std::vector<std::string>& dict) {
-    if (sentence.empty()) {
-        return "";
+std::vector<std::string>
+wordBreak(const std::string& s, const std::vector<std::string>& wordDict) {
+    std::vector<std::string> ress;
+    if (s.empty()) {
+        return ress;
     }
 
-    TrieNode* trie = create_trie(dict);
+    TrieNode* trie = create_trie(wordDict);
     TrieNode* p = trie;
+    std::stack<std::tuple<size_t, size_t>> st;
 
+    std::string res;
+    res.reserve(s.size() * 2);
     size_t i = 0;
     size_t o = 0;
-    std::string res;
-    std::stack<std::tuple<size_t, size_t>> s;
+    bool go = true;
 
-    while (i < sentence.size()) {
-        char c = sentence[i];
+    // [INFO] 7182728, cost: 15090011
 
-        if (p->nexts[c]) {
+    while (go) {
+        char c;
+        size_t len = 0;
+        while (i < s.size() && p->nexts[s[i]]) {
+            c = s[i++];
             res += c;
-            ++i;
             ++o;
+            ++len;
             if (p->nexts[c]->end) {
-                s.emplace(std::make_tuple(i, o));
+                st.emplace(std::make_tuple(i, o));
             }
 
             p = p->nexts[c];
+        }
 
-        } else {
+        if (i >= s.size() && p->end) {
+            ress.emplace_back(res);
+            st.pop();
+        }
 
-            p = trie;
-            if (p->nexts[c] == nullptr) {
-                if (s.empty()) {
-                    return "";
-                }
-
-                auto& tuple = s.top();
-                i = std::get<0>(tuple);
-                o = std::get<1>(tuple);
-                s.pop();
-
-                res.erase(o, res.size() - o);
-            }
+        go = !st.empty();
+        if (go) { // continue to find other result
+            auto& tuple = st.top();
+            i = std::get<0>(tuple);
+            o = std::get<1>(tuple);
+            res.erase(o, res.size() - o);
 
             res += ' ';
             o = res.size();
+            st.pop();
+            p = trie;
         }
     }
 
-    return res;
+    return ress;
 }
 
 FTEST(test_trie) {
-    LOG(INFO) << word_break("abcdef", {"ab", "cd", "ef"});
-    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cd", "ef"});
-    LOG(INFO) << word_break("abcdef", {"abc", "ab", "cde", "cd", "ef"});
-    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "ef"});
-    LOG(INFO) << word_break("abcdef", {"abcde", "ab", "cd", "ef"});
+
+//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "ef"});
+//    LOG(INFO) << wordBreak("abcdef", {"abcde", "fg"});
+//    LOG(INFO) << wordBreak("abcdef", {"ab", "cd", "ef"});
+//    LOG(INFO) << wordBreak("abcdef", {"abc", "ab", "cd", "ef"});
+//    LOG(INFO) << wordBreak("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "cd", "ef"});
+//    LOG(INFO) << wordBreak("abcdef", {"abcde", "ab", "abc", "cd", "ef", "d", "def"});
+
+//    LOG(INFO) << wordBreak("pineapplepenapple", {"apple", "pen", "applepen", "pine", "pineapple"});
+    // ["pineapple pen apple","pine applepen apple", "pine apple pen apple"]
+
+    Timer timer;
+    LOG(INFO) << wordBreak("aaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"}).size() << ", cost: " << timer.elapsed();
+
+//    timer.reset();
+//    LOG(INFO) << wordBreak("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"}).size() << "cost: " << timer.elapsed();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
