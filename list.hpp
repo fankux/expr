@@ -4,6 +4,14 @@
 #include <math.h>
 #include "util.hpp"
 
+struct LCListNode {
+    int val;
+    LCListNode* next;
+
+    explicit LCListNode(int x) : val(x), next(nullptr) {}
+
+};
+
 struct LinkNode {
     explicit LinkNode(int value) : v(value) {}
 
@@ -27,6 +35,30 @@ LinkNode* create_list(const std::vector<int>& nums) {
     return root;
 }
 
+LCListNode* list_convert_leetcode(LinkNode* p) {
+    if (p == nullptr) {
+        return nullptr;
+    }
+
+    LCListNode* head = nullptr;
+    LCListNode* prev = nullptr;
+    while (p) {
+        LCListNode* lc = new LCListNode(p->v);
+        if (head == nullptr) {
+            head = lc;
+            prev = lc;
+
+            p = p->next;
+            continue;
+        }
+
+        prev->next = lc;
+        prev = lc;
+        p = p->next;
+    }
+    return head;
+}
+
 void print_list(LinkNode* n) {
     if (n == nullptr) {
         LOG(INFO) << "NULL";
@@ -38,6 +70,27 @@ void print_list(LinkNode* n) {
         n = n->next;
     }
     LOG(INFO) << ss.str();
+}
+
+void print_list(LCListNode* n) {
+    if (n == nullptr) {
+        LOG(INFO) << "NULL";
+        return;
+    }
+    std::stringstream ss;
+    while (n) {
+        ss << n->val << ", ";
+        n = n->next;
+    }
+    LOG(INFO) << ss.str();
+}
+
+FTEST(test_list) {
+    LinkNode* l = create_list({1, 2, 3, 4, 5});
+    print_list(l);
+
+    LCListNode* lc = list_convert_leetcode(l);
+    print_list(lc);
 }
 
 LinkNode* reverse_list(LinkNode* n) {
@@ -62,7 +115,7 @@ LinkNode* reverse_list(LinkNode* n) {
     return pre;
 }
 
-void test_reverse_list() {
+FTEST(test_reverse_list) {
     LinkNode* root = create_list({});
     print_list(root);
     root = reverse_list(root);
@@ -152,7 +205,7 @@ FTEST(test_add_two_list) {
     print_list(res);
 
     l = create_list({9, 9, 5, 5});
-    r = create_list(   {7, 4, 5});
+    r = create_list({7, 4, 5});
     res = add_two_list(r, l);
     print_list(res);
 }

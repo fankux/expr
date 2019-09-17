@@ -143,6 +143,12 @@ public:
         return *this;
     }
 
+    template<typename K, typename V>
+    inline LogStream& operator<<(const std::pair<K, V>& t) {
+        *this << "<" << t.first << "," << t.second << ">";
+        return *this;
+    }
+
     template<typename T>
     void iter_list(const T& t) {
         *this << "[";

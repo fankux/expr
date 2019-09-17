@@ -278,7 +278,7 @@ std::vector<std::vector<int>> three_sum_closest(std::vector<int>& nums, int targ
 static void test_three_sum_closest_item(const std::vector<int>& nums, int target) {
     std::vector<int> nums_in = nums;
     LOG(INFO) << nums_in << " find: " << target << " closest result: "
-              << three_sum_closest(nums_in, target);
+            << three_sum_closest(nums_in, target);
 }
 
 FTEST(test_three_sum_closest) {
@@ -359,7 +359,7 @@ std::vector<std::vector<int>> three_sum_max_smaller(std::vector<int>& nums, int 
 static void test_three_sum_max_smaller_item(const std::vector<int>& nums, int target) {
     std::vector<int> nums_in = nums;
     LOG(INFO) << nums_in << " find: " << target << " smaller result: "
-              << three_sum_max_smaller(nums_in, target);
+            << three_sum_max_smaller(nums_in, target);
 }
 
 FTEST(test_three_sum_max_smaller) {
@@ -466,3 +466,87 @@ FTEST(test_four_sum) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+double median_of_two(const std::vector<int>& nums1, const std::vector<int>& nums2) {
+    std::function<int(size_t, size_t, size_t)> kth;
+    kth = [&kth, &nums1, &nums2](size_t i, size_t j, size_t k) {
+        if (i >= nums1.size()) {
+            return nums2[j + k - 1];
+        }
+        if (j >= nums2.size()) {
+            return nums1[i + k - 1];
+        }
+        if (k == 1) {
+            return std::min(nums1[i], nums2[j]);
+        }
+
+        // if exist the K th number
+        int mv1 = (i + k / 2 - 1 < nums1.size()) ? nums1[i + k / 2 - 1] : INT_MAX;
+        int mv2 = (j + k / 2 - 1 < nums2.size()) ? nums2[j + k / 2 - 1] : INT_MAX;
+        if (mv1 < mv2) {
+            return kth(i + k / 2, j, k - k / 2);
+        } else {
+            return kth(i, j + k / 2, k - k / 2);
+        }
+    };
+
+    size_t i = nums1.size();
+    size_t j = nums2.size();
+    size_t left = (i + j + 1) / 2;
+    size_t right = (i + j + 2) / 2;
+    return (kth(0, 0, left) + kth(0, 0, right)) / 2.0;
+}
+
+double median_of_two_iteration(const std::vector<int>& nums1, const std::vector<int>& nums2) {
+    int i = nums1.size();
+    int j = nums2.size();
+    if (i > j) {
+        return median_of_two_iteration(nums2, nums1);
+    }
+    size_t l = 0;
+    size_t h = 2 * i;
+    size_t c1;
+    size_t c2;
+    int l1 = 0;
+    int l2 = 0;
+    int r1 = 0;
+    int r2 = 0;
+    while (l <= h) {
+        c1 = (l + h) / 2;
+        c2 = i + j - c1;
+        l1 = (c1 == 0) ? INT_MIN : nums1[(c1 - 1) / 2];
+        r1 = (c1 == 2 * i) ? INT_MAX : nums1[c1 / 2];
+        l2 = (c2 == 0) ? INT_MIN : nums2[(c2 - 1) / 2];
+        r2 = (c2 == 2 * j) ? INT_MAX : nums2[c2 / 2];
+
+        if (l1 > r2) {
+            h = c1 - 1;
+        } else if (l2 > r1) {
+            l = c1 + 1;
+        } else {
+            break;
+        }
+    }
+    return (std::max(l1, l2) + std::min(r1, r2)) / 2.0;
+}
+
+FTEST(test_median_of_two) {
+    LOG(INFO) << "recursive: ";
+    LOG(INFO) << median_of_two({0}, {0});
+    LOG(INFO) << median_of_two({1}, {1});
+    LOG(INFO) << median_of_two({0}, {1});
+    LOG(INFO) << median_of_two({1, 3}, {2});
+    LOG(INFO) << median_of_two({1, 2}, {3, 4});
+    LOG(INFO) << median_of_two({1, 2}, {2, 4});
+    LOG(INFO) << median_of_two({4, 4}, {4, 4});
+
+    LOG(INFO);
+    LOG(INFO) << "iteration: ";
+    LOG(INFO) << median_of_two_iteration({0}, {0});
+    LOG(INFO) << median_of_two_iteration({1}, {1});
+    LOG(INFO) << median_of_two_iteration({0}, {1});
+    LOG(INFO) << median_of_two_iteration({1, 3}, {2});
+    LOG(INFO) << median_of_two_iteration({1, 2}, {3, 4});
+    LOG(INFO) << median_of_two_iteration({1, 2}, {2, 4});
+    LOG(INFO) << median_of_two_iteration({4, 4}, {4, 4});
+}
