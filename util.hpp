@@ -211,7 +211,7 @@ private:
 };
 
 #define LOG_INFO LogMessage<LogStream>(__LINE__, 1).stream()
-#define LOG(level)  LOG_##level
+#define LOG(level) LOG_##level
 
 class Timer {
 public:

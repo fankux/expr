@@ -738,8 +738,12 @@ FTEST(test_trie) {
             {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"});
     LOG(INFO) << res.size() << ", cost: " << timer.elapsed();
 
-//    timer.reset();
-//    LOG(INFO) << word_break("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"}).size() << "cost: " << timer.elapsed();
+    timer.reset();
+    res = word_break("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                     "aaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                     "aaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa",
+            "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"});
+    LOG(INFO) << res.size() << ", cost: " << timer.elapsed();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

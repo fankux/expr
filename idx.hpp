@@ -30,7 +30,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     for (size_t i = 0; i < nums.size(); ++i) {
         auto entry = cc.find(target - nums[i]);
         if (entry != cc.end() && i != entry->second) {
-            return {(int)(i), entry->second};
+            return {(int) (i), entry->second};
         }
     }
     return {};
@@ -58,10 +58,10 @@ ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
         ListNode* c = nullptr;
         if (l1) {
             c = l1;
-            l1->val += (l2 == nullptr ? 0 : l2->val) + (int)carry;
+            l1->val += (l2 == nullptr ? 0 : l2->val) + (int) carry;
         } else if (l2) {
             c = l2;
-            l2->val += (int)carry;
+            l2->val += (int) carry;
         }
         h = h != nullptr ? h : c;
 

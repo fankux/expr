@@ -872,7 +872,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_longest_palindrome();
+    test_median_of_two();
 
     return 0;
 }

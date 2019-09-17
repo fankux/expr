@@ -498,36 +498,37 @@ double median_of_two(const std::vector<int>& nums1, const std::vector<int>& nums
 }
 
 double median_of_two_iteration(const std::vector<int>& nums1, const std::vector<int>& nums2) {
-    int i = nums1.size();
-    int j = nums2.size();
-    if (i > j) {
+    size_t len1 = nums1.size();
+    size_t len2 = nums2.size();
+    if (len1 > len2) {
         return median_of_two_iteration(nums2, nums1);
     }
-    size_t l = 0;
-    size_t h = 2 * i;
-    size_t c1;
-    size_t c2;
-    int l1 = 0;
-    int l2 = 0;
-    int r1 = 0;
-    int r2 = 0;
-    while (l <= h) {
-        c1 = (l + h) / 2;
-        c2 = i + j - c1;
-        l1 = (c1 == 0) ? INT_MIN : nums1[(c1 - 1) / 2];
-        r1 = (c1 == 2 * i) ? INT_MAX : nums1[c1 / 2];
-        l2 = (c2 == 0) ? INT_MIN : nums2[(c2 - 1) / 2];
-        r2 = (c2 == 2 * j) ? INT_MAX : nums2[c2 / 2];
 
-        if (l1 > r2) {
+    int l = 0;
+    int h = len1;
+    while (l <= h) {
+        int c1 = (l + h) / 2;
+        int c2 = (len1 + len2 + 1) / 2 - c1;
+
+        int lmax1 = c1 == 0 ? INT_MIN : nums1[c1 - 1];
+        int rmin1 = c1 == len1 ? INT_MAX : nums1[c1];
+        int lmax2 = c2 == 0 ? INT_MIN : nums2[c2 - 1];
+        int rmin2 = c2 == len2 ? INT_MAX : nums2[c2];
+
+        if (lmax1 <= rmin2 && lmax2 <= rmin1) {
+            if ((len1 + len2) % 2 == 0) {
+                return ((double)std::max(lmax1, lmax2) + std::min(rmin1, rmin2)) / 2.0;
+            } else {
+                return std::max(lmax1, lmax2);
+            }
+        } else if (lmax1 > rmin2) {
             h = c1 - 1;
-        } else if (l2 > r1) {
-            l = c1 + 1;
         } else {
-            break;
+            l = c1 + 1;
         }
     }
-    return (std::max(l1, l2) + std::min(r1, r2)) / 2.0;
+
+    return 0.0;
 }
 
 FTEST(test_median_of_two) {
