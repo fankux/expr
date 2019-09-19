@@ -225,22 +225,278 @@ std::string convert(std::string s, int numRows) {
     return "";
 }
 
+/**
 ////////// 7
+ Given a 32-bit signed integer, reverse digits of an integer.
+
+ Example 1:
+ Input: 123
+ Output: 321
+
+ Example 2:
+ Input: -123
+ Output: -321
+
+ Example 3:
+ Input: 120
+ Output: 21
+ Note:
+ Assume we are dealing with an environment which could only store integers within the 32-bit
+ signed integer range: [−2^31,  2^31 − 1]. For the purpose of this problem,
+ assume that your function returns 0 when the reversed integer overflows.
+ */
 int reverse(int x) {
-    return 0;
+    int64_t res = x;
+    int len = 0;
+    do {
+        ++len;
+        res /= 10;
+    } while (res);
+
+    res = 0;
+    while (len > 0) {
+        res = res * 10 + x % 10;
+        x /= 10;
+        --len;
+    }
+
+    return (res > INT_MAX || res < INT_MIN) ? 0 : res;
 }
 
+FTEST(test_reverse) {
+    LOG(INFO) << "reverse: " << reverse(0);
+    LOG(INFO) << "reverse: " << reverse(1);
+    LOG(INFO) << "reverse: " << reverse(-1);
+    LOG(INFO) << "reverse: " << reverse(10);
+    LOG(INFO) << "reverse: " << reverse(-10);
+    LOG(INFO) << "reverse: " << reverse(123);
+    LOG(INFO) << "reverse: " << reverse(-123);
+    LOG(INFO) << "reverse: " << reverse(INT_MAX);
+    LOG(INFO) << "reverse: " << reverse(INT_MIN);
+    LOG(INFO) << "reverse: " << reverse(INT_MIN + 1);
+    LOG(INFO) << "reverse: " << reverse(INT_MAX - 1);
+}
+
+/**
 ////////// 8
+ Implement atoi which converts a string to an integer.
+ The function first discards as many whitespace characters as necessary until the first
+ non-whitespace character is found. Then, starting from this character,
+ takes an optional initial plus or minus sign followed by as many numerical digits as possible,
+ and interprets them as a numerical value.
+
+ The string can contain additional characters after those that form the integral number,
+ which are ignored and have no effect on the behavior of this function.
+
+ If the first sequence of non-whitespace characters in str is not a valid integral number,
+ or if no such sequence exists because either str is empty or it contains only whitespace
+ characters, no conversion is performed.
+
+ If no valid conversion could be performed, a zero value is returned.
+
+ Note:
+ Only the space character ' ' is considered as whitespace character.
+ Assume we are dealing with an environment which could only store integers within the 32-bit
+ signed integer range: [−2^31,  2^31 − 1]. If the numerical value is out of the range of
+ representable values, INT_MAX (2^31 − 1) or INT_MIN (−2^31) is returned.
+
+ Example 1:
+ Input: "42"
+ Output: 42
+
+ Example 2:
+ Input: "   -42"
+ Output: -42
+ Explanation: The first non-whitespace character is '-', which is the minus sign.
+             Then take as many numerical digits as possible, which gets 42.
+
+ Example 3:
+ Input: "4193 with words"
+ Output: 4193
+ Explanation: Conversion stops at digit '3' as the next character is not a numerical digit.
+
+ Example 4:
+ Input: "words and 987"
+ Output: 0
+ Explanation: The first non-whitespace character is 'w', which is not a numerical
+            digit or a +/- sign. Therefore no valid conversion could be performed.
+
+ Example 5:
+ Input: "-91283472332"
+ Output: -2147483648
+ Explanation: The number "-91283472332" is out of the range of a 32-bit signed integer.
+            Thefore INT_MIN (−2^31) is returned.
+ */
 int myAtoi(std::string str) {
-    return 0;
+    int64_t res = 0;
+    size_t len = str.size();
+    int state = 0;
+    int sign = 1;
+    for (size_t i = 0; i < len; ++i) {
+        if (res * sign > INT_MAX) {
+            return INT_MAX;
+        }
+        if (res * sign < INT_MIN) {
+            return INT_MIN;
+        }
+        char c = str[i];
+        if (state == 0) {
+            if (c == ' ') {
+                continue;
+            }
+            if (c >= '0' && c <= '9') {
+                res = res * 10 + c - '0';
+            } else if (c == '-' || c == '+') {
+                sign = (c == '-' ? -1 : 1);
+            } else {
+                return 0;
+            }
+
+            state = 1;
+            continue;
+        }
+
+        if (state == 1) {
+            if (c >= '0' && c <= '9') {
+                res = res * 10 + c - '0';
+            } else {
+                break;
+            }
+        }
+    }
+    res *= sign;
+    return (res > INT_MAX ? INT_MAX : (res < INT_MIN ? INT_MIN : res));
 }
 
+FTEST(test_myAtoi) {
+    LOG(INFO) << "INT_MIN:" << INT_MIN << ", INT_MAX:" << INT_MAX;
+    LOG(INFO) << "myAtoi: " << myAtoi("");
+    LOG(INFO) << "myAtoi: " << myAtoi("0");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 0");
+    LOG(INFO) << "myAtoi: " << myAtoi("1");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 1");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 1aaa");
+    LOG(INFO) << "myAtoi: " << myAtoi("-1  ");
+    LOG(INFO) << "myAtoi: " << myAtoi("123");
+    LOG(INFO) << "myAtoi: " << myAtoi("123bf1");
+    LOG(INFO) << "myAtoi: " << myAtoi("123 bf1");
+    LOG(INFO) << "myAtoi: " << myAtoi("-123");
+    LOG(INFO) << "myAtoi: " << myAtoi(" -123");
+    LOG(INFO) << "myAtoi: " << myAtoi(" -123gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" -2147483647 gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" -2147483648 gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" -2147483649 gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 2147483646 gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 2147483647 gf");
+    LOG(INFO) << "myAtoi: " << myAtoi(" 2147483648 gf");
+}
+
+/**
 ////////// 9
+ Determine whether an integer is a palindrome. An integer is a palindrome when it reads
+ the same backward as forward.
+
+ Example 1:
+ Input: 121
+ Output: true
+
+ Example 2:
+ Input: -121
+ Output: false
+ Explanation: From left to right, it reads -121. From right to left,
+            it becomes 121-. Therefore it is not a palindrome.
+
+ Example 3:
+ Input: 10
+ Output: false
+ Explanation: Reads 01 from right to left. Therefore it is not a palindrome.
+
+ Follow up:
+ Coud you solve it without converting the integer to a string?
+ */
 bool isPalindrome(int x) {
-    return false;
+    if (x < 0 || (x != 0 && x % 10 == 0)) {
+        return false;
+    }
+
+    int n = x;
+    int h = 1;
+    while (n / 10) {
+        n /= 10;
+        h *= 10;
+    }
+
+    int l = 10;
+    while (l <= h) {
+        if (((x / h) % 10) != ((x % l) / (l / 10))) {
+            return false;
+        }
+        h /= 10;
+        l *= 10;
+    }
+    return true;
 }
 
+FTEST(test_isPalindrome) {
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(0);
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(1);
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(10);
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(100);
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(12);
+//    LOG(INFO) << "isPalindrome: " << isPalindrome(121);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(1000021);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(1200021);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(120021);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(1000030001);
+}
+
+/**
 ////////// 10
+ Given an input string (s) and a pattern (p), implement regular expression matching
+ with support for '.' and '*'.
+
+ '.' Matches any single character.
+ '*' Matches zero or more of the preceding element.
+ The matching should cover the entire input string (not partial).
+
+ Note:
+ s could be empty and contains only lowercase letters a-z.
+ p could be empty and contains only lowercase letters a-z, and characters like . or *.
+
+ Example 1:
+ Input:
+ s = "aa"
+ p = "a"
+ Output: false
+ Explanation: "a" does not match the entire string "aa".
+
+ Example 2:
+ Input:
+ s = "aa"
+ p = "a*"
+ Output: true
+ Explanation: '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes "aa".
+
+ Example 3:
+ Input:
+ s = "ab"
+ p = ".*"
+ Output: true
+ Explanation: ".*" means "zero or more (*) of any character (.)".
+
+ Example 4:
+ Input:
+ s = "aab"
+ p = "c*a*b"
+ Output: true
+ Explanation: c can be repeated 0 times, a can be repeated 1 time. Therefore, it matches "aab".
+
+ Example 5:
+ Input:
+ s = "mississippi"
+ p = "mis*is*p*."
+ Output: false
+ */
 bool isMatch(std::string s, std::string p) {
     return false;
 }
