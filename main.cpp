@@ -872,7 +872,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_isPalindrome();
+    test_isMatch();
 
     return 0;
 }

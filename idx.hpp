@@ -498,5 +498,128 @@ FTEST(test_isPalindrome) {
  Output: false
  */
 bool isMatch(std::string s, std::string p) {
-    return false;
+
+    std::stack<size_t> back_s;
+
+    char last = '\0';
+    size_t i = 0;
+    size_t j = 0;
+    for (; i < s.size() && j < p.size(); ++i) {
+        char c = p[j];
+        if (s[i] == c) {
+            last = c;
+            ++j;
+            continue;
+        }
+        // must be not equal from here
+
+        if (c == '.') { // just skip current
+            last = '.';
+            ++j;
+            continue;
+        }
+
+        if (c == '*') {
+            if (last == '*') {
+                return false;
+            }
+            if (i == 0) {
+                ++j;
+                continue;
+            }
+            size_t k = 0;
+            while (i + k < s.size() && (last == '.' || last == s[k])) {
+                ++k;
+            }
+            if (i + k >= s.size() && j == p.size() - 1) {
+                return true;
+            }
+
+            // back trace from 0 to k
+            back_s.push(i - 2);
+            for (size_t l = 0; l < k; ++l) {
+                back_s.push(i + l - 1);
+            }
+            i = back_s.top();
+            back_s.pop();
+
+            last = s[i];
+            ++j;
+            continue;
+        }
+
+        if (!back_s.empty()) {
+            i = back_s.top() - 1;
+            back_s.pop();
+        }
+
+        return false;
+    }
+
+    if (i < s.size()) {
+        return false;
+    }
+    while (j < p.size()) {
+        if (p[j++] != '*' || last != '.') {
+            return false;
+        }
+    }
+    return true;
+}
+
+FTEST(test_isMatch) {
+    auto t = [](const std::string& s, const std::string& p) {
+        LOG(INFO) << s << "->" << p << ": " << isMatch(s, p);
+    };
+
+    t("", "");              // T
+    t("", "*");             // F
+    t("", "***");           // F
+    t("", ".");             // F
+    t("", "..");            // F
+    t("", "..*");           // F
+    t("", ".*");            // T
+    t("a", "*");            // F
+    t("aaa", "*");          // F
+    t("aaa", "***");        // F
+    t("aaa", ".");          // F
+    t("aaa", "..");         // F
+    t("aaa", "...");        // T
+
+    t("aaa", ".*");         // T
+    t("aaa", "..*");        // T
+    t("aaa", ".*.");        // T
+    t("aaa", ".*..");       // T
+    t("aaa", "..*.");       // T
+    t("aaa", "...*");       // T
+
+    t("abc", ".*");         // F
+    t("abc", "..*");        // F
+    t("abc", ".*.");        // F
+    t("abc", ".*..");       // T
+    t("abc", "..*.");       // T
+    t("abc", "...*");       // T
+
+    t("aab", ".*");         // F
+    t("aab", "..*");        // F
+    t("aab", ".*.");        // T
+    t("aab", ".*..");       // T
+    t("aab", "..*.");       // T
+    t("aab", "...*");       // T
+
+    t("abb", ".*");         // F
+    t("abb", "..*");        // T
+    t("abb", ".*.");        // F
+    t("abb", ".*..");       // T
+    t("abb", "..*.");       // T
+    t("abb", "...*");       // T
+
+    t("abbc", "ab*c");      // T
+    t("abbc", "ab*bc");     // T
+    t("abbc", "ab*bbc");    // T
+
+    t("abbcd", "ab*cd");      // T
+    t("abbcd", "ab*bcd");     // T
+    t("abbcd", "ab*bbca");    // T
+    t("abbcd", "ab*bcd");       // T
 }
