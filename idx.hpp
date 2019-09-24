@@ -30,7 +30,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     for (size_t i = 0; i < nums.size(); ++i) {
         auto entry = cc.find(target - nums[i]);
         if (entry != cc.end() && i != entry->second) {
-            return {(int) (i), entry->second};
+            return {(int)(i), entry->second};
         }
     }
     return {};
@@ -58,10 +58,10 @@ ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
         ListNode* c = nullptr;
         if (l1) {
             c = l1;
-            l1->val += (l2 == nullptr ? 0 : l2->val) + (int) carry;
+            l1->val += (l2 == nullptr ? 0 : l2->val) + (int)carry;
         } else if (l2) {
             c = l2;
-            l2->val += (int) carry;
+            l2->val += (int)carry;
         }
         h = h != nullptr ? h : c;
 
@@ -497,129 +497,90 @@ FTEST(test_isPalindrome) {
  p = "mis*is*p*."
  Output: false
  */
+
+// TODO... backtracking method
 bool isMatch(std::string s, std::string p) {
+    size_t slen = s.size();
+    size_t plen = p.size();
+    std::vector<std::vector<bool>> dp(slen + 1, std::vector<bool>(plen + 1, false));
 
-    std::stack<size_t> back_s;
-
-    char last = '\0';
-    size_t i = 0;
-    size_t j = 0;
-    for (; i < s.size() && j < p.size(); ++i) {
-        char c = p[j];
-        if (s[i] == c) {
-            last = c;
-            ++j;
-            continue;
+    dp[0][0] = true;
+    for (size_t i = 1; i <= plen; ++i) {
+        if (i >= 2 && p[i - 1] == '*') {
+            dp[0][i] = dp[0][i - 2];
         }
-        // must be not equal from here
-
-        if (c == '.') { // just skip current
-            last = '.';
-            ++j;
-            continue;
-        }
-
-        if (c == '*') {
-            if (last == '*') {
-                return false;
-            }
-            if (i == 0) {
-                ++j;
+    }
+    for (size_t i = 1; i <= slen; ++i) {
+        for (size_t j = 1; j <= plen; ++j) {
+            if (s[i - 1] == p[j - 1] || p[j - 1] == '.') {
+                dp[i][j] = dp[i - 1][j - 1];
                 continue;
             }
-            size_t k = 0;
-            while (i + k < s.size() && (last == '.' || last == s[k])) {
-                ++k;
+            if (p[j - 1] == '*' && j >= 2) {
+                dp[i][j] = dp[i][j - 2];
+                if (s[i - 1] == p[j - 2] || p[j - 2] == '.') {
+                    dp[i][j] = dp[i][j] | dp[i - 1][j];
+                }
             }
-            if (i + k >= s.size() && j == p.size() - 1) {
-                return true;
-            }
-
-            // back trace from 0 to k
-            back_s.push(i - 2);
-            for (size_t l = 0; l < k; ++l) {
-                back_s.push(i + l - 1);
-            }
-            i = back_s.top();
-            back_s.pop();
-
-            last = s[i];
-            ++j;
-            continue;
-        }
-
-        if (!back_s.empty()) {
-            i = back_s.top() - 1;
-            back_s.pop();
-        }
-
-        return false;
-    }
-
-    if (i < s.size()) {
-        return false;
-    }
-    while (j < p.size()) {
-        if (p[j++] != '*' || last != '.') {
-            return false;
         }
     }
-    return true;
+    return dp.back().back();
 }
 
 FTEST(test_isMatch) {
-    auto t = [](const std::string& s, const std::string& p) {
-        LOG(INFO) << s << "->" << p << ": " << isMatch(s, p);
-    };
+    #define t(s, p, expect) do {                                \
+        FEXP(isMatch(s, p), expect);                            \
+        LOG(INFO) << s << "->" << p << ": " << expect;          \
+    } while (0)
 
-    t("", "");              // T
-    t("", "*");             // F
-    t("", "***");           // F
-    t("", ".");             // F
-    t("", "..");            // F
-    t("", "..*");           // F
-    t("", ".*");            // T
-    t("a", "*");            // F
-    t("aaa", "*");          // F
-    t("aaa", "***");        // F
-    t("aaa", ".");          // F
-    t("aaa", "..");         // F
-    t("aaa", "...");        // T
+    t("", "", true);
+    t("", "*", false);
+    t("", "***", false);
+    t("", ".", false);
+    t("", "..", false);
+    t("", "..*", false);
+    t("", ".*", true);
+    t("a", "*", false);
+    t("aaa", "*", false);
+    t("aaa", "***", false);
+    t("aaa", ".", false);
+    t("aaa", "..", false);
+    t("aaa", "...", true);
 
-    t("aaa", ".*");         // T
-    t("aaa", "..*");        // T
-    t("aaa", ".*.");        // T
-    t("aaa", ".*..");       // T
-    t("aaa", "..*.");       // T
-    t("aaa", "...*");       // T
+    t("aaa", ".*", true);
+    t("aaa", "..*", true);
+    t("aaa", ".*.", true);
+    t("aaa", ".*..", true);
+    t("aaa", "..*.", true);
+    t("aaa", "...*", true);
 
-    t("abc", ".*");         // F
-    t("abc", "..*");        // F
-    t("abc", ".*.");        // F
-    t("abc", ".*..");       // T
-    t("abc", "..*.");       // T
-    t("abc", "...*");       // T
+    t("abc", ".*", true);
+    t("abc", "..*", true);
+    t("abc", ".*.", true);
+    t("abc", ".*..", true);
+    t("abc", "..*.", true);
+    t("abc", "...*", true);
 
-    t("aab", ".*");         // F
-    t("aab", "..*");        // F
-    t("aab", ".*.");        // T
-    t("aab", ".*..");       // T
-    t("aab", "..*.");       // T
-    t("aab", "...*");       // T
+    t("aab", ".*", true);
+    t("aab", "..*", true);
+    t("aab", ".*.", true);
+    t("aab", ".*..", true);
+    t("aab", "..*.", true);
+    t("aab", "...*", true);
 
-    t("abb", ".*");         // F
-    t("abb", "..*");        // T
-    t("abb", ".*.");        // F
-    t("abb", ".*..");       // T
-    t("abb", "..*.");       // T
-    t("abb", "...*");       // T
+    t("abb", ".*", true);
+    t("abb", "..*", true);
+    t("abb", ".*.", true);
+    t("abb", ".*..", true);
+    t("abb", "..*.", true);
+    t("abb", "...*", true);
 
-    t("abbc", "ab*c");      // T
-    t("abbc", "ab*bc");     // T
-    t("abbc", "ab*bbc");    // T
+    t("abbc", "ab*c", true);
+    t("abbc", "ab*bc", true);
+    t("abbc", "ab*bbc", true);
 
-    t("abbcd", "ab*cd");      // T
-    t("abbcd", "ab*bcd");     // T
-    t("abbcd", "ab*bbca");    // T
-    t("abbcd", "ab*bcd");       // T
+    t("abbcd", "ab*cd", true);
+    t("abbcd", "ab*bcd", true);
+    t("abbcd", "ab*bbca", false);
+    t("abbcd", "ab*bcd", true);
 }

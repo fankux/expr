@@ -26,15 +26,24 @@ public:                                             \
 static Test##name _test_clazz_##name(#name);        \
 void name()
 
+#define FEXP(cond, expect) do {                     \
+auto c = cond;                                      \
+if (c != (expect)) {                                \
+    LOG(FATAL) << "\nError Condition: "             \
+              << (#cond) << "\n Real: " << c        \
+              << "\n Expected: " << expect;         \
+    exit (-1);                                      \
+}} while (0)
+
 class LogStream {
 public:
-    explicit LogStream(int level) : _level(level) {
+    explicit LogStream(int level, const std::string& file, uint32_t line) : _level(level) {
         if (_level == 1) {
-            _level_str = "[INFO] ";
+            _level_str = "[INFO][" + file + ":" + std::to_string(line) + "]";
         } else if (_level == 2) {
-            _level_str = "[WARN] ";
+            _level_str = "[WARN][" + file + ":" + std::to_string(line) + "]";
         } else if (_level == 3) {
-            _level_str = "[FATAL] ";
+            _level_str = "[FATAL][" + file + ":" + std::to_string(line) + "]";
         }
     }
 
@@ -189,9 +198,9 @@ private:
 template<typename T>
 class LogMessage {
 public:
-    explicit LogMessage(int line, int level) {
+    explicit LogMessage(int level, const std::string& file, uint32_t line) {
         if (_stream == nullptr) {
-            _stream = new T(level);
+            _stream = new T(level, file, line);
         }
     }
 
@@ -210,7 +219,9 @@ private:
     int _level = 0;
 };
 
-#define LOG_INFO LogMessage<LogStream>(__LINE__, 1).stream()
+#define LOG_INFO LogMessage<LogStream>(1, __FILE__, __LINE__).stream()
+#define LOG_WARN LogMessage<LogStream>(2, __FILE__, __LINE__).stream()
+#define LOG_FATAL LogMessage<LogStream>(3, __FILE__, __LINE__).stream()
 #define LOG(level) LOG_##level
 
 class Timer {
