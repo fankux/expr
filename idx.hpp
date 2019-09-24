@@ -528,59 +528,59 @@ bool isMatch(std::string s, std::string p) {
 }
 
 FTEST(test_isMatch) {
-    #define t(s, p, expect) do {                                \
+    #define isMatcht(s, p, expect) do {                                \
         FEXP(isMatch(s, p), expect);                            \
         LOG(INFO) << s << "->" << p << ": " << expect;          \
     } while (0)
 
-    t("", "", true);
-    t("", "*", false);
-    t("", "***", false);
-    t("", ".", false);
-    t("", "..", false);
-    t("", "..*", false);
-    t("", ".*", true);
-    t("a", "*", false);
-    t("aaa", "*", false);
-    t("aaa", "***", false);
-    t("aaa", ".", false);
-    t("aaa", "..", false);
-    t("aaa", "...", true);
+    isMatcht("", "", true);
+    isMatcht("", "*", false);
+    isMatcht("", "***", false);
+    isMatcht("", ".", false);
+    isMatcht("", "..", false);
+    isMatcht("", "..*", false);
+    isMatcht("", ".*", true);
+    isMatcht("a", "*", false);
+    isMatcht("aaa", "*", false);
+    isMatcht("aaa", "***", false);
+    isMatcht("aaa", ".", false);
+    isMatcht("aaa", "..", false);
+    isMatcht("aaa", "...", true);
 
-    t("aaa", ".*", true);
-    t("aaa", "..*", true);
-    t("aaa", ".*.", true);
-    t("aaa", ".*..", true);
-    t("aaa", "..*.", true);
-    t("aaa", "...*", true);
+    isMatcht("aaa", ".*", true);
+    isMatcht("aaa", "..*", true);
+    isMatcht("aaa", ".*.", true);
+    isMatcht("aaa", ".*..", true);
+    isMatcht("aaa", "..*.", true);
+    isMatcht("aaa", "...*", true);
 
-    t("abc", ".*", true);
-    t("abc", "..*", true);
-    t("abc", ".*.", true);
-    t("abc", ".*..", true);
-    t("abc", "..*.", true);
-    t("abc", "...*", true);
+    isMatcht("abc", ".*", true);
+    isMatcht("abc", "..*", true);
+    isMatcht("abc", ".*.", true);
+    isMatcht("abc", ".*..", true);
+    isMatcht("abc", "..*.", true);
+    isMatcht("abc", "...*", true);
 
-    t("aab", ".*", true);
-    t("aab", "..*", true);
-    t("aab", ".*.", true);
-    t("aab", ".*..", true);
-    t("aab", "..*.", true);
-    t("aab", "...*", true);
+    isMatcht("aab", ".*", true);
+    isMatcht("aab", "..*", true);
+    isMatcht("aab", ".*.", true);
+    isMatcht("aab", ".*..", true);
+    isMatcht("aab", "..*.", true);
+    isMatcht("aab", "...*", true);
 
-    t("abb", ".*", true);
-    t("abb", "..*", true);
-    t("abb", ".*.", true);
-    t("abb", ".*..", true);
-    t("abb", "..*.", true);
-    t("abb", "...*", true);
+    isMatcht("abb", ".*", true);
+    isMatcht("abb", "..*", true);
+    isMatcht("abb", ".*.", true);
+    isMatcht("abb", ".*..", true);
+    isMatcht("abb", "..*.", true);
+    isMatcht("abb", "...*", true);
 
-    t("abbc", "ab*c", true);
-    t("abbc", "ab*bc", true);
-    t("abbc", "ab*bbc", true);
+    isMatcht("abbc", "ab*c", true);
+    isMatcht("abbc", "ab*bc", true);
+    isMatcht("abbc", "ab*bbc", true);
 
-    t("abbcd", "ab*cd", true);
-    t("abbcd", "ab*bcd", true);
-    t("abbcd", "ab*bbca", false);
-    t("abbcd", "ab*bcd", true);
+    isMatcht("abbcd", "ab*cd", true);
+    isMatcht("abbcd", "ab*bcd", true);
+    isMatcht("abbcd", "ab*bbca", false);
+    isMatcht("abbcd", "ab*bcd", true);
 }
