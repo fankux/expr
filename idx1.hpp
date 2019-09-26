@@ -97,11 +97,70 @@ FTEST(test_maxArea) {
  Explanation: M = 1000, CM = 900, XC = 90 and IV = 4.
  */
 std::string intToRoman(int num) {
-    std::string res;
+    std::unordered_map<int, std::string> mm{
+            {0, ""},
+            {1, "I"},
+            {2, "II"},
+            {3, "III"},
+            {4, "IV"},
+            {5, "V"},
+            {6, "VI"},
+            {7, "VII"},
+            {8, "VIII"},
+            {9, "IX"},
+            {10, "X"},
+            {20, "XX"},
+            {30, "XXX"},
+            {40, "XL"},
+            {50, "L"},
+            {60, "LX"},
+            {70, "LXX"},
+            {80, "LXXX"},
+            {90, "XC"},
+            {100, "C"},
+            {200, "CC"},
+            {300, "CCC"},
+            {400, "CD"},
+            {500, "D"},
+            {600, "DC"},
+            {700, "DCC"},
+            {800, "DCCC"},
+            {900, "CM"},
+            {1000, "M"},
+            {2000, "MM"},
+            {3000, "MMM"}
+    };
+    int a = num / 1000;
+    int b = (num % 1000) / 100;
+    int c = (num % 100) / 10;
+    int d = num % 10;
+    return mm[a * 1000] + mm[b * 100] + mm[c * 10] + mm[d];
+}
 
+FTEST(test_intToRoman) {
+    auto t = [](int num) {
+        std::string c = intToRoman(num);
+        LOG(INFO) << num << ": " << c;
+        return c;
+    };
 
-
-    return res;
+    FEXP(t(0), "");
+    FEXP(t(1), "I");
+    FEXP(t(2), "II");
+    FEXP(t(3), "III");
+    FEXP(t(4), "IV");
+    FEXP(t(5), "V");
+    FEXP(t(6), "VI");
+    FEXP(t(7), "VII");
+    FEXP(t(8), "VIII");
+    FEXP(t(9), "IX");
+    FEXP(t(10), "X");
+    FEXP(t(11), "XI");
+    FEXP(t(14), "XIV");
+    FEXP(t(15), "XV");
+    FEXP(t(58), "LVIII");
+    FEXP(t(1994), "MCMXCIV");
+    FEXP(t(3999), "MMMCMXCIX");
 }
 
 /**
@@ -154,7 +213,50 @@ std::string intToRoman(int num) {
  Explanation: M = 1000, CM = 900, XC = 90 and IV = 4.
  */
 int romanToInt(std::string s) {
-    return 0;
+    int mm[128];
+    mm['I'] = 1;
+    mm['V'] = 5;
+    mm['X'] = 10;
+    mm['L'] = 50;
+    mm['C'] = 100;
+    mm['D'] = 500;
+    mm['M'] = 1000;
+
+    int res = 0;
+    for (size_t i = 0; i < s.size(); ++i) {
+        if ((i < s.size() - 1 && mm[s[i]] >= mm[s[i + 1]]) || i == s.size() - 1) {
+            res += mm[s[i]];
+        } else {
+            res -= mm[s[i]];
+        }
+    }
+    return res;
+}
+
+FTEST(test_romanToInt) {
+    auto t = [](const std::string& s) {
+        int c = romanToInt(s);
+        LOG(INFO) << s << ": " << c;
+        return c;
+    };
+
+    FEXP(t(""), 0);
+    FEXP(t("I"), 1);
+    FEXP(t("II"), 2);
+    FEXP(t("III"), 3);
+    FEXP(t("IV"), 4);
+    FEXP(t("V"), 5);
+    FEXP(t("VI"), 6);
+    FEXP(t("VII"), 7);
+    FEXP(t("VIII"), 8);
+    FEXP(t("IX"), 9);
+    FEXP(t("X"), 10);
+    FEXP(t("XI"), 11);
+    FEXP(t("XIV"), 14);
+    FEXP(t("XV"), 15);
+    FEXP(t("LVIII"), 58);
+    FEXP(t("MCMXCIV"), 1994);
+    FEXP(t("MMMCMXCIX"), 3999);
 }
 
 /**
@@ -175,7 +277,37 @@ int romanToInt(std::string s) {
  All given inputs are in lowercase letters a-z.
  */
 std::string longestCommonPrefix(std::vector<std::string>& strs) {
-    return "";
+    if (strs.empty()) {
+        return "";
+    }
+
+    std::string res;
+    for (size_t i = 0;; i++) {
+        for (size_t j = 0; j < strs.size(); j++) {
+            if ((i >= strs[j].size()) || (j && strs[j][i] != strs[j - 1][i])) {
+                return res;
+            }
+        }
+        res += strs[0][i];
+    }
+    return res;
+}
+
+FTEST(test_longestCommonPrefix) {
+    auto t = [](const std::vector<std::string>& ss) {
+        std::vector<std::string> strs = ss;
+        std::string c = longestCommonPrefix(strs);
+        LOG(INFO) << ss << ": " << c;
+        return c;
+    };
+
+    FEXP(t({}), "");
+    FEXP(t({""}), "");
+    FEXP(t({"a"}), "a");
+    FEXP(t({"a", "b"}), "");
+    FEXP(t({"a", "a"}), "a");
+    FEXP(t({"abc", "abd"}), "ab");
+    FEXP(t({"flower", "flow", "flight"}), "fl");
 }
 
 /**
@@ -196,7 +328,71 @@ std::string longestCommonPrefix(std::vector<std::string>& strs) {
  ]
  */
 std::vector<std::vector<int>> threeSum(std::vector<int>& nums) {
-    return {};
+    if (nums.size() < 3) {
+        return {};
+    }
+    std::sort(nums.begin(), nums.end());
+    if (nums.front() > 0) {
+        return {};
+    }
+    std::vector<std::vector<int>> res;
+    for (size_t i = 0; i < nums.size() - 2; ++i) {
+        if (i > 0 && nums[i - 1] == nums[i]) {
+            continue;
+        }
+
+        int target_in = 0 - nums[i];
+        int l = i + 1;
+        int h = nums.size() - 1;
+        while (l < h) {
+            int sum = nums[l] + nums[h];
+            if (target_in == sum) {
+                res.emplace_back(std::vector<int>{nums[i], nums[l], nums[h]});
+                while (l < h && nums[l] == nums[l + 1]) {
+                    ++l;
+                }
+                while (l < h && nums[h] == nums[h - 1]) {
+                    --h;
+                }
+                ++l;
+                --h;
+            } else if (sum < target_in) {
+                ++l;
+            } else {
+                --h;
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_threeSum) {
+    auto t = [](const std::vector<int>& nums, int sum) {
+        std::vector<int> nums_in = nums;
+        LOG(INFO) << nums_in << " result: " << threeSum(nums_in);
+    };
+
+    t({1, 0, 2}, 0);
+    t({-1, -3, -5}, 0);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 0);
+    t({-1, 0, -1, 0, 1, 1}, 0);
+    t({-1, -1, 0, 0, 1, 1}, 0);
+    t({-1, 0, 1, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+
+    t({1, 0, 2}, 3);
+    t({-1, -3, -5}, -9);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 2);
+    t({-1, 0, -1, 0, 1, 1}, -2);
+    t({-1, -1, 0, 0, 1, 1}, 1);
+    t({-1, 0, 1, -1, 0, 1}, -1);
+    t({-3, 1, 2, -1, 0, 1}, 3);
+    t({-3, 1, 2, -1, 0, 1}, 4);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
 }
 
 /**
@@ -211,7 +407,71 @@ std::vector<std::vector<int>> threeSum(std::vector<int>& nums) {
  The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
  */
 int threeSumClosest(std::vector<int>& nums, int target) {
-    return 0;
+    int res = 0;
+    int min = INT_MAX;
+    std::sort(nums.begin(), nums.end());
+
+    for (size_t i = 0; i < nums.size() - 2; ++i) {
+        int target_in = target - nums[i];
+        int l = i + 1;
+        int h = nums.size() - 1;
+        while (l < h) {
+            bool dedup = false;
+            int sum = nums[l] + nums[h];
+            int delta = abs(target_in - sum);
+            if (delta <= min) {
+                min = delta;
+                res = sum + nums[i];
+                dedup = true;
+            }
+
+            if (sum < target_in) {
+                while (dedup && l < h && nums[l] == nums[l + 1]) {
+                    ++l;
+                }
+                ++l;
+            } else {
+                while (dedup && l < h && nums[h] == nums[h - 1]) {
+                    --h;
+                }
+                --h;
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_threeSumClosest) {
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nums_in = nums;
+        int c = threeSumClosest(nums_in, target);
+        LOG(INFO) << nums_in << " find: " << target << ", result: " << c;
+        return c;
+    };
+
+    FEXP(t({-1, 2, 1, -4}, 1), 2);
+
+    t({1, 0, 2}, 0);
+    t({-1, -3, -5}, 0);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 0);
+    t({-1, 0, -1, 0, 1, 1}, 0);
+    t({-1, -1, 0, 0, 1, 1}, 0);
+    t({-1, 0, 1, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+
+    t({1, 0, 2}, 3);
+    t({-1, -3, -5}, -9);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 2);
+    t({-1, 0, -1, 0, 1, 1}, -2);
+    t({-1, -1, 0, 0, 1, 1}, 1);
+    t({-1, 0, 1, -1, 0, 1}, -1);
+    t({-3, 1, 2, -1, 0, 1}, 3);
+    t({-3, 1, 2, -1, 0, 1}, 4);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
 }
 
 /**
@@ -252,7 +512,84 @@ std::vector<std::string> letterCombinations(std::string digits) {
  ]
  */
 std::vector<std::vector<int>> fourSum(std::vector<int>& nums, int target) {
-    return {};
+    if (nums.size() < 4) {
+        return {};
+    }
+    std::sort(nums.begin(), nums.end());
+    if (nums.front() > 0) {
+        return {};
+    }
+    std::vector<std::vector<int>> res;
+    for (size_t i = 0; i < nums.size() - 3; ++i) {
+        if (i > 0 && nums[i - 1] == nums[i]) {
+            continue;
+        }
+
+        for (size_t j = i + 1; j < nums.size() - 2; ++j) {
+            if (j > i + 1 && nums[j - 1] == nums[j]) {
+                continue;
+            }
+
+            int target_in = target - nums[i];
+            int l = j + 1;
+            int h = nums.size() - 1;
+            while (l < h) {
+                int sum = nums[l] + nums[h] + nums[j];
+                if (target_in == sum) {
+                    res.emplace_back(std::vector<int>{nums[i], nums[j], nums[l], nums[h]});
+                    while (l < h && nums[l] == nums[l + 1]) {
+                        ++l;
+                    }
+                    while (l < h && nums[h] == nums[h - 1]) {
+                        --h;
+                    }
+                    ++l;
+                    --h;
+                } else if (sum < target_in) {
+                    ++l;
+                } else {
+                    --h;
+                }
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_fourSum) {
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nums_in = nums;
+        auto c = fourSum(nums_in, target);
+        LOG(INFO) << nums_in << " find: " << target << " sum result: " << c;
+        return c;
+    };
+
+    t({1, 0, -1, 0, -2, 2}, 0);
+
+    t({1, 0, 2, -3}, 0);
+    t({-1, -3, -5, 0}, 0);
+    t({-1, 0, 1, 0}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 0);
+    t({-1, 0, -1, 0, 1, 1}, 0);
+    t({-1, -1, 0, 0, 1, 1}, 0);
+    t({-1, 0, 1, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -1);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 1);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 2);
+
+    t({1, 0, 2}, 3);
+    t({-1, -3, -5}, -9);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 3);
+    t({-1, 0, -1, 0, 1, 1}, -2);
+    t({-1, -1, 0, 0, 1, 1}, 1);
+    t({-1, 0, 1, -1, 0, 1}, -1);
+    t({-3, 1, 2, -1, 0, 1}, 3);
+    t({-3, 1, 2, -1, 0, 1}, 4);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
 }
 
 /**
@@ -304,5 +641,25 @@ ListNode* removeNthFromEnd(ListNode* head, int n) {
  Output: true
  */
 bool isValid(std::string s) {
-    return true;
+    if (s.size() <= 1) {
+        return s.empty();
+    }
+    std::map<char, char> pairs{
+            {')', '('},
+            {']', '['},
+            {'}', '{'}
+    };
+    std::stack<char> ss;
+    for (auto c : s) {
+        auto ee = pairs.find(c);
+        if (ee != pairs.end()) {
+            if (ss.empty() || ss.top() != ee->second) {
+                return false;
+            }
+            ss.pop();
+        } else {
+            ss.push(c);
+        }
+    }
+    return ss.empty();
 }

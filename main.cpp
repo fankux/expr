@@ -873,7 +873,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_maxArea();
+    test_fourSum();
 
     return 0;
 }

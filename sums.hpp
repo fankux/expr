@@ -199,33 +199,33 @@ std::vector<std::vector<int>> three_sum(std::vector<int>& nums, int target) {
     return res;
 }
 
-static void test_three_sum_item(const std::vector<int>& nums, int sum) {
-    std::vector<int> nums_in = nums;
-    LOG(INFO) << nums_in << " find: " << sum << " result: " << three_sum(nums_in, sum);
-}
-
 FTEST(test_three_sum) {
-    test_three_sum_item({1, 0, 2}, 0);
-    test_three_sum_item({-1, -3, -5}, 0);
-    test_three_sum_item({-1, 0, 1}, 0);
-    test_three_sum_item({-1, -1, 0, 1, 0, 1}, 0);
-    test_three_sum_item({-1, 0, -1, 0, 1, 1}, 0);
-    test_three_sum_item({-1, -1, 0, 0, 1, 1}, 0);
-    test_three_sum_item({-1, 0, 1, -1, 0, 1}, 0);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1}, 0);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+    auto t = [](const std::vector<int>& nums, int sum) {
+        std::vector<int> nums_in = nums;
+        LOG(INFO) << nums_in << " find: " << sum << " result: " << three_sum(nums_in, sum);
+    };
 
-    test_three_sum_item({1, 0, 2}, 3);
-    test_three_sum_item({-1, -3, -5}, -9);
-    test_three_sum_item({-1, 0, 1}, 0);
-    test_three_sum_item({-1, -1, 0, 1, 0, 1}, 2);
-    test_three_sum_item({-1, 0, -1, 0, 1, 1}, -2);
-    test_three_sum_item({-1, -1, 0, 0, 1, 1}, 1);
-    test_three_sum_item({-1, 0, 1, -1, 0, 1}, -1);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1}, 3);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1}, 4);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
-    test_three_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
+    t({1, 0, 2}, 0);
+    t({-1, -3, -5}, 0);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 0);
+    t({-1, 0, -1, 0, 1, 1}, 0);
+    t({-1, -1, 0, 0, 1, 1}, 0);
+    t({-1, 0, 1, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+
+    t({1, 0, 2}, 3);
+    t({-1, -3, -5}, -9);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 2);
+    t({-1, 0, -1, 0, 1, 1}, -2);
+    t({-1, -1, 0, 0, 1, 1}, 1);
+    t({-1, 0, 1, -1, 0, 1}, -1);
+    t({-3, 1, 2, -1, 0, 1}, 3);
+    t({-3, 1, 2, -1, 0, 1}, 4);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
 }
 
 std::vector<std::vector<int>> three_sum_closest(std::vector<int>& nums, int target) {
@@ -247,8 +247,8 @@ std::vector<std::vector<int>> three_sum_closest(std::vector<int>& nums, int targ
         size_t j = nums.size() - 1;
         while (i < j) {
             bool dedup_flag = false;
-            int sum_in = nums[i] + nums[j];
-            uint32_t abs = ::abs(target_in - sum_in);
+            int sum = nums[i] + nums[j];
+            uint32_t abs = ::abs(target_in - sum);
             if (abs <= min_abs) {
                 if (abs < min_abs) {
                     res.clear();
@@ -258,7 +258,7 @@ std::vector<std::vector<int>> three_sum_closest(std::vector<int>& nums, int targ
                 dedup_flag = true;
             }
 
-            if (sum_in < target_in) {
+            if (sum < target_in) {
                 while (dedup_flag && i < j && nums[i] == nums[i + 1]) {
                     ++i;
                 }
@@ -278,7 +278,7 @@ std::vector<std::vector<int>> three_sum_closest(std::vector<int>& nums, int targ
 static void test_three_sum_closest_item(const std::vector<int>& nums, int target) {
     std::vector<int> nums_in = nums;
     LOG(INFO) << nums_in << " find: " << target << " closest result: "
-            << three_sum_closest(nums_in, target);
+              << three_sum_closest(nums_in, target);
 }
 
 FTEST(test_three_sum_closest) {
@@ -359,7 +359,7 @@ std::vector<std::vector<int>> three_sum_max_smaller(std::vector<int>& nums, int 
 static void test_three_sum_max_smaller_item(const std::vector<int>& nums, int target) {
     std::vector<int> nums_in = nums;
     LOG(INFO) << nums_in << " find: " << target << " smaller result: "
-            << three_sum_max_smaller(nums_in, target);
+              << three_sum_max_smaller(nums_in, target);
 }
 
 FTEST(test_three_sum_max_smaller) {
@@ -433,36 +433,35 @@ std::vector<std::vector<int>> four_sum(std::vector<int>& nums, int target) {
     return res;
 }
 
-static void test_four_sum_item(const std::vector<int>& nums, int target) {
-    std::vector<int> nums_in = nums;
-    LOG(INFO) << nums_in << " find: " << target << " sum result: " << four_sum(nums_in, target);
-}
-
 FTEST(test_four_sum) {
-    test_four_sum_item({1, 0, 2, -3}, 0);
-    test_four_sum_item({-1, -3, -5, 0}, 0);
-    test_four_sum_item({-1, 0, 1, 0}, 0);
-    test_four_sum_item({-1, -1, 0, 1, 0, 1}, 0);
-    test_four_sum_item({-1, 0, -1, 0, 1, 1}, 0);
-    test_four_sum_item({-1, -1, 0, 0, 1, 1}, 0);
-    test_four_sum_item({-1, 0, 1, -1, 0, 1}, 0);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1}, 0);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, -1);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, 1);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, 2);
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nums_in = nums;
+        LOG(INFO) << nums_in << " find: " << target << " sum result: " << four_sum(nums_in, target);
+    };
+    t({1, 0, 2, -3}, 0);
+    t({-1, -3, -5, 0}, 0);
+    t({-1, 0, 1, 0}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 0);
+    t({-1, 0, -1, 0, 1, 1}, 0);
+    t({-1, -1, 0, 0, 1, 1}, 0);
+    t({-1, 0, 1, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 0);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -1);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 1);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, 2);
 
-    test_four_sum_item({1, 0, 2}, 3);
-    test_four_sum_item({-1, -3, -5}, -9);
-    test_four_sum_item({-1, 0, 1}, 0);
-    test_four_sum_item({-1, -1, 0, 1, 0, 1}, 3);
-    test_four_sum_item({-1, 0, -1, 0, 1, 1}, -2);
-    test_four_sum_item({-1, -1, 0, 0, 1, 1}, 1);
-    test_four_sum_item({-1, 0, 1, -1, 0, 1}, -1);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1}, 3);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1}, 4);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
-    test_four_sum_item({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
+    t({1, 0, 2}, 3);
+    t({-1, -3, -5}, -9);
+    t({-1, 0, 1}, 0);
+    t({-1, -1, 0, 1, 0, 1}, 3);
+    t({-1, 0, -1, 0, 1, 1}, -2);
+    t({-1, -1, 0, 0, 1, 1}, 1);
+    t({-1, 0, 1, -1, 0, 1}, -1);
+    t({-3, 1, 2, -1, 0, 1}, 3);
+    t({-3, 1, 2, -1, 0, 1}, 4);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -3);
+    t({-3, 1, 2, -1, 0, 1, 0, 0}, -4);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -517,7 +516,7 @@ double median_of_two_iteration(const std::vector<int>& nums1, const std::vector<
 
         if (lmax1 <= rmin2 && lmax2 <= rmin1) {
             if ((len1 + len2) % 2 == 0) {
-                return ((double)std::max(lmax1, lmax2) + std::min(rmin1, rmin2)) / 2.0;
+                return ((double) std::max(lmax1, lmax2) + std::min(rmin1, rmin2)) / 2.0;
             } else {
                 return std::max(lmax1, lmax2);
             }
