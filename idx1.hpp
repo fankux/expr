@@ -489,6 +489,12 @@ FTEST(test_threeSumClosest) {
  Although the above answer is in lexicographical order, your answer could be in any order you want.
  */
 std::vector<std::string> letterCombinations(std::string digits) {
+    std::vector<std::string> mm{"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+
+    for (char d : digits) {
+
+    }
+
     return {};
 }
 
@@ -607,7 +613,38 @@ FTEST(test_fourSum) {
  Could you do this in one pass?
  */
 ListNode* removeNthFromEnd(ListNode* head, int n) {
-    return nullptr;
+    ListNode* h = head;
+    std::stack<ListNode*> ss;
+    while (head) {
+        ss.push(head);
+        head = head->next;
+    }
+    ListNode* p = nullptr;
+    for (int i = 0; i < n; ++i) {
+        p = ss.top();
+        ss.pop();
+    }
+    if (ss.empty()) {
+        return p->next;
+    }
+    ss.top()->next = p->next;
+    return h;
+}
+
+FTEST(test_removeNthFromEnd) {
+    auto t = [](const std::vector<int>& nums, int n) {
+        ListNode* l = list_convert_leetcode(create_list(nums));
+        LOG(INFO) << "remove " << n << "th : ";
+        print_list(l);
+        print_list(removeNthFromEnd(l, n));
+    };
+
+    t({1}, 1);
+    t({1, 2, 3, 4, 5}, 1);
+    t({1, 2, 3, 4, 5}, 2);
+    t({1, 2, 3, 4, 5}, 3);
+    t({1, 2, 3, 4, 5}, 4);
+    t({1, 2, 3, 4, 5}, 5);
 }
 
 /**

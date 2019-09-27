@@ -873,7 +873,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_fourSum();
+    test_removeNthFromEnd();
 
     return 0;
 }
