@@ -490,12 +490,42 @@ FTEST(test_threeSumClosest) {
  */
 std::vector<std::string> letterCombinations(std::string digits) {
     std::vector<std::string> mm{"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+    std::vector<std::string> res;
 
-    for (char d : digits) {
-
+    if (digits.empty()) {
+        return {};
     }
 
-    return {};
+    std::function<void(const std::string&, std::string&, int)> r;
+    r = [&digits, &mm, &res, &r](const std::string& content, std::string& s, int level) {
+        if (level == digits.size()) {
+            res.emplace_back(s);
+            return;
+        }
+        const std::string& cs = mm[content[level] - '0'];
+        for (char c : cs) {
+            s += c;
+            r(content, s, level + 1);
+            s.pop_back();
+        }
+    };
+
+    std::string s;
+    r(digits, s, 0);
+    return res;
+}
+
+FTEST(test_letterCombinations) {
+    auto t = [](const std::string& digits) {
+        auto c = letterCombinations(digits);
+        LOG(INFO) << digits << ": " << c;
+        return c;
+    };
+
+    t("");
+    t("2");
+    t("23");
+    t("234");
 }
 
 /**

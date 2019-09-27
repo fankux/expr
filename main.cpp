@@ -873,7 +873,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_removeNthFromEnd();
+    test_letterCombinations();
 
     return 0;
 }
