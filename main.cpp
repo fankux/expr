@@ -864,6 +864,8 @@ void avl_tree() {}
 #include "strs.hpp"
 #include "idx.hpp"
 #include "idx1.hpp"
+#include "idx2.hpp"
+#include "idx3.hpp"
 
 int main() {
 
@@ -873,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_letterCombinations();
+    test_swapPairs();
 
     return 0;
 }
