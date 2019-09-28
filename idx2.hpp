@@ -27,7 +27,6 @@ ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
             p = l1;
             l1 = l1->next;
         }
-
         if (prev != nullptr) {
             prev->next = p;
         } else {
@@ -135,7 +134,44 @@ FTEST(test_generateParenthesis) {
  Output: 1->1->2->3->4->4->5->6
 */
 ListNode* mergeKLists(std::vector<ListNode*>& lists) {
-    return nullptr;
+    size_t len = lists.size();
+    while (len > 1) {
+        int m_upper = (len + 1) / 2;
+        int m_lower = len / 2;
+        for (size_t i = 0; i < m_lower; ++i) {
+            lists[i] = mergeTwoLists(lists[i], lists[i + m_upper]);
+        }
+        len = m_upper;
+    }
+    return lists.empty() ? nullptr : lists.front();
+}
+
+FTEST(test_mergeKLists) {
+    auto t = [](const std::vector<std::vector<int>>& num_lists) {
+        std::vector<ListNode*> lists;
+        for (auto& nums : num_lists) {
+            std::vector<int> n = nums;
+            std::sort(n.begin(), n.end());
+            lists.emplace_back(list_convert_leetcode(create_list(n)));
+        }
+        LOG(INFO) << "merge sorted lists: " << num_lists;
+        print_list(mergeKLists(lists));
+    };
+
+    t({{}});
+    t({{}, {}});
+    t({{0}});
+    t({{0}, {}});
+    t({{0}, {1}});
+    t({{0, 1}, {1, 2}});
+    t({{0}, {1}, {}});
+    t({{0, 5}, {1, 3}, {}});
+    t({{0}, {1}, {2}});
+    t({{0, 0}, {1, 1}, {2, 2}});
+    t({{0}, {1}, {1, 2}});
+    t({{0, 0}, {1, 2}, {1, 2, 3}});
+    t({{0}, {1, 2}, {1, 2, 3}});
+    t({{0, 5}, {1, 2, 7}, {1, 2, 3, 10}});
 }
 
 /**

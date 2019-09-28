@@ -875,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_swapPairs();
+    test_mergeKLists();
 
     return 0;
 }
