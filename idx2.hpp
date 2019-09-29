@@ -136,8 +136,8 @@ FTEST(test_generateParenthesis) {
 ListNode* mergeKLists(std::vector<ListNode*>& lists) {
     size_t len = lists.size();
     while (len > 1) {
-        int m_upper = (len + 1) / 2;
-        int m_lower = len / 2;
+        size_t m_upper = (len + 1) / 2;
+        size_t m_lower = len / 2;
         for (size_t i = 0; i < m_lower; ++i) {
             lists[i] = mergeTwoLists(lists[i], lists[i + m_upper]);
         }
@@ -238,7 +238,67 @@ FTEST(test_swapPairs) {
  You may not alter the values in the list's nodes, only nodes itself may be changed.
  */
 ListNode* reverseKGroup(ListNode* head, int k) {
-    return nullptr;
+    if (k <= 1) {
+        return head;
+    }
+    ListNode* h = nullptr;
+    ListNode* pre = nullptr;
+    while (head) {
+        ListNode* t = head;
+        ListNode* p = nullptr;
+        int i = 0;
+        while (head && i < k) {
+            ListNode* next = head->next;
+            head->next = p;
+            p = head;
+            head = next;
+            ++i;
+        }
+        if (i < k) {
+            t = reverseKGroup(p, i);
+            if (pre) {
+                pre->next = t;
+            }
+            return h ? h : t;
+        }
+        if (h == nullptr) {
+            h = p;
+        }
+        if (pre) {
+            pre->next = p;
+        }
+        pre = t;
+    }
+    return h;
+}
+
+FTEST(test_reverseKGroup) {
+    auto t = [](const std::vector<int>& nums, int k) {
+        ListNode* l1 = list_convert_leetcode(create_list(nums));
+        LOG(INFO) << "swap " << k << ": " << nums;
+        print_list(reverseKGroup(l1, k));
+    };
+
+//    t({}, 0);
+//    t({}, 1);
+//    t({}, 2);
+    t({1}, 0);
+    t({1}, 1);
+    t({1}, 2);
+    t({1, 2}, 0);
+    t({1, 2}, 1);
+    t({1, 2}, 2);
+    t({1, 2}, 3);
+
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 0);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 1);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 2);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 3);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 4);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 5);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 6);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 7);
+    t({1, 2, 3, 4, 5, 6, 7, 8}, 8);
 }
 
 /**
@@ -278,7 +338,49 @@ ListNode* reverseKGroup(ListNode* head, int k) {
  }
  */
 int removeDuplicates(std::vector<int>& nums) {
-    return 0;
+    bool swap = false;
+    size_t len = nums.size();
+    int start = 0;
+    for (int i = 1; start < len && i < len;) {
+        if (start == i) {
+            ++i;
+        } else if (nums[start] == nums[i]) {
+            while (i < len && nums[start] == nums[i]) {
+                ++i;
+            }
+            if (i < len) {
+                nums[start + 1] = nums[i];
+            }
+            swap = true;
+            ++start;
+        } else {
+            ++start;
+            ++i;
+        }
+    }
+    return swap ? start : len;
+}
+
+FTEST(test_removeDuplicates) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> n = nums;
+        int len = removeDuplicates(n);
+        std::stringstream ss;
+        for (int i = 0; i < len; ++i) {
+            ss << n[i] << ",";
+        }
+        LOG(INFO) << "remove duplicates: " << nums << ", result: " << ss.str();
+    };
+
+//    t({});
+    t({1});
+    t({1, 1});
+    t({1, 2});
+    t({1, 1, 2, 2});
+    t({1, 2, 3});
+    t({1, 1, 2, 2, 3, 3});
+    t({1, 1, 2, 2, 3, 3, 4});
+    t({1, 2, 3, 4, 5, 6, 7});
 }
 
 /**
@@ -319,7 +421,58 @@ int removeDuplicates(std::vector<int>& nums) {
  }
  */
 int removeElement(std::vector<int>& nums, int val) {
-    return 0;
+    int res = 0;
+    for (size_t i = 0; i < nums.size(); ++i) {
+        if (nums[i] != val) {
+            nums[res++] = nums[i];
+        }
+    }
+    return res;
+}
+
+FTEST(test_removeElement) {
+    auto t = [](const std::vector<int>& nums, int v) {
+        std::vector<int> n = nums;
+        int len = removeElement(n, v);
+        std::stringstream ss;
+        for (int i = 0; i < len; ++i) {
+            ss << n[i] << ",";
+        }
+        LOG(INFO) << "remove element " << v << " in: " << nums << ", result: " << ss.str();
+    };
+
+//    t({}, 0);
+//    t({1}, 1);
+//    t({1}, 2);
+//    t({1, 1}, 1);
+//    t({1, 1}, 2);
+    t({1, 2}, 1);
+    t({1, 2}, 2);
+    t({1, 2}, 3);
+    t({1, 1, 2, 2}, 1);
+    t({1, 1, 2, 2}, 2);
+    t({1, 1, 2, 2}, 3);
+    t({1, 2, 3}, 1);
+    t({1, 2, 3}, 2);
+    t({1, 2, 3}, 3);
+    t({1, 2, 3}, 4);
+    t({1, 1, 2, 2, 3, 3}, 1);
+    t({1, 1, 2, 2, 3, 3}, 2);
+    t({1, 1, 2, 2, 3, 3}, 3);
+    t({1, 1, 2, 2, 3, 3}, 4);
+    t({1, 1, 2, 2, 3, 3, 4}, 1);
+    t({1, 1, 2, 2, 3, 3, 4}, 2);
+    t({1, 1, 2, 2, 3, 3, 4}, 3);
+    t({1, 1, 2, 2, 3, 3, 4}, 4);
+    t({1, 1, 2, 2, 3, 3, 4}, 5);
+    t({1, 2, 3, 4, 5, 6, 7}, 1);
+    t({1, 2, 3, 4, 5, 6, 7}, 2);
+    t({1, 2, 3, 4, 5, 6, 7}, 3);
+    t({1, 2, 3, 4, 5, 6, 7}, 4);
+    t({1, 2, 3, 4, 5, 6, 7}, 5);
+    t({1, 2, 3, 4, 5, 6, 7}, 6);
+    t({1, 2, 3, 4, 5, 6, 7}, 7);
+    t({1, 2, 3, 4, 5, 6, 7}, 8);
 }
 
 /**

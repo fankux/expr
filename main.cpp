@@ -862,7 +862,7 @@ void avl_tree() {}
 #include "sums.hpp"
 #include "tree.hpp"
 #include "strs.hpp"
-#include "idx.hpp"
+#include "idx0.hpp"
 #include "idx1.hpp"
 #include "idx2.hpp"
 #include "idx3.hpp"
@@ -875,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_mergeKLists();
+    test_removeDuplicates();
 
     return 0;
 }

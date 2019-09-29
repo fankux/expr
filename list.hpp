@@ -94,20 +94,9 @@ FTEST(test_list) {
 }
 
 LinkNode* reverse_list(LinkNode* n) {
-    if (n == nullptr) {
-        return nullptr;
-    }
-    if (n->next == nullptr) {
-        return n;
-    }
-
-    LinkNode* pre = n;
-    n = n->next;
-    pre->next = nullptr;
-
+    LinkNode* pre = nullptr;
     while (n) {
         LinkNode* next = n->next;
-
         n->next = pre;
         pre = n;
         n = next;
@@ -116,35 +105,18 @@ LinkNode* reverse_list(LinkNode* n) {
 }
 
 FTEST(test_reverse_list) {
-    LinkNode* root = create_list({});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
+    auto t = [](const std::vector<int>& nums) {
+        LinkNode* l1 = create_list(nums);
+        LOG(INFO) << "reverse: " << nums;
+        print_list(reverse_list(l1));
+    };
 
-    root = create_list({1});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3, 4});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
-
-    root = create_list({1, 2, 3, 4, 5});
-    print_list(root);
-    root = reverse_list(root);
-    print_list(root);
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 2, 3, 4});
+    t({1, 2, 3, 4, 5});
 }
 
 LinkNode* add_two_list(LinkNode* l, LinkNode* r) {
