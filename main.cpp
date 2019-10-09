@@ -875,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_removeDuplicates();
+    test_strStr();
 
     return 0;
 }

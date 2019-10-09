@@ -159,19 +159,39 @@ FTEST(test_mergeKLists) {
     };
 
     t({{}});
-    t({{}, {}});
+    t({{},
+       {}});
     t({{0}});
-    t({{0}, {}});
-    t({{0}, {1}});
-    t({{0, 1}, {1, 2}});
-    t({{0}, {1}, {}});
-    t({{0, 5}, {1, 3}, {}});
-    t({{0}, {1}, {2}});
-    t({{0, 0}, {1, 1}, {2, 2}});
-    t({{0}, {1}, {1, 2}});
-    t({{0, 0}, {1, 2}, {1, 2, 3}});
-    t({{0}, {1, 2}, {1, 2, 3}});
-    t({{0, 5}, {1, 2, 7}, {1, 2, 3, 10}});
+    t({{0},
+       {}});
+    t({{0},
+       {1}});
+    t({{0, 1},
+       {1, 2}});
+    t({{0},
+       {1},
+       {}});
+    t({{0, 5},
+       {1, 3},
+       {}});
+    t({{0},
+       {1},
+       {2}});
+    t({{0, 0},
+       {1, 1},
+       {2, 2}});
+    t({{0},
+       {1},
+       {1, 2}});
+    t({{0, 0},
+       {1, 2},
+       {1, 2, 3}});
+    t({{0},
+       {1, 2},
+       {1, 2, 3}});
+    t({{0, 5},
+       {1, 2, 7},
+       {1, 2, 3, 10}});
 }
 
 /**
@@ -495,7 +515,58 @@ FTEST(test_removeElement) {
  This is consistent to C's strstr() and Java's indexOf().
  */
 int strStr(std::string haystack, std::string needle) {
-    return 0;
+
+    /**
+      abcdbcbcbebce
+      bce               pos=0
+          bce           pos=4, skip=4 (not exist)
+            bce         pos=6, skip=2, idx=1
+             bce        pos=7, skip=1, idx=2
+                bce     pos=10, skip=3, idx=0
+     */
+    size_t slen = haystack.size();
+    size_t len = needle.size();
+    if (slen < len) {
+        return -1;
+    }
+    if (slen == 0 || len == 0) {
+        return len == 0 ? 0 : -1;
+    }
+    size_t vv[128];
+    for (size_t i = 0; i < 128; ++i) {
+        vv[i] = len + 1;
+    }
+    for (size_t i = 0; i < len; ++i) {
+        vv[needle[i]] = len - i;
+    }
+    size_t pos = 0;
+    while (pos <= slen - len) {
+        size_t i = 0;
+        while (haystack[pos + i] == needle[i]) {
+            ++i;
+            if (i >= len) {
+                return pos;
+            }
+        }
+        pos += vv[haystack[pos + len]];
+    }
+    return -1;
+}
+
+FTEST(test_strStr) {
+    auto t = [](const std::string& str, const std::string& find) {
+        int idx = strStr(str, find);
+        LOG(INFO) << "strstr " << str << ", " << find << ", result: " << idx;
+        return idx;
+    };
+
+//    FEXP(t("", "aa"), -1);
+//    FEXP(t("hello", ""), 0);
+//    FEXP(t("hello", "ll"), 2);
+//    FEXP(t("aaaaa", "bba"), -1);
+//    FEXP(t("aaaaa", "aaaaa"), 0);
+//    FEXP(t("aaa", "aaaa"), -1);
+    FEXP(t("mississippi", "a"), 0);
 }
 
 /**

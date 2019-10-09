@@ -27,7 +27,7 @@ static Test##name _test_clazz_##name(#name);        \
 void name()
 
 #define FEXP(cond, expect) do {                     \
-auto c = cond;                                      \
+auto c = (cond);                                    \
 if (c != (expect)) {                                \
     LOG(FATAL) << "\nError Condition: "             \
               << (#cond) << "\n Real: " << c        \
