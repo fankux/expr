@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bitset>
 #include "list.hpp"
 #include "subs.hpp"
 #include "strs.hpp"
@@ -160,38 +161,38 @@ FTEST(test_mergeKLists) {
 
     t({{}});
     t({{},
-       {}});
+            {}});
     t({{0}});
     t({{0},
-       {}});
+            {}});
     t({{0},
-       {1}});
+            {1}});
     t({{0, 1},
-       {1, 2}});
+            {1, 2}});
     t({{0},
-       {1},
-       {}});
+            {1},
+            {}});
     t({{0, 5},
-       {1, 3},
-       {}});
+            {1, 3},
+            {}});
     t({{0},
-       {1},
-       {2}});
+            {1},
+            {2}});
     t({{0, 0},
-       {1, 1},
-       {2, 2}});
+            {1, 1},
+            {2, 2}});
     t({{0},
-       {1},
-       {1, 2}});
+            {1},
+            {1, 2}});
     t({{0, 0},
-       {1, 2},
-       {1, 2, 3}});
+            {1, 2},
+            {1, 2, 3}});
     t({{0},
-       {1, 2},
-       {1, 2, 3}});
+            {1, 2},
+            {1, 2, 3}});
     t({{0, 5},
-       {1, 2, 7},
-       {1, 2, 3, 10}});
+            {1, 2, 7},
+            {1, 2, 3, 10}});
 }
 
 /**
@@ -588,11 +589,28 @@ FTEST(test_strStr) {
  Both dividend and divisor will be 32-bit signed integers.
  The divisor will never be 0.
  Assume we are dealing with an environment which could only store integers within
- the 32-bit signed integer range: [−231,  231 − 1]. For the purpose of this problem,
- assume that your function returns 231 − 1 when the division result overflows.
+ the 32-bit signed integer range: [−2^31,  2^31 − 1]. For the purpose of this problem,
+ assume that your function returns 2^31 − 1 when the division result overflows.
  */
 int divide(int dividend, int divisor) {
-    return 0;
+    if (dividend == INT_MIN && divisor == -1) {
+        return INT_MAX;
+    }
+    int sign = 1;
+    if (dividend < 0) {
+        sign = 0 - sign;
+        dividend = 0 - dividend;
+    }
+    if (divisor < 0) {
+        sign = 0 - sign;
+        divisor = 0 - divisor;
+    }
+    int res = 0;
+    while (dividend >= divisor) {
+        ++res;
+        dividend -= divisor;
+    }
+    return res * sign;
 }
 
 /**
@@ -617,5 +635,44 @@ int divide(int dividend, int divisor) {
  Output: []
  */
 std::vector<int> findSubstring(std::string s, std::vector<std::string>& words) {
-    return {};
+    std::vector<int> res;
+    if (s.empty() || words.empty()) {
+        return res;
+    }
+    std::unordered_map<std::string, int> wordcs;
+    for (auto& word : words) {
+        ++wordcs[word];
+    }
+    size_t word_len = words.begin()->size();
+    for (size_t i = 0; i + word_len <= s.size(); ++i) {
+        size_t k = 0;
+        std::unordered_map<std::string, int> ws;
+        for (; k < words.size(); ++k) {
+            auto&& word = s.substr(i + k * word_len, word_len);
+            auto entry = wordcs.find(word);
+            if (entry == wordcs.end() || entry->second <= ws[word]) {
+                break;
+            }
+            ++ws[word];
+        }
+        if (k == words.size()) {
+            res.emplace_back(i);
+        }
+    }
+    return res;
+}
+
+FTEST(test_findSubstring) {
+    auto t = [](const std::string& str, const std::vector<std::string>& words) {
+        std::vector<std::string> ws = words;
+        auto idx = findSubstring(str, ws);
+        LOG(INFO) << "substr all words " << str << ", " << words << ", result: " << idx;
+        return idx;
+    };
+
+//    t("", {"foo", "bar"});
+//    t("barfoothefoobarman", {});
+    t("barfoothefoobarman", {"foo", "bar"});
+    t("wordgoodgoodgoodbestword", {"word", "good", "best", "good"});
+    t("lingmindraboofooowingdingbarrwingmonkeypoundcake", {"fooo", "barr", "wing", "ding", "wing"});
 }

@@ -875,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_strStr();
+    test_findSubstring();
 
     return 0;
 }
