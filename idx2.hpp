@@ -591,26 +591,107 @@ FTEST(test_strStr) {
  Assume we are dealing with an environment which could only store integers within
  the 32-bit signed integer range: [−2^31,  2^31 − 1]. For the purpose of this problem,
  assume that your function returns 2^31 − 1 when the division result overflows.
+
+ THOUGHTS： for example: 100 / 2:
+    1. make a counter as divisor, then multiply 2 untill counter large than dividen.
+    And record result at the same time.
+    102 >= 2            result=1
+    102 >= 4            result=2
+    102 >= 8            result=4
+    102 >= 16           result=8
+    102 >= 32           result=16
+    102 >= 64           result=32
+    102 >= 128  NO      result=32
+
+    2. dividen minus counter, reset counter to divisor, then repeat 1 till dividen less divisor
+    102 - 64 = 38       result=32
+    38 >= 2             result=32+1
+    38 >= 4             result=32+2
+    38 >= 8             result=32+4
+    38 >= 16            result=32+8
+    38 >= 32            result=32+16
+    38 >= 64 NO         result=32+16
+
+    3. repeat 1
+    38 - 32 = 6         result=32+16
+    6 >= 2              result=32+16+1
+    6 >= 4              result=32+16+2
+    6 >= 8  NO          result=32+16+2
+
+    4. repeat 1
+    8 - 6 = 2           result=32+16+2
+    2 == 2              result=32+16+2+1
+
+ obviously, step 2 could be recursive routine
  */
 int divide(int dividend, int divisor) {
     if (dividend == INT_MIN && divisor == -1) {
         return INT_MAX;
     }
-    int sign = 1;
-    if (dividend < 0) {
-        sign = 0 - sign;
-        dividend = 0 - dividend;
+    int sign = dividend < 0 ? -1 : 1;
+    sign = divisor < 0 ? -sign : sign;
+    uint64_t m = labs(dividend);
+    uint64_t n = labs(divisor);
+    uint64_t res = 0;
+
+    while (m >= n) {
+        int counter = 1;
+        uint64_t t = n;
+        while (m >= (t << 1)) {
+            counter = counter << 1;
+            t = t << 1;
+        }
+        res += counter;
+        m -= t;
     }
-    if (divisor < 0) {
-        sign = 0 - sign;
-        divisor = 0 - divisor;
-    }
-    int res = 0;
-    while (dividend >= divisor) {
-        ++res;
-        dividend -= divisor;
-    }
-    return res * sign;
+    return sign < 0 ? -res : res;
+}
+
+FTEST(test_divide) {
+    auto t = [](int dividend, int divisor) {
+        auto res = divide(dividend, divisor);
+        LOG(INFO) << dividend << " / " << divisor << " = " << res;
+        return res;
+    };
+    FEXP(t(0, 1), 0 / 1);
+    FEXP(t(1, 1), 1 / 1);
+    FEXP(t(2, 1), 2 / 1);
+    FEXP(t(2, 2), 2 / 2);
+    FEXP(t(3, 2), 3 / 2);
+    FEXP(t(4, 2), 4 / 2);
+    FEXP(t(10, 2), 10 / 2);
+    FEXP(t(10, 3), 10 / 3);
+    FEXP(t(0, -1), 0 / -1);
+    FEXP(t(1, -1), 1 / -1);
+    FEXP(t(2, -1), 2 / -1);
+    FEXP(t(2, -2), 2 / -2);
+    FEXP(t(3, -2), 3 / -2);
+    FEXP(t(4, -2), 4 / -2);
+    FEXP(t(10, -2), 10 / -2);
+    FEXP(t(10, -3), 10 / -3);
+    FEXP(t(-0, -1), -0 / -1);
+    FEXP(t(-1, -1), -1 / -1);
+    FEXP(t(-2, -1), -2 / -1);
+    FEXP(t(-2, -2), -2 / -2);
+    FEXP(t(-3, -2), -3 / -2);
+    FEXP(t(-4, -2), -4 / -2);
+    FEXP(t(-10, -2), -10 / -2);
+    FEXP(t(-10, -3), -10 / -3);
+    FEXP(t(INT_MAX, 1), INT_MAX / 1);
+    FEXP(t(INT_MAX, 2), INT_MAX / 2);
+    FEXP(t(INT_MAX, 3), INT_MAX / 3);
+    FEXP(t(INT_MAX, -1), INT_MAX / -1);
+    FEXP(t(INT_MAX, -2), INT_MAX / -2);
+    FEXP(t(INT_MAX, -3), INT_MAX / -3);
+    FEXP(t(INT_MAX, INT_MAX), INT_MAX / INT_MAX);
+    FEXP(t(INT_MIN, 1), INT_MIN / 1);
+    FEXP(t(INT_MIN, 2), INT_MIN / 2);
+    FEXP(t(INT_MIN, 3), INT_MIN / 3);
+    FEXP(t(INT_MIN, -1), INT_MAX);
+    FEXP(t(INT_MIN, -2), INT_MIN / -2);
+    FEXP(t(INT_MIN, -3), INT_MIN / -3);
+    FEXP(t(INT_MIN, INT_MIN), INT_MIN / INT_MIN);
+    FEXP(t(INT_MAX, INT_MIN), INT_MAX / INT_MIN);
 }
 
 /**

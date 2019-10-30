@@ -20,9 +20,55 @@ typedef LCListNode ListNode;
  1,2,3 → 1,3,2
  3,2,1 → 1,2,3
  1,1,5 → 1,5,1
+
+ THOUGHTS:
+ 1,2,3 => 1,3,2 => 2,1,3 => 2,3,1 => 3,1,2 => 3,2,1
+ AS general:
+ 1　　2　　7　　4　　3　　1
+     |   { desc order } section
+    IDX
+ RULE 1. section that DESC order means the last group, next arrangement must be ordered ASC.
+ RULE 2. to do so, switch two member between the memeber just before section(IDX) and
+    centain one in sections. but which one? we always switch in ASC order one by one,
+    so the centain member in section must be the first one that larger-equal than IDX.
+  1　　3　　7　　4　　2　　1
+      |   { desc order } section
+      |           |
+      ---switch----
+ then reverse section to meet rule 1.
+ specially, two corner case:
+    1  2        3
+       |   {desc order}
+      IDX       |
+       |-swtich-|
+
+           3      2     1
+   NO-IDX  { desc order }
 */
 void nextPermutation(std::vector<int>& nums) {
+    int i = nums.size() - 2;
+    while (i >= 0 && nums[i] >= nums[i + 1]) {
+        --i;
+    }
+    if (i >= 0) {
+        int j = nums.size() - 1;
+        while (nums[j] <= nums[i]) { // there must be a j exist
+            --j;
+        }
+        std::swap(nums[i], nums[j]);
+    }
+    std::reverse(nums.begin() + i + 1, nums.end());
+}
 
+FTEST(test_nextPermutation) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> n = nums;
+        nextPermutation(n);
+        LOG(INFO) << nums << " next permutation: " << n;
+        return n;
+    };
+
+    t({1, 2, 7, 4, 3, 1});
 }
 
 /**

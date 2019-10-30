@@ -875,7 +875,9 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_findSubstring();
+    test_nextPermutation();
+
+    // TODO.. dijistra
 
     return 0;
 }
