@@ -85,9 +85,63 @@ FTEST(test_nextPermutation) {
  Input: ")()())"
  Output: 4
  Explanation: The longest valid parentheses substring is "()()"
+
+ THOUGHTS(stack):
+ (  (  (  )  )  )  )
+ 0  1  2  3  4  5  6
+ s        |            [2,1,0]
+          *            [1,0],  len: 3-1=2, current idx as right border
+             |
+             *         [0]     len: 4-0=4, current idx as right border
+                |
+                *      []      len: 5-0+1=6, stack empty,current idx as left border
+    s              |   []      stack empty, start idx move right.
+
+ THOUGHTS(stack):
+    TODO... DP method
 */
 int longestValidParentheses(std::string s) {
+    size_t max_len = 0;
+    size_t start = 0;
+    std::stack<int> ss;
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (c == '(') {
+            ss.push(i);
+        } else if (c == ')') {
+            if (!ss.empty()) {
+                ss.pop();
+                max_len = ss.empty() ? std::max(max_len, i - start + 1) :
+                        std::max(max_len, i - ss.top());
+            } else {
+                start = i + 1;
+            }
+        } else {
+            return -1;
+        }
+    }
+    return max_len;
+}
 
+FTEST(test_longestValidParentheses) {
+    auto t = [](const std::string& str) {
+        int n = longestValidParentheses(str);
+        LOG(INFO) << str << " max valid parentheses: " << n;
+        return n;
+    };
+
+    t("");
+    t("dafd");
+    t("afd()");
+    t("()dafd");
+    t("(dafd)");
+    t("(");
+    t(")");
+    t("()");
+    t("(()");
+    t("())");
+    t(")()())");
+    t(")(((((()())()()))()(()))(");
 }
 
 /**

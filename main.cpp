@@ -875,7 +875,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_nextPermutation();
+    test_longestValidParentheses();
 
     // TODO.. dijistra
 
