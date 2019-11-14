@@ -160,9 +160,52 @@ FTEST(test_longestValidParentheses) {
  Example 2:
  Input: nums = [4,5,6,7,0,1,2], target = 3
  Output: -1
-*/
-int search(std::vector<int>& nums, int target) {
 
+ THOUTGHTS:
+    1 2 3 4 5
+    5 1 2 3 4
+    4 5 1 2 3
+    3 4 5 1 2
+    2 3 4 5 1
+  If we use lower bound of mid (l+h)/2 (while (l+h+1)/2 is higher bound),
+  we must use nums[l] <= nums[mid], notice the <=, which make more possible to left half.
+*/
+int searchRotate(std::vector<int>& nums, int target) {
+    ssize_t l = 0;
+    ssize_t h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] == target) {
+            return mid;
+        }
+        if (nums[l] <= nums[mid]) {
+            if (target >= nums[l] && target < nums[mid]) { // left half sorted
+                h = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        } else {
+            if (target > nums[mid] && target <= nums[h]) { // right half sorted
+                l = mid + 1;
+            } else {
+                h = mid - 1;
+            }
+        }
+    }
+    return -1;
+}
+
+FTEST(test_searchRotate) {
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nns = nums;
+        int n = searchRotate(nns, target);
+        LOG(INFO) << nums << " find " << target << ": " << n;
+        return n;
+    };
+
+    FEXP(t({3, 1}, 1), 1);
+    FEXP(t({4, 5, 6, 7, 0, 1, 2}, 0), 4);
+    FEXP(t({4, 5, 6, 7, 0, 1, 2}, -3), -1);
 }
 
 /**
@@ -181,7 +224,43 @@ int search(std::vector<int>& nums, int target) {
  Output: [-1,-1]
 */
 std::vector<int> searchRange(std::vector<int>& nums, int target) {
+    int l = 0;
+    int h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] == target) {
+            l = mid;
+            while (l >= 0 && nums[l] == nums[mid]) {
+                --l;
+            }
+            h = mid;
+            while (h < nums.size() && nums[h] == nums[mid]) {
+                ++h;
+            }
+            return {l + 1, h - 1};
+        }
+        if (target < nums[mid]) {
+            h = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    return {-1, -1};
+}
 
+FTEST(test_searchRange) {
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nns = nums;
+        auto n = searchRange(nns, target);
+        LOG(INFO) << nums << " find " << target << ": " << n;
+        return n;
+    };
+
+    t({5, 7, 7, 8, 8, 10}, 5);
+    t({5, 7, 7, 8, 8, 10}, 7);
+    t({5, 7, 7, 8, 8, 10}, 8);
+    t({5, 7, 7, 8, 8, 10}, 10);
+    t({5, 7, 7, 8, 8, 10}, 6);
 }
 
 /**
@@ -207,7 +286,34 @@ std::vector<int> searchRange(std::vector<int>& nums, int target) {
  Output: 0
 */
 int searchInsert(std::vector<int>& nums, int target) {
+    int l = 0;
+    int h = nums.size() - 1;
+    while (l <= h) {
+        size_t mid = (l + h) / 2;
+        if (nums[mid] == target) {
+            return mid;
+        }
+        if (target < nums[mid]) {
+            h = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    return l;
+}
 
+FTEST(test_searchInsert) {
+    auto t = [](const std::vector<int>& nums, int target) {
+        std::vector<int> nns = nums;
+        auto n = searchInsert(nns, target);
+        LOG(INFO) << nums << " find " << target << ": " << n;
+        return n;
+    };
+
+    t({1, 3, 5, 6}, 5);
+    t({1, 3, 5, 6}, 2);
+    t({1, 3, 5, 6}, 7);
+    t({1, 3, 5, 6}, 0);
 }
 
 /**
@@ -260,7 +366,64 @@ int searchInsert(std::vector<int>& nums, int target) {
  The given board size is always 9x9.
 */
 bool isValidSudoku(std::vector<std::vector<char>>& board) {
+    uint16_t col_bits[9]{0};
+    uint16_t sub_bits[9]{0};
+    for (size_t i = 0; i < board.size(); ++i) {
+        uint16_t row_bits = 0;
+        for (size_t j = 0; j < board[i].size(); ++j) {
+            if (!isdigit(board[i][j])) {
+                continue;
+            }
+            int mask = 1 << (board[i][j] - '0');    // row
+            if ((row_bits & mask) != 0) {
+                return false;
+            }
+            row_bits |= mask;
+            if ((col_bits[j] & mask) != 0) {        // col
+                return false;
+            }
+            col_bits[j] |= mask;
+            int sub_idx = (i / 3) * 3 + j / 3;      // sub
+            if ((sub_bits[sub_idx] & mask) != 0) {
+                return false;
+            }
+            sub_bits[sub_idx] |= mask;
+        }
+    }
+    return true;
+}
 
+FTEST(test_isValidSudoku) {
+    auto t = [](const std::vector<std::vector<char>>& board) {
+        std::vector<std::vector<char>> nns = board;
+        auto n = isValidSudoku(nns);
+        LOG(INFO) << board << " valid: " << n;
+        return n;
+    };
+
+    t({
+            {'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+            {'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+            {'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+            {'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+            {'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+            {'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+            {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+            {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+            {'.', '.', '.', '.', '8', '.', '.', '7', '9'}
+    });
+
+    t({
+            {'8', '3', '.', '.', '7', '.', '.', '.', '.'},
+            {'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+            {'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+            {'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+            {'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+            {'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+            {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+            {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+            {'.', '.', '.', '.', '8', '.', '.', '7', '9'}
+    });
 }
 
 /**
@@ -282,7 +445,70 @@ bool isValidSudoku(std::vector<std::vector<char>>& board) {
  The given board size is always 9x9.
 */
 void solveSudoku(std::vector<std::vector<char>>& board) {
+    auto valid = [&board](int i, int j, char c) {
+        for (int x = 0; x < 9; ++x) {
+            if (board[x][j] == c) {
+                return false;
+            }
+        }
+        for (int y = 0; y < 9; ++y) {
+            if (board[i][y] == c) {
+                return false;
+            }
+        }
+        int row = i - i % 3, col = j - j % 3;
+        for (int x = 0; x < 3; ++x) {
+            for (int y = 0; y < 3; ++y) {
+                if (board[x + row][y + col] == c) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    std::function<bool(int, int)> r;
+    r = [&board, &r, &valid](int i, int j) {
+        if (i == 9) {
+            return true;
+        }
+        if (j >= 9) {
+            return r(i + 1, 0);
+        }
+        if (board[i][j] != '.') {
+            return r(i, j + 1);
+        }
+        for (char c = '1'; c <= '9'; ++c) {
+            if (!valid(i, j, c)) {
+                continue;
+            }
+            board[i][j] = c;
+            if (r(i, j + 1)) {
+                return true;
+            }
+            board[i][j] = '.';
+        }
+        return false;
+    };
+    r(0, 0);
+}
 
+FTEST(test_solveSudoku) {
+    auto t = [](const std::vector<std::vector<char>>& board) {
+        std::vector<std::vector<char>> nns = board;
+        solveSudoku(nns);
+        LOG(INFO) << board << " valid: " << nns;
+    };
+    t({
+            {'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+            {'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+            {'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+            {'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+            {'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+            {'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+            {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+            {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+            {'.', '.', '.', '.', '8', '.', '.', '7', '9'}
+    });
 }
 
 /**

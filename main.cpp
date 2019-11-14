@@ -745,104 +745,6 @@ void test_bin_search() {
     std::cout << bin_search_1st_great({1, 2, 3, 3, 5}, 3) << std::endl;
 }
 
-ssize_t bin_search_rotate(const std::vector<int>& nums, int target) {
-    std::cout << "[";
-    for (auto num : nums) {
-        std::cout << num << " ";
-    }
-    std::cout << "] find rotate " << target << ": ";
-
-    if (nums.empty()) {
-        return -1;
-    }
-
-    ssize_t l = 0;
-    ssize_t h = nums.size() - 1;
-    while (l <= h) {
-        size_t mid = (l + h) / 2;
-        if (nums[mid] == target) {
-            return mid;
-        }
-        if (nums[mid] < nums[h]) {
-            if (nums[mid] < target && nums[h] >= target) {
-                // right sorted and target in range
-                l = mid + 1;
-            } else {
-                h = mid - 1;
-            }
-        } else {
-            if (nums[mid] > target && nums[l] <= target) {
-                // left sorted and target in range
-                h = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        }
-    }
-    return -1;
-}
-
-void test_bin_search_rotate() {
-    std::cout << "binary search rotate" << std::endl;
-    std::cout << bin_search_rotate({}, 1) << std::endl;
-    std::cout << bin_search_rotate({1}, 0) << std::endl;
-    std::cout << bin_search_rotate({1}, 2) << std::endl;
-    std::cout << bin_search_rotate({1}, 1) << std::endl;
-    std::cout << bin_search_rotate({1, 2}, 0) << std::endl;
-    std::cout << bin_search_rotate({1, 2}, 3) << std::endl;
-    std::cout << bin_search_rotate({1, 2}, 1) << std::endl;
-    std::cout << bin_search_rotate({1, 2}, 2) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3}, 0) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4}, 1) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4}, 2) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4}, 3) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4}, 4) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 1) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 3) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 4) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 4, 5}, 5) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 2, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_rotate({1, 2, 3, 3, 5}, 3) << std::endl;
-    std::cout << bin_search_rotate({}, 1) << std::endl;
-    std::cout << bin_search_rotate({1}, 0) << std::endl;
-    std::cout << bin_search_rotate({1}, 2) << std::endl;
-    std::cout << bin_search_rotate({1}, 1) << std::endl;
-    std::cout << bin_search_rotate({2, 1}, 0) << std::endl;
-    std::cout << bin_search_rotate({2, 1}, 3) << std::endl;
-    std::cout << bin_search_rotate({2, 1}, 1) << std::endl;
-    std::cout << bin_search_rotate({2, 1}, 2) << std::endl;
-    std::cout << bin_search_rotate({3, 1, 2}, 0) << std::endl;
-    std::cout << bin_search_rotate({3, 1, 2}, 1) << std::endl;
-    std::cout << bin_search_rotate({3, 1, 2}, 2) << std::endl;
-    std::cout << bin_search_rotate({3, 1, 2}, 3) << std::endl;
-    std::cout << bin_search_rotate({3, 1, 2}, 4) << std::endl;
-    std::cout << bin_search_rotate({3, 2, 1}, 0) << std::endl;
-    std::cout << bin_search_rotate({3, 2, 1}, 1) << std::endl;
-    std::cout << bin_search_rotate({3, 2, 1}, 2) << std::endl;
-    std::cout << bin_search_rotate({3, 2, 1}, 3) << std::endl;
-    std::cout << bin_search_rotate({3, 2, 1}, 4) << std::endl;
-    std::cout << bin_search_rotate({3, 4, 1, 2}, 1) << std::endl;
-    std::cout << bin_search_rotate({3, 4, 1, 2}, 2) << std::endl;
-    std::cout << bin_search_rotate({3, 4, 1, 2}, 3) << std::endl;
-    std::cout << bin_search_rotate({3, 4, 1, 2}, 4) << std::endl;
-    std::cout << bin_search_rotate({4, 1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search_rotate({4, 1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search_rotate({4, 1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search_rotate({4, 1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 3}, 5) << std::endl;
-    std::cout << bin_search_rotate({4, 5, 1, 2, 2}, 2) << std::endl;
-    std::cout << bin_search_rotate({3, 5, 1, 2, 3}, 3) << std::endl;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void rb_tree() {
@@ -875,7 +777,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_longestValidParentheses();
+    test_solveSudoku();
 
     // TODO.. dijistra
 
