@@ -30,7 +30,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     for (size_t i = 0; i < nums.size(); ++i) {
         auto entry = cc.find(target - nums[i]);
         if (entry != cc.end() && i != entry->second) {
-            return {(int)(i), entry->second};
+            return {(int) (i), entry->second};
         }
     }
     return {};
@@ -58,10 +58,10 @@ ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
         ListNode* c = nullptr;
         if (l1) {
             c = l1;
-            l1->val += (l2 == nullptr ? 0 : l2->val) + (int)carry;
+            l1->val += (l2 == nullptr ? 0 : l2->val) + (int) carry;
         } else if (l2) {
             c = l2;
-            l2->val += (int)carry;
+            l2->val += (int) carry;
         }
         h = h != nullptr ? h : c;
 
@@ -222,7 +222,22 @@ std::string longestPalindrome(std::string s) {
  P     I
  */
 std::string convert(std::string s, int numRows) {
-    return "";
+    if (numRows == 1) {
+        return s;
+    }
+    std::string res;
+    int s_len = s.length();
+    int cycle = (numRows << 1) - 2;  // 2*(numRows-2) + 2
+    for (int row = 0; row < numRows; row++) {
+        for (int j = row; j < s_len; j += cycle) {
+            res += s[j];
+            int second_j = j + cycle - (row << 1); // j-row + cycle-row
+            if (second_j < s_len && row != 0 && row != numRows - 1) {
+                res += s[second_j];
+            }
+        }
+    }
+    return res;
 }
 
 /**
@@ -528,7 +543,7 @@ bool isMatch(std::string s, std::string p) {
 }
 
 FTEST(test_isMatch) {
-    #define isMatcht(s, p, expect) do {                                \
+#define isMatcht(s, p, expect) do {                                \
         FEXP(isMatch(s, p), expect);                            \
         LOG(INFO) << s << "->" << p << ": " << expect;          \
     } while (0)

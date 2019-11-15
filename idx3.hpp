@@ -535,7 +535,41 @@ FTEST(test_solveSudoku) {
  Output: "1211"
 */
 std::string countAndSay(int n) {
+    if (n == 1) {
+        return "1";
+    }
+    std::string re;
+    std::string lre = "1";
+    int idx = 2;
+    while (idx <= n) {
+        int count = 0;
+        char last = '\0';
+        for (char c : lre) {
+            if (last == '\0') {
+                ++count;
+                last = c;
+                continue;
+            }
+            if (c == last) {
+                ++count;
+                continue;
+            }
+            re += std::to_string(count) + last;
+            last = c;
+            count = 1;
+        }
+        re += std::to_string(count) + last;
+        lre = std::move(re);
+        ++idx;
+    }
+    return lre;
+}
 
+FTEST(test_countAndSay) {
+//    LOG(INFO) << 4 << ":" << countAndSay(4);
+    for (int i = 1; i <= 10; ++i) {
+        LOG(INFO) << i << ":" << countAndSay(i);
+    }
 }
 
 /**
@@ -566,7 +600,37 @@ std::string countAndSay(int n) {
  ]
 */
 std::vector<std::vector<int>> combinationSum(std::vector<int>& candidates, int target) {
+    std::function<void(std::vector<std::vector<int>>&, std::vector<int>&, int, int)> r;
+    r = [&candidates, &r](std::vector<std::vector<int>>& res, std::vector<int>& re, int start,
+            int target) {
+        if (target <= 0) {
+            if (target == 0) {
+                res.emplace_back(re);
+            }
+            return;
+        }
+        for (size_t i = start; i < candidates.size(); ++i) {
+            re.emplace_back(candidates[i]);
+            r(res, re, i, target - candidates[i]);
+            re.pop_back();
+        }
+    };
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    r(res, re, 0, target);
+    return res;
+}
 
+FTEST(test_combinationSum) {
+    auto t = [](const std::vector<int>& candidates, int target) {
+        std::vector<int> nns = candidates;
+        auto n = combinationSum(nns, target);
+        LOG(INFO) << candidates << " find " << target << ": " << n;
+        return n;
+    };
+
+    t({2, 3, 6, 7}, 7);
+    t({2, 3, 5}, 8);
 }
 
 /**
@@ -598,5 +662,41 @@ std::vector<std::vector<int>> combinationSum(std::vector<int>& candidates, int t
  ]
 */
 std::vector<std::vector<int>> combinationSum2(std::vector<int>& candidates, int target) {
+    std::sort(candidates.begin(), candidates.end());
+    std::function<void(std::vector<std::vector<int>>&, std::vector<int>&, int, int)> r;
+    r = [&candidates, &r](std::vector<std::vector<int>>& res, std::vector<int>& re, int start,
+            int target) {
+        if (target <= 0) {
+            if (target == 0) {
+                res.emplace_back(re);
+            }
+            return;
+        }
+        for (size_t i = start; i < candidates.size(); ++i) {
+            if (i > start && candidates[i] == candidates[i - 1]) {
+                continue;
+            }
+            re.emplace_back(candidates[i]);
+            r(res, re, i + 1, target - candidates[i]);
+            re.pop_back();
+        }
+    };
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    r(res, re, 0, target);
+    return res;
+}
 
+FTEST(test_combinationSum2) {
+    auto t = [](const std::vector<int>& candidates, int target) {
+        std::vector<int> nns = candidates;
+        auto n = combinationSum2(nns, target);
+        LOG(INFO) << candidates << " find " << target << ": " << n;
+        return n;
+    };
+
+    t({2, 3, 6, 7}, 7);
+    t({2, 3, 5}, 8);
+    t({10, 1, 2, 7, 6, 1, 5}, 8);
+    t({2, 5, 2, 1, 2}, 5);
 }

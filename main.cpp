@@ -777,7 +777,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_solveSudoku();
+    test_combinationSum2();
 
     // TODO.. dijistra
 

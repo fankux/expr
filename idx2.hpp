@@ -137,12 +137,12 @@ FTEST(test_generateParenthesis) {
 ListNode* mergeKLists(std::vector<ListNode*>& lists) {
     size_t len = lists.size();
     while (len > 1) {
-        size_t m_upper = (len + 1) / 2;
-        size_t m_lower = len / 2;
-        for (size_t i = 0; i < m_lower; ++i) {
-            lists[i] = mergeTwoLists(lists[i], lists[i + m_upper]);
+        size_t upper = (len + 1) / 2;
+        size_t lower = len / 2;
+        for (size_t i = 0; i < lower; ++i) {
+            lists[i] = mergeTwoLists(lists[i], lists[i + upper]);
         }
-        len = m_upper;
+        len = upper;
     }
     return lists.empty() ? nullptr : lists.front();
 }
