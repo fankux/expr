@@ -768,6 +768,7 @@ void avl_tree() {}
 #include "idx1.hpp"
 #include "idx2.hpp"
 #include "idx3.hpp"
+#include "idx4.hpp"
 
 int main() {
 
@@ -777,7 +778,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_combinationSum2();
+    test_isWildcardMatch();
 
     // TODO.. dijistra
 
