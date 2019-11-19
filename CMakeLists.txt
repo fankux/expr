@@ -10,6 +10,12 @@ file(GLOB SRCS
 
 link_libraries(
         pthread
+        -fsanitize=address
+)
+
+add_definitions(
+        -fsanitize=address
+        -fno-omit-frame-pointer
 )
 
 add_executable(expr ${SRCS})

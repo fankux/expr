@@ -44,88 +44,6 @@ void test_reverse_stack() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void sort(std::vector<int>& nums);
-
-void premute(std::vector<int>& nums, int start, std::vector<std::vector<int>>& res) {
-    if (start >= nums.size()) {
-        res.push_back(nums);
-        return;
-    }
-    for (int i = start; i < nums.size(); ++i) {
-        int j = i - 1;
-        while (j >= start && nums[j] != nums[i]) {
-            --j;
-        }
-        if (j != start - 1) {
-            continue;
-        }
-
-        std::swap(nums[start], nums[i]);
-        premute(nums, start + 1, res);
-        std::swap(nums[start], nums[i]);
-    }
-}
-
-void premute2(std::vector<int>& nums, size_t level, std::vector<size_t>& visit,
-        std::vector<size_t>& out, std::vector<std::vector<size_t>>& res) {
-    if (level >= nums.size()) {
-        res.push_back(out);
-        return;
-    }
-
-    for (size_t i = 0; i < nums.size(); ++i) {
-        if (visit[i] == 1) {
-            continue;
-        }
-        if (i > 0 && nums[i] == nums[i - 1] && visit[i - 1] == 0) {
-            continue;
-        }
-        visit[i] = 1;
-        out.emplace_back(nums[i]);
-        premute2(nums, level + 1, visit, out, res);
-        out.pop_back();
-        visit[i] = 0;
-    }
-}
-
-void do_premutation(std::vector<int> nums) {
-    std::vector<std::vector<int>> res;
-    premute(nums, 0, res);
-
-    for (auto& r : res) {
-        for (int n : r) {
-            std::cout << n << ",";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-void do_premutation2(std::vector<int> nums) {
-    std::vector<size_t> visit(nums.size(), 0);
-    std::vector<std::vector<size_t>> res;
-    std::vector<size_t> out;
-    sort(nums);
-    premute2(nums, 0, visit, out, res);
-
-    for (auto& r : res) {
-        for (int n : r) {
-            std::cout << n << ",";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-void test_premutation() {
-    do_premutation({4, 5, 6});
-    do_premutation({7, 7, 8});
-
-    do_premutation2({6, 5, 4});
-    do_premutation2({7, 8, 7});
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 int partition(std::vector<int>& nums, int left, int right) {
     int pivot = nums[left];
@@ -778,7 +696,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_isWildcardMatch();
+    test_groupAnagrams();
 
     // TODO.. dijistra
 

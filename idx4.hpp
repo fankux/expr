@@ -331,8 +331,30 @@ FTEST(test_multiply) {
  Output: false
 
  THOUGHTS:
-    TODO.. dp table
-    not dp method
+ DP state transfer:
+        (at first row)if p[j]=='*':
+            see LEFT
+
+        if s[i]==p[j] or p[j]=='?':
+            see LEFT-TOP
+        elif p[j]=='*':
+            see LEFT-or-TOP
+
+   | \ |' '| a | * | c | ? | b |
+   |' '| T | F → F | F | F | F |
+   |-------↘-----↓-----↘-------|
+   | a | F | T → T | F | F | F |
+   |-------------↓-↘---↘-------|
+   | c | F | F → T | T | F | F |
+   |-------------↓-----↘-------|
+   | d | F | F → T | F | T | F |
+   |-------------↓-↘---↘-------|
+   | c | F | F → T | T | F | F |
+   |-------------↓-----↘---↘---|
+   | b | F | F → T | F | T | F |
+   |---------------------------|
+
+    TODO.. not dp method
  */
 bool isWildcardMatch(std::string s, std::string p) {
     size_t slen = s.size();
@@ -386,9 +408,50 @@ FTEST(test_isWildcardMatch) {
 
  Note:
  You can assume that you can always reach the last index.
+
+ THOUGHTS:
+ greedy, BFS, each num as a node,
+ - check the each next node of current can jump to,
+ - find the max one as next current.
+ - if max exceed last, return result.
+ - if not max one(less than current), there is no result.
+
  */
 int jump(std::vector<int>& nums) {
-    return 0;
+    int len = nums.size();
+    int res = 0;
+    int cur = 0;
+    while (cur < len - 1) {
+        int max = 0;
+        for (size_t i = 0; i <= nums[cur]; ++i) {
+            int idx = cur + i;
+            if (idx >= len - 1) { // result happend when detect
+                return res + 1;
+            }
+            if (idx + nums[idx] > max + nums[max]) {
+                max = idx;
+            }
+        }
+        if (max == cur) {   // no larger next node found, no result
+            return -1;
+        }
+        cur = max;
+        ++res;
+    }
+    return res;
+}
+
+FTEST(test_jump) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> ns = nums;
+        auto n = jump(ns);
+        LOG(INFO) << nums << " jump min count: " << n;
+        return n;
+    };
+
+    FEXP(t({1}), 0);
+    FEXP(t({1, 2}), 1);
+    FEXP(t({2, 3, 1, 1, 4}), 2);
 }
 
 /**
@@ -408,7 +471,58 @@ int jump(std::vector<int>& nums) {
  ]
  */
 std::vector<std::vector<int>> permute(std::vector<int>& nums) {
-    return {};
+    std::vector<std::vector<int>> res;
+    std::function<void(std::vector<int>&, std::vector<bool>&)> visit_r;
+    visit_r = [&](std::vector<int>& re, std::vector<bool>& visit) {
+        if (re.size() == nums.size()) {
+            res.emplace_back(re);
+            return;
+        }
+        for (size_t i = 0; i < nums.size(); ++i) {
+            if (!visit[i]) {
+                re.emplace_back(nums[i]);
+                visit[i] = true;
+                visit_r(re, visit);
+                re.pop_back();
+                visit[i] = false;
+            }
+        }
+    };
+    auto visit_func = [&] {
+        std::vector<int> re;
+        std::vector<bool> visit(nums.size(), false);
+        visit_r(re, visit);
+    };
+    std::function<void(int)> swap_func;
+    swap_func = [&](int start) {
+        if (start >= nums.size()) {
+            res.emplace_back(nums);
+            return;
+        }
+        for (size_t i = start; i < nums.size(); ++i) {
+            std::swap(nums[i], nums[start]);
+            swap_func(start + 1);
+            std::swap(nums[i], nums[start]);
+        }
+    };
+//    visit_func();
+    swap_func(0);
+    return res;
+}
+
+FTEST(test_permute) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> ns = nums;
+        auto n = permute(ns);
+        LOG(INFO) << nums << " premutations: " << n;
+        return n;
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 2, 3, 4});
 }
 
 /**
@@ -425,7 +539,80 @@ std::vector<std::vector<int>> permute(std::vector<int>& nums) {
  ]
  */
 std::vector<std::vector<int>> permuteUnique(std::vector<int>& nums) {
-    return {};
+    std::sort(nums.begin(), nums.end());
+    std::vector<std::vector<int>> res;
+    std::function<void(std::vector<int>&, std::vector<bool>&)> visit_r;
+    visit_r = [&](std::vector<int>& re, std::vector<bool>& visit) {
+        if (re.size() == nums.size()) {
+            res.emplace_back(re);
+            return;
+        }
+        for (size_t i = 0; i < nums.size(); ++i) {
+            if (i > 0 && visit[i - 1] && nums[i] == nums[i - 1]) {
+                continue;
+            }
+            if (!visit[i]) {
+                re.emplace_back(nums[i]);
+                visit[i] = true;
+                visit_r(re, visit);
+                re.pop_back();
+                visit[i] = false;
+            }
+        }
+    };
+    auto visit_func = [&] {
+        std::vector<int> re;
+        std::vector<bool> visit(nums.size(), false);
+        visit_r(re, visit);
+    };
+    std::function<void(int, std::string)> swap_func;
+    swap_func = [&](int start, std::string indention) {
+        if (start >= nums.size()) {
+            res.emplace_back(nums);
+            LOG(INFO) << indention << "save, start:" << start << ", " << nums;
+            return;
+        }
+        for (size_t i = start; i < nums.size(); ++i) {
+            // the numbers after start index here are sorted
+            // if any same number before i exist, means duplication happend, ignore it.
+            int j = i - 1;
+            while (j >= start && nums[j] != nums[i]) {
+                --j;
+            }
+            if (j != start - 1) {
+                LOG(INFO) << indention << "skip, (" << start << "," << i << "), " << nums;
+                continue;
+            }
+            LOG(INFO) << indention << "togo, (" << start << "," << i << "), " << nums;
+            std::swap(nums[i], nums[start]);
+            LOG(INFO) << indention << "swap, (" << start << "," << i << "), " << nums;
+            swap_func(start + 1, indention + "\t");
+            LOG(INFO) << indention << "done, (" << start << "," << i << "), " << nums;
+            std::swap(nums[i], nums[start]);
+            LOG(INFO) << indention << "rcvr, (" << start << "," << i << "), " << nums;
+        }
+    };
+//    visit_func();
+    swap_func(0, "");
+    return res;
+}
+
+FTEST(test_permuteUnique) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> ns = nums;
+        auto n = permuteUnique(ns);
+        LOG(INFO) << nums << " premutations: " << n;
+        return n;
+    };
+
+    t({});
+    t({1});
+    t({1, 1});
+    t({1, 1, 1});
+    t({2, 1, 1});
+    t({2, 1, 2});
+    t({3, 1, 2});
+    t({1, 2, 3, 3});
 }
 
 /**
@@ -469,6 +656,18 @@ std::vector<std::vector<int>> permuteUnique(std::vector<int>& nums) {
  ]
  */
 void rotate(std::vector<std::vector<int>>& matrix) {
+    int len = matrix.size();
+    for (int i = 0; i < len - 1; ++i) {
+        for (int j = 0; j < len - 1; ++j) {
+            std::swap(matrix[i][j], matrix[len - j - 1][len - i - 1]);
+        }
+    }
+    int half = len / 2;
+    for (int i = 0; i < half; ++i) {
+        for (int j = 0; j < len; ++j) {
+            std::swap(matrix[i][j], matrix[len - i - 1][j]);
+        }
+    }
 }
 
 /**
@@ -489,7 +688,29 @@ void rotate(std::vector<std::vector<int>>& matrix) {
     - The order of your output does not matter.
  */
 std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
-    return {};
+    std::unordered_map<std::string, std::vector<std::string>> ss;
+    for (auto& str : strs) {
+        std::string key = str;
+        std::sort(key.begin(), key.end());
+        ss[key].emplace_back(std::move(str));
+    }
+    int idx = 0;
+    std::vector<std::vector<std::string>> res(ss.size());
+    for (auto& entry : ss) {
+        res[idx++] = std::move(entry.second);
+    }
+    return res;
+}
+
+FTEST(test_groupAnagrams) {
+    auto t = [](const std::vector<std::string>& strs) {
+        std::vector<std::string> ns = strs;
+        auto n = groupAnagrams(ns);
+        LOG(INFO) << strs << " groupAnagrams: " << n;
+        return n;
+    };
+
+    t({"eat", "tea", "tan", "ate", "nat", "bat"});
 }
 
 /**
@@ -499,8 +720,8 @@ std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& st
  Example 1:
  Input: 2.00000, 10
  Output: 1024.00000
- Example 2:
 
+ Example 2:
  Input: 2.10000, 3
  Output: 9.26100
 
@@ -514,5 +735,12 @@ std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& st
  n is a 32-bit signed integer, within the range [−2^31, 2^31 − 1]
  */
 double myPow(double x, int n) {
-    return 0.0;
+    int res = 1.0;
+    for (int i = n; i != 0; i /= 2) {
+        if (i % 2 != 0) {
+            res *= x;
+        }
+        x *= x;
+    }
+    return n < 0 ? 1 / res : res;
 }
