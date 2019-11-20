@@ -687,6 +687,7 @@ void avl_tree() {}
 #include "idx2.hpp"
 #include "idx3.hpp"
 #include "idx4.hpp"
+#include "idx5.hpp"
 
 int main() {
 
@@ -696,7 +697,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_groupAnagrams();
+    test_maxSubArray();
 
     // TODO.. dijistra
 
