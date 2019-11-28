@@ -697,7 +697,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_maxSubArray();
+    test_getPermutation();
 
     // TODO.. dijistra
 

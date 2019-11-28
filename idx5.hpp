@@ -169,6 +169,7 @@ FTEST(test_totalNQueens) {
 
 */
 #define VERBOSE
+
 int maxSubArray(std::vector<int>& nums
 #ifdef VERBOSE
         , std::vector<int>& range
@@ -200,9 +201,9 @@ int maxSubArray(std::vector<int>& nums
         range.emplace_back(nums[l++]);
     }
 #else
-        }
-        max = std::max(max, regional_max);
     }
+    max = std::max(max, regional_max);
+}
 #endif
     return max;
 }
@@ -244,9 +245,79 @@ FTEST(test_maxSubArray) {
    [9,10,11,12]
  ]
  Output: [1,2,3,4,8,12,11,10,9,5,6,7]
+
+ THOUGHTS:
+
+
+ j=x to row:
+
+ i=y to col:
+
+ j=row to x:
+
+ i=col to y:
+
+
 */
 std::vector<int> spiralOrder(std::vector<std::vector<int>>& matrix) {
-    return {};
+    if (matrix.empty()) {
+        return {};
+    }
+
+    int i = 0;
+    int j = 0;
+    int x = 0;
+    int y = 0;
+    size_t count = matrix.size() * matrix.front().size();
+    size_t xsize = matrix.front().size();
+    size_t ysize = matrix.size();
+    std::vector<int> res;
+    while (res.size() < count) {
+        int xend = xsize - x / 2;
+        for (; j < xend; ++j) {
+            res.emplace_back(matrix[i][j]);
+        }
+        if (++y >= ysize) { break; }
+
+        int yend = ysize - y / 2;
+        for (++i, --j; i < yend; ++i) {
+            res.emplace_back(matrix[i][j]);
+        }
+        if (++x >= xsize) { break; }
+
+        xend = x / 2;
+        for (--i, --j; j >= xend; --j) {
+            res.emplace_back(matrix[i][j]);
+        }
+        if (++y >= ysize) { break; }
+
+        yend = y / 2;
+        for (--i, ++j; i >= yend; --i) {
+            res.emplace_back(matrix[i][j]);
+        }
+        ++x;
+        ++i;
+        ++j;
+    }
+    return res;
+}
+
+FTEST(test_spiralOrder) {
+    auto t = [](const std::vector<std::vector<int>>& matrix) {
+        std::vector<std::vector<int>> nns = matrix;
+        auto re = spiralOrder(nns);
+
+        LOG(INFO) << matrix << " spiralOrder: " << re;
+        return re;
+    };
+
+    t({});
+    t({{1}});
+    t({{1, 2}});
+    t({{1}, {2}});
+    t({{1, 2}, {3, 4}});
+    t({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    t({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
 }
 
 /**
@@ -267,7 +338,40 @@ std::vector<int> spiralOrder(std::vector<std::vector<int>>& matrix) {
               jump length is 0, which makes it impossible to reach the last index.
 */
 bool canJump(std::vector<int>& nums) {
-    return false;
+    int len = nums.size();
+    int cur = 0;
+    while (cur < len - 1) {
+        int max = cur;
+        for (int i = 0; i <= nums[cur]; ++i) {
+            int idx = cur + i;
+            if (idx >= len - 1) {
+                return true;
+            }
+            if (idx + nums[idx] > max + nums[max]) {
+                max = idx;
+            }
+        }
+        if (max == cur) {
+            return false;
+        }
+        cur = max;
+    }
+    return true;
+}
+
+FTEST(test_canJump) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> ns = nums;
+        auto n = canJump(ns);
+        LOG(INFO) << nums << " can jump: " << n;
+        return n;
+    };
+
+    t({1});
+    t({1, 2});
+    t({2, 3, 1, 1, 4});
+    t({3, 2, 1, 0, 4});
+    t({1, 1, 2, 2, 0, 1, 1});
 }
 
 /**
@@ -288,7 +392,41 @@ bool canJump(std::vector<int>& nums) {
  to get new method signature.
 */
 std::vector<std::vector<int>> merge(std::vector<std::vector<int>>& intervals) {
-    return {};
+    std::vector<std::vector<int>> res;
+    if (intervals.empty()) {
+        return res;
+    }
+    std::sort(intervals.begin(), intervals.end());
+    int l = intervals.front().front();
+    int r = intervals.front().back();
+    for (size_t i = 1; i < intervals.size(); ++i) {
+        if (intervals[i].front() > r) {
+            res.emplace_back(std::vector<int>{l, r});
+            l = intervals[i].front();
+            r = intervals[i].back();
+        } else {
+            r = std::max(r, intervals[i].back());
+        }
+    }
+    res.emplace_back(std::vector<int>{l, r});
+    return res;
+}
+
+FTEST(test_merge) {
+    auto t = [](const std::vector<std::vector<int>>& nums) {
+        std::vector<std::vector<int>> ns = nums;
+        auto n = merge(ns);
+        LOG(INFO) << nums << " merge intervals: " << n;
+        return n;
+    };
+
+    t({});
+    t({{1, 1}});
+    t({{1, 3}});
+    t({{1, 1}, {1, 1}});
+    t({{1, 4}, {2, 3}});
+    t({{1, 4}, {4, 5}});
+    t({{1, 3}, {2, 6}, {8, 10}, {15, 18}});
 }
 
 /**
@@ -310,9 +448,51 @@ std::vector<std::vector<int>> merge(std::vector<std::vector<int>>& intervals) {
 */
 std::vector<std::vector<int>> insert(std::vector<std::vector<int>>& intervals,
         std::vector<int>& newInterval) {
-    return {};
+
+    std::vector<std::vector<int>> res;
+    int l = newInterval.front();
+    int r = newInterval.back();
+    size_t i = 0;
+    for (; i < intervals.size(); ++i) {
+        if (intervals[i].back() < newInterval.front()) {
+            res.emplace_back(intervals[i]);
+            continue;
+        }
+        l = std::min(intervals[i].front(), newInterval.front());
+        break;
+    }
+    for (; i < intervals.size(); ++i) {
+        if (intervals[i].front() > newInterval.back()) {
+            break;
+        }
+        r = std::max(intervals[i].back(), newInterval.back());
+    }
+    res.emplace_back(std::vector<int>{l, r});
+    for (; i < intervals.size(); ++i) {
+        res.emplace_back(intervals[i]);
+    }
+    return res;
 }
 
+FTEST(test_insert) {
+    auto t = [](const std::vector<std::vector<int>>& nums, const std::vector<int>& newInterval) {
+        std::vector<std::vector<int>> ns = nums;
+        std::vector<int> ni = newInterval;
+        auto n = insert(ns, ni);
+        LOG(INFO) << nums << " insert interval " << newInterval << " : " << n;
+        return n;
+    };
+
+    t({}, {1, 2});
+    t({{1, 1}}, {1, 1});
+    t({{1, 3}}, {1, 1});
+    t({{1, 3}}, {1, 2});
+    t({{1, 3}}, {1, 3});
+    t({{1, 1}, {1, 1}}, {1, 1});
+    t({{1, 1}, {1, 1}}, {1, 2});
+    t({{1, 3}, {6, 9}}, {2, 5});
+    t({{1, 2}, {3, 5}, {6, 7}, {8, 10}, {12, 16}}, {4, 8});
+}
 
 /**
  ///////////// 58. Length of Last Word
@@ -327,7 +507,15 @@ std::vector<std::vector<int>> insert(std::vector<std::vector<int>>& intervals,
  Output: 5
 */
 int lengthOfLastWord(std::string s) {
-    return 0;
+    int count = 0;
+    int i = s.size() - 1;
+    while (i >= 0 && s[i] == ' ') {
+        --i;
+    }
+    while (i >= 0 && s[i--] != ' ') {
+        ++count;
+    }
+    return count;
 }
 
 /**
@@ -344,7 +532,57 @@ int lengthOfLastWord(std::string s) {
  ]
 */
 std::vector<std::vector<int>> generateMatrix(int n) {
-    return {};
+    std::vector<std::vector<int>> matrix(n, std::vector<int>(n, 0));
+    int i = 0;
+    int j = 0;
+    int x = 0;
+    int y = 0;
+    size_t count = n * n;
+    std::vector<int> res;
+    int idx = 1;
+    while (res.size() < count) {
+        int xend = n - x / 2;
+        for (; j < xend; ++j) {
+            matrix[i][j] = idx++;
+        }
+        if (++y >= n) { break; }
+
+        int yend = n - y / 2;
+        for (++i, --j; i < yend; ++i) {
+            matrix[i][j] = idx++;
+        }
+        if (++x >= n) { break; }
+
+        xend = x / 2;
+        for (--i, --j; j >= xend; --j) {
+            matrix[i][j] = idx++;
+        }
+        if (++y >= n) { break; }
+
+        yend = y / 2;
+        for (--i, ++j; i >= yend; --i) {
+            matrix[i][j] = idx++;
+        }
+        ++x;
+        ++i;
+        ++j;
+    }
+    return matrix;
+}
+
+FTEST(test_generateMatrix) {
+    auto t = [](int n) {
+        auto re = generateMatrix(n);
+        LOG(INFO) << n << " spiral matrix: " << re;
+        return re;
+    };
+
+    t(0);
+    t(1);
+    t(2);
+    t(3);
+    t(4);
+    t(5);
 }
 
 /**
@@ -373,5 +611,42 @@ std::vector<std::vector<int>> generateMatrix(int n) {
  Output: "2314"
 */
 std::string getPermutation(int n, int k) {
-    return "";
+    std::string nums = "123456789";
+    int factorial = 1;
+    for (int i = 1; i < n; ++i) {
+        factorial *= i;
+    }
+    --k;
+    std::string res;
+    for (int i = n; i > 0; --i) {
+        int idx = k / factorial;
+        k %= factorial;
+        factorial = i == 1 ? 1 : factorial / (i - 1);
+        res.push_back(nums[idx]);
+        nums.erase(idx, 1);
+    }
+    return res;
+}
+
+FTEST(test_getPermutation) {
+    auto t = [](int n, int k) {
+        auto re = getPermutation(n, k);
+        LOG(INFO) << k << "th premutation of " << n << " : " << re;
+        return re;
+    };
+
+    t(0, 0);
+    t(1, 1);
+    t(2, 1);
+    t(2, 2);
+    t(3, 1);
+    t(3, 2);
+    t(3, 3);
+    t(3, 4);
+    t(3, 5);
+    t(3, 6);
+    t(4, 1);
+    t(4, 2);
+    t(4, 9);
+
 }
