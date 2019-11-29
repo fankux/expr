@@ -302,12 +302,12 @@ FTEST(test_minPathSum) {
         return re;
     };
 
-//    t({});
-//    t({{}});
-//    t({{1}});
-//    t({{0}});
-//    t({{0, 1}});
-//    t({{0, 0, 0}, {0, 1, 0}, {0, 0, 0}});
+    t({});
+    t({{}});
+    t({{1}});
+    t({{0}});
+    t({{0, 1}});
+    t({{0, 0, 0}, {0, 1, 0}, {0, 0, 0}});
     t({{1, 3, 1}, {1, 5, 1}, {4, 2, 1}});
 }
 
@@ -346,7 +346,180 @@ FTEST(test_minPathSum) {
  accepts a const char * argument, please click the reload button to reset your code definition.
 */
 bool isNumber(std::string s) {
-    return false;
+    typedef enum {
+        BEGIN = 0,
+        SIGNATURE_1,
+        NUMBER_1,
+        BEGIN_POINTER,
+        POINTER,
+        NUMBER_1_AFTER,
+        EXPONENT,
+        SIGNATURE_2,
+        NUMBER_2,
+        END
+    } STATE;
+
+    int state = BEGIN;
+    for (char c : s) {
+        switch (state) {
+            case BEGIN: {
+                if (c == ' ') {
+                    continue;
+                }
+                if (c == '-' || c == '+') {
+                    state = SIGNATURE_1;
+                    continue;
+                }
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_1;
+                    continue;
+                }
+                if (c == '.') {
+                    state = BEGIN_POINTER;
+                    continue;
+                }
+                return false;
+            }
+            case SIGNATURE_1: {
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_1;
+                    continue;
+                }
+                if (c == '.') {
+                    state = BEGIN_POINTER;
+                    continue;
+                }
+                return false;
+            }
+            case NUMBER_1: {
+                if (c >= '0' && c <= '9') {
+                    continue;
+                }
+                if (c == '.') {
+                    state = POINTER;
+                    continue;
+                }
+                if (c == 'e') {
+                    state = EXPONENT;
+                    continue;
+                }
+                if (c == ' ') {
+                    state = END;
+                    continue;
+                }
+                return false;
+            }
+            case BEGIN_POINTER: {
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_1_AFTER;
+                    continue;
+                }
+                return false;
+            }
+            case POINTER: {
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_1_AFTER;
+                    continue;
+                }
+                if (c == 'e') {
+                    state = EXPONENT;
+                    continue;
+                }
+                if (c == ' ') {
+                    state = END;
+                    continue;
+                }
+                return false;
+            }
+            case NUMBER_1_AFTER: {
+                if (c >= '0' && c <= '9') {
+                    continue;
+                }
+                if (c == 'e') {
+                    state = EXPONENT;
+                    continue;
+                }
+                if (c == ' ') {
+                    state = END;
+                    continue;
+                }
+                return false;
+            }
+            case EXPONENT: {
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_2;
+                    continue;
+                }
+                if (c == '-' || c == '+') {
+                    state = SIGNATURE_2;
+                    continue;
+                }
+                return false;
+            }
+            case SIGNATURE_2: {
+                if (c >= '0' && c <= '9') {
+                    state = NUMBER_2;
+                    continue;
+                }
+                return false;
+            }
+            case NUMBER_2: {
+                if (c >= '0' && c <= '9') {
+                    continue;
+                }
+                if (c == ' ') {
+                    state = END;
+                    continue;
+                }
+                return false;
+            }
+            case END: {
+                if (c == ' ') {
+                    continue;
+                }
+                return false;
+            }
+            default:
+                return false;
+        }
+    }
+    return state == NUMBER_1 || state == NUMBER_1_AFTER || state == NUMBER_2 ||
+            state == POINTER || state == END;
+}
+
+FTEST(test_isNumber) {
+    auto t = [](const std::string& s) {
+        auto re = isNumber(s);
+        LOG(INFO) << s << " is number: " << re;
+        return re;
+    };
+
+    FEXP(t(""), false);
+    FEXP(t(" "), false);
+    FEXP(t(" "), false);
+    FEXP(t("0"), true);
+    FEXP(t(".0"), true);
+    FEXP(t(" .0"), true);
+    FEXP(t(".1"), true);
+    FEXP(t(" .1"), true);
+    FEXP(t(" 0.1 "), true);
+    FEXP(t("3."), true);
+    FEXP(t("+.8"), true);
+    FEXP(t(" +.8"), true);
+    FEXP(t("3. "), true);
+    FEXP(t("abc"), false);
+    FEXP(t("1 a"), false);
+    FEXP(t("2e10"), true);
+    FEXP(t(" -90e3   "), true);
+    FEXP(t(" 1e"), false);
+    FEXP(t("e3"), false);
+    FEXP(t(" 6e-1"), true);
+    FEXP(t(" 99e2.5 "), false);
+    FEXP(t("53.5e93"), true);
+    FEXP(t("46.e3"), true);
+    FEXP(t(" --6 "), false);
+    FEXP(t("-+3"), false);
+    FEXP(t("95a54e53"), false);
 }
 
 /**
@@ -367,7 +540,36 @@ bool isNumber(std::string s) {
  Explanation: The array represents the integer 4321.
 */
 std::vector<int> plusOne(std::vector<int>& digits) {
-    return {};
+    int carry = 1;
+    for (int i = digits.size() - 1; i >= 0; --i) {
+        int sum = digits[i] + carry;
+        digits[i] = sum % 10;
+        carry = sum / 10;
+    }
+    if (carry > 0) {
+        digits.insert(digits.begin(), carry);
+    }
+    return digits;
+}
+
+FTEST(test_plusOne) {
+    auto t = [](const std::vector<int>& digits) {
+        std::vector<int> nns = digits;
+        auto re = plusOne(nns);
+        LOG(INFO) << digits << " plue one: " << re;
+        return re;
+    };
+
+    t({});
+    t({0});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({9});
+    t({9, 9});
+    t({9, 9, 9});
+    t({1, 0, 2, 3});
+    t({4, 3, 2, 1});
 }
 
 /**

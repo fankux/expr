@@ -698,7 +698,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_minPathSum();
+    test_plusOne();
 
     // TODO.. dijistra
 
