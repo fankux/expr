@@ -688,6 +688,7 @@ void avl_tree() {}
 #include "idx3.hpp"
 #include "idx4.hpp"
 #include "idx5.hpp"
+#include "idx6.hpp"
 
 int main() {
 
@@ -697,7 +698,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_getPermutation();
+    test_minPathSum();
 
     // TODO.. dijistra
 
