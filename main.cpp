@@ -689,6 +689,7 @@ void avl_tree() {}
 #include "idx4.hpp"
 #include "idx5.hpp"
 #include "idx6.hpp"
+#include "idx7.hpp"
 
 int main() {
 
@@ -698,7 +699,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_plusOne();
+    test_mySqrt();
 
     // TODO.. dijistra
 

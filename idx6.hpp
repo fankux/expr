@@ -586,7 +586,71 @@ FTEST(test_plusOne) {
  Output: "10101"
 */
 std::string addBinary(std::string a, std::string b) {
-    return "";
+    size_t alen = a.size();
+    size_t blen = b.size();
+    if (alen == 0 && blen == 0) {
+        return "";
+    }
+    std::string& res = alen > blen ? a : b;
+    int i = alen - 1;
+    int j = blen - 1;
+    int carry = 0;
+    while (i >= 0 || j >= 0) {
+        int sum = carry;
+        if (i >= 0) {
+            sum += a[i] - '0';
+        }
+        if (j >= 0) {
+            sum += b[j] - '0';
+        }
+        if (sum == 0) {
+            sum = '0';
+            carry = 0;
+        } else if (sum == 1) {
+            sum = '1';
+            carry = 0;
+        } else if (sum == 2) {
+            sum = '0';
+            carry = 1;
+        } else {
+            sum = '1';
+            carry = 1;
+        }
+        res[alen > blen ? i : j] = sum;
+        --i;
+        --j;
+    }
+    if (carry > 0) {
+        res.insert(res.begin(), '1');
+    }
+    return res.empty() ? "0" : res;
+}
+
+FTEST(test_addBinary) {
+    auto t = [](const std::string& a, const std::string& b) {
+        auto re = addBinary(a, b);
+        LOG(INFO) << a << " + " << b << " = " << re;
+        return re;
+    };
+
+    t("", "");
+    t("0", "");
+    t("1", "");
+    t("", "0");
+    t("", "1");
+    t("0", "0");
+    t("1", "0");
+    t("0", "1");
+    t("1", "1");
+    t("10", "1");
+    t("1", "10");
+    t("10", "10");
+    t("1", "11");
+    t("11", "1");
+    t("11", "10");
+    t("10", "11");
+    t("11", "11");
+    t("1010", "1011");
 }
 
 /**
@@ -646,7 +710,63 @@ std::string addBinary(std::string a, std::string b) {
  ]
 */
 std::vector<std::string> fullJustify(std::vector<std::string>& words, int maxWidth) {
-    return {};
+    std::vector<std::string> res;
+    int cur_len = 0;
+    std::vector<std::string> sections;
+    for (auto& word : words) {
+        if (cur_len + word.size() + sections.size() > maxWidth) {
+            int white_separator = (maxWidth - cur_len) /
+                    (sections.size() > 1 ? sections.size() - 1 : 1);
+            int extra = (maxWidth - cur_len) %
+                    (sections.size() > 1 ? sections.size() - 1 : 1);
+            std::string line;
+            for (size_t i = 0; i < sections.size(); ++i) {
+                line += sections[i];
+                if (i != sections.size() - 1 || sections.size() == 1) {
+                    line.append(white_separator, ' ');
+                }
+                if (extra > 0) {
+                    line += ' ';
+                    --extra;
+                }
+            }
+            res.emplace_back(std::move(line));
+            cur_len = word.size();
+            sections.clear();
+            sections.emplace_back(word);
+        } else {
+            cur_len += word.size();
+            sections.emplace_back(word);
+        }
+    }
+    if (!sections.empty()) {
+        std::string line;
+        for (const auto& section : sections) {
+            line += section;
+            if (line.size() < maxWidth) {
+                line += ' ';
+            }
+        }
+        if (line.size() < maxWidth) {
+            line.append(maxWidth - line.size(), ' ');
+        }
+        res.emplace_back(std::move(line));
+    }
+    return res;
+}
+
+FTEST(test_fullJustify) {
+    auto t = [](const std::vector<std::string>& words, int maxWidth) {
+        std::vector<std::string> nns = words;
+        auto re = fullJustify(nns, maxWidth);
+        LOG(INFO) << words << " " << maxWidth << " full justify: " << re;
+        return re;
+    };
+
+    t({"This", "is", "an", "example", "of", "text", "justification."}, 16);
+    t({"What", "must", "be", "acknowledgment", "shall", "be"}, 16);
+    t({"Science", "is", "what", "we", "understand", "well", "enough", "to", "explain",
+            "to", "a", "computer.", "Art", "is", "everything", "else", "we", "do"}, 20);
 }
 
 /**
@@ -663,9 +783,46 @@ std::vector<std::string> fullJustify(std::vector<std::string>& words, int maxWid
  Input: 8
  Output: 2
  Explanation: The square root of 8 is 2.82842..., and since the decimal part is truncated, 2 is returned.
+
+ THOUTGHTS:
+    when binary search, the value is left or right index itself,
+    so right=mid rather than right=mid-1 which cause skipping mid index.
 */
 int mySqrt(int x) {
-    return 0;
+    if (x <= 1) {
+        return x;
+    }
+    int left = 0;
+    int right = x;
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (x / mid >= mid) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return right - 1;
+}
+
+FTEST(test_mySqrt) {
+    auto t = [](int n) {
+        auto re = mySqrt(n);
+        LOG(INFO) << n << " squre root: " << re;
+        return re;
+    };
+
+//    FEXP(t(0), 0);
+//    FEXP(t(1), 1);
+//    FEXP(t(2), 1);
+//    FEXP(t(3), 1);
+//    FEXP(t(4), 2);
+//    FEXP(t(5), 2);
+    FEXP(t(6), 2);
+//    FEXP(t(7), 2);
+//    FEXP(t(8), 2);
+//    FEXP(t(9), 3);
+//    FEXP(t(INT_MAX), std::sqrt(INT_MAX));
 }
 
 /**
@@ -690,5 +847,41 @@ int mySqrt(int x) {
  3. 2 steps + 1 step
 */
 int climbStairs(int n) {
-    return 0;
+    std::function<int(int)> r_func;
+    r_func = [&](int n) {
+        if (n == 1 || n == 2) {
+            return n;
+        }
+        return r_func(n - 1) + r_func(n - 2);
+    };
+    auto iter_func = [&] {
+        if (n <= 2) {
+            return n;
+        }
+        int f1 = 1;
+        int f2 = 2;
+        int idx = 3;
+        int count = 0;
+        while (idx <= n) {
+            count = f1 + f2;
+            f1 = f2;
+            f2 = count;
+            ++idx;
+        }
+        return f2;
+    };
+    return iter_func();
+}
+
+FTEST(test_climbStairs) {
+    auto t = [](int n) {
+        auto re = climbStairs(n);
+        LOG(INFO) << n << " climb way count: " << re;
+        return re;
+    };
+    t(1);
+    t(2);
+    t(3);
+    t(10);
+    t(44);
 }
