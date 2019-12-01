@@ -812,17 +812,17 @@ FTEST(test_mySqrt) {
         return re;
     };
 
-//    FEXP(t(0), 0);
-//    FEXP(t(1), 1);
-//    FEXP(t(2), 1);
-//    FEXP(t(3), 1);
-//    FEXP(t(4), 2);
-//    FEXP(t(5), 2);
+    FEXP(t(0), 0);
+    FEXP(t(1), 1);
+    FEXP(t(2), 1);
+    FEXP(t(3), 1);
+    FEXP(t(4), 2);
+    FEXP(t(5), 2);
     FEXP(t(6), 2);
-//    FEXP(t(7), 2);
-//    FEXP(t(8), 2);
-//    FEXP(t(9), 3);
-//    FEXP(t(INT_MAX), std::sqrt(INT_MAX));
+    FEXP(t(7), 2);
+    FEXP(t(8), 2);
+    FEXP(t(9), 3);
+    FEXP(t(INT_MAX), std::sqrt(INT_MAX));
 }
 
 /**

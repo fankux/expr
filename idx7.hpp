@@ -44,7 +44,140 @@ Input: "/a//b////c/d//././/.."
 Output: "/a/b/c"
 */
 std::string simplifyPath(std::string path) {
-    return "";
+    std::stack<std::string> ss;
+    enum STAT {
+        BEGIN = 0,
+        SLASH,
+        DIR,
+        DOT,
+        DOUBLE_DOT
+    };
+    size_t l = 0;
+    size_t r = 0;
+    int state = BEGIN;
+    for (int i = 0; i < path.size(); ++i) {
+        char c = path[i];
+        switch (state) {
+            case BEGIN: {
+                if (c == '/') {
+                    state = SLASH;
+                    break;
+                }
+                return "";
+            }
+            case SLASH: {
+                if (c == '/') {
+                    break;
+                }
+                if (c == '.') {
+                    state = DOT;
+                } else {
+                    l = i;
+                    r = i;
+                    state = DIR;
+                }
+                break;
+            }
+            case DOT: {
+                if (c == '/') {         // /./
+                    state = SLASH;
+                } else if (c == '.') {
+                    state = DOUBLE_DOT;
+                } else {
+                    state = DIR;
+                    l = i - 1;
+                    r = i;
+                }
+                break;
+            }
+            case DOUBLE_DOT: {
+                if (c == '/') {         // /../
+                    if (!ss.empty()) {
+                        ss.pop();
+                    }
+                    state = SLASH;
+                } else {
+                    state = DIR;
+                    l = i - 2;
+                    r = i;
+                }
+                break;
+            }
+            case DIR: {
+                if (c == '/') {
+                    ss.push(path.substr(l, r - l + 1));
+                    state = SLASH;
+                    break;
+                }
+                r = i;
+                break;
+            }
+            default:
+                return "";
+        }
+    }
+    if (state == DIR) {
+        ss.push(path.substr(l, r - l + 1));
+    } else if (state == DOUBLE_DOT && !ss.empty()) {
+        ss.pop();
+    }
+    std::string res;
+    while (!ss.empty()) {
+        res = "/" + ss.top() + res;
+        ss.pop();
+    }
+    return res.empty() ? "/" : res;
+}
+
+FTEST(test_simplifyPath) {
+    auto t = [](const std::string& path) {
+        auto re = simplifyPath(path);
+        LOG(INFO) << path << " simplify: " << re;
+        return re;
+    };
+
+    FEXP(t("/"), "/");
+    FEXP(t("//"), "/");
+    FEXP(t("/.."), "/");
+    FEXP(t("/../"), "/");
+    FEXP(t("/.a"), "/.a");
+    FEXP(t("/.a/"), "/.a");
+    FEXP(t("/..."), "/...");
+    FEXP(t("/.../"), "/...");
+    FEXP(t("/...."), "/....");
+    FEXP(t("/..../"), "/....");
+    FEXP(t("/...a"), "/...a");
+    FEXP(t("/...a/"), "/...a");
+    FEXP(t("/a"), "/a");
+    FEXP(t("/abc"), "/abc");
+    FEXP(t("/abc/.."), "/");
+    FEXP(t("/abc/../"), "/");
+    FEXP(t("/abc/../.."), "/");
+    FEXP(t("/abc/../../"), "/");
+    FEXP(t("/abc/../../.."), "/");
+    FEXP(t("/abc/../../../"), "/");
+    FEXP(t("/a/"), "/a");
+    FEXP(t("/abc/"), "/abc");
+    FEXP(t("//abc"), "/abc");
+    FEXP(t("//abc//"), "/abc");
+    FEXP(t("/./abc"), "/abc");
+    FEXP(t("//./abc"), "/abc");
+    FEXP(t("//./abc"), "/abc");
+    FEXP(t("/.//abc"), "/abc");
+    FEXP(t("/.//abc"), "/abc");
+    FEXP(t("//.//abc"), "/abc");
+    FEXP(t("//.//abc"), "/abc");
+    FEXP(t("/./abc/"), "/abc");
+    FEXP(t("/./abc//"), "/abc");
+    FEXP(t("/./abc/./"), "/abc");
+    FEXP(t("/./abc//./"), "/abc");
+    FEXP(t("/./abc/.//"), "/abc");
+    FEXP(t("/./abc//.//"), "/abc");
+    FEXP(t("/./abc//.//"), "/abc");
+    FEXP(t("/home//foo/"), "/home/foo");
+    FEXP(t("/a/./b/../../c/"), "/c");
+    FEXP(t("/a/../../b/../c//.//"), "/c");
+    FEXP(t("/a//b////c/d//././/.."), "/a/b/c");
 }
 
 /**

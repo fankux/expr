@@ -699,7 +699,7 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_mySqrt();
+    test_simplifyPath();
 
     // TODO.. dijistra
 
