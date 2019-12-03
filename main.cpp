@@ -699,7 +699,8 @@ int main() {
 //        LOG(INFO) << "======== end ========\n";
 //    }
 
-    test_simplifyPath();
+// ↘↓↘→
+    test_minWindow();
 
     // TODO.. dijistra
 

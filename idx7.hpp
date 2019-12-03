@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "list.hpp"
 #include "subs.hpp"
 #include "strs.hpp"
@@ -205,9 +206,66 @@ inention -> enention (replace 'i' with 'e')
 enention -> exention (replace 'n' with 'x')
 exention -> exection (replace 'n' with 'c')
 exection -> execution (insert 'u')
+
+ THOUGHTS:
+ see VERBOSE dp state transfer
 */
 int minDistance(std::string word1, std::string word2) {
-    return 0;
+    size_t len1 = word1.size();
+    size_t len2 = word2.size();
+    if (len1 == 0 || len2 == 0) {
+        return len1 == 0 ? len2 : len1;
+    }
+    std::vector<std::vector<int>> dp(len1 + 1, std::vector<int>(len2 + 1, 0));
+    for (size_t i = 0; i <= len1; ++i) {
+        dp[i][0] = i;
+    }
+    for (size_t i = 0; i <= len2; ++i) {
+        dp[0][i] = i;
+    }
+    for (size_t i = 1; i <= len1; ++i) {
+        for (size_t j = 1; j <= len2; ++j) {
+            dp[i][j] = word1[i - 1] == word2[j - 1] ? dp[i - 1][j - 1] :
+                    (std::min(dp[i - 1][j - 1], std::min(dp[i - 1][j], dp[i][j - 1])) + 1);
+        }
+    }
+
+#ifdef VERBOSE
+    printf("\t");
+    for (size_t j = 1; j < len2; ++j) {
+        printf("%2c\t", word2[j]);
+    }
+    printf("\n");
+    for (size_t i = 1; i < len1; ++i) {
+        printf("%2c\t", word1[i]);
+        for (size_t j = 1; j < len2; ++j) {
+            printf("%2d\t", dp[i][j]);
+        }
+        printf("\n");
+    }
+#endif
+    return dp[len1][len2];
+}
+
+FTEST(test_minDistance) {
+    auto t = [](const std::string& word1, const std::string word2) {
+        auto re = minDistance(word1, word2);
+        LOG(INFO) << word1 << " min distance " << word2 << ": " << re;
+        return re;
+    };
+
+    FEXP(t("", ""), 0);
+    FEXP(t("", "a"), 1);
+    FEXP(t("", "ab"), 2);
+    FEXP(t("", "abc"), 3);
+    FEXP(t("a", ""), 1);
+    FEXP(t("ab", ""), 2);
+    FEXP(t("abc", ""), 3);
+    FEXP(t("abc", "abc"), 0);
+    FEXP(t("horse", "ros"), 3);
+    FEXP(t("intention", "execution"), 5);
+    FEXP(t("sea", "eat"), 2);
+    FEXP(t("pneumonoultramicroscopicsilicovolcanoconiosis", "ultramicroscopically"), 27);
 }
 
 /**
@@ -248,13 +306,85 @@ A simple improvement uses O(m + n) space, but still not the best solution.
 Could you devise a constant space solution?
 */
 void setZeroes(std::vector<std::vector<int>>& matrix) {
+    if (matrix.empty() || matrix.front().empty()) {
+        return;
+    }
+    int m = matrix.front().size();
+    int n = matrix.size();
+    int col_zero = false;
+    int row_zero = false;
+    for (size_t j = 0; j < m; ++j) {
+        if (matrix[0][j] == 0) {
+            row_zero = true;
+            break;
+        }
+    }
+    for (size_t i = 0; i < n; ++i) {
+        if (matrix[i][0] == 0) {
+            col_zero = true;
+            break;
+        }
+    }
+    for (size_t i = 1; i < n; ++i) {
+        for (size_t j = 1; j < m; ++j) {
+            if (matrix[i][j] == 0) {
+                matrix[0][j] = 0;
+                matrix[i][0] = 0;
+            }
+        }
+    }
+    for (size_t j = 1; j < m; ++j) {
+        if (matrix[0][j] == 0) {
+            for (size_t i = 1; i < n; ++i) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    for (size_t i = 1; i < n; ++i) {
+        if (matrix[i][0] == 0) {
+            for (size_t j = 1; j < m; ++j) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    if (row_zero) {
+        for (size_t j = 0; j < m; ++j) {
+            matrix[0][j] = 0;
+        }
+    }
+    if (col_zero) {
+        for (size_t i = 0; i < n; ++i) {
+            matrix[i][0] = 0;
+        }
+    }
+}
+
+FTEST(test_setZeroes) {
+    auto t = [](const std::vector<std::vector<int>>& matrix) {
+        std::vector<std::vector<int>> mm = matrix;
+        setZeroes(mm);
+        LOG(INFO) << matrix << " set zeros: " << mm;
+    };
+    t({});
+    t({{}});
+    t({{0}});
+    t({{1}});
+    t({{0, 0}});
+    t({{0, 1}});
+    t({{1, 0}});
+    t({{1, 1}});
+    t({{1, 1, 1}});
+    t({{1, 0, 1}});
+    t({{1, 1, 1}, {1, 0, 1}, {1, 1, 1}});
+    t({{0, 1, 2, 0}, {3, 4, 5, 2}, {1, 3, 1, 5}});
 }
 
 /**
  ///////////// 74. Search a 2D Matrix
-Write an efficient algorithm that searches for a value in an m x n matrix. This matrix has the following properties:
-Integers in each row are sorted from left to right.
-The first integer of each row is greater than the last integer of the previous row.
+Write an efficient algorithm that searches for a value in an m x n matrix.
+ This matrix has the following properties:
+ Integers in each row are sorted from left to right.
+ The first integer of each row is greater than the last integer of the previous row.
 
 Example 1:
 Input:
@@ -275,9 +405,47 @@ matrix = [
 ]
 target = 13
 Output: false
+
+ THOUGHTS:
+
 */
 bool searchMatrix(std::vector<std::vector<int>>& matrix, int target) {
-    return false;
+    if (matrix.empty() || matrix.front().empty()) {
+        return false;
+    }
+    size_t m = matrix.front().size();
+    size_t n = matrix.size();
+    size_t l = 0;
+    size_t r = m * n;
+    while (l < r) {
+        size_t mid = l + (r - l) / 2;
+        if (matrix[mid / m][mid % m] < target) {
+            l = mid + 1;
+        } else {
+            r = mid;
+        }
+    }
+    assert(l == r);
+    return l < m * n && matrix[l / m][l % m] == target;
+}
+
+FTEST(test_searchMatrix) {
+    auto t = [](const std::vector<std::vector<int>>& matrix, int target) {
+        std::vector<std::vector<int>> mm = matrix;
+        auto re = searchMatrix(mm, target);
+        LOG(INFO) << matrix << " search " << target << ": " << re;
+        return re;
+    };
+    FEXP(t({}, 0), false);
+    FEXP(t({{}}, 0), false);
+    FEXP(t({{1}}, 1), true);
+    FEXP(t({{1, 2}}, -1), false);
+    FEXP(t({{1, 2}}, 3), false);
+    FEXP(t({{1, 2}}, 1), true);
+    FEXP(t({{1, 2}}, 2), true);
+    FEXP(t({{1}, {3}}, 3), true);
+    FEXP(t({{1, 3, 5, 7}, {10, 11, 16, 20}, {23, 30, 34, 50}}, 3), true);
+    FEXP(t({{1, 3, 5, 7}, {10, 11, 16, 20}, {23, 30, 34, 50}}, 13), false);
 }
 
 /**
@@ -298,6 +466,26 @@ First, iterate the array counting number of 0's, 1's, and 2's,
 Could you come up with a one-pass algorithm using only constant space?
 */
 void sortColors(std::vector<int>& nums) {
+    int l = 0;
+    int r = nums.size() - 1;
+    for (int i = 0; i <= r; ++i) {
+        if (nums[i] == 0) {
+            std::swap(nums[l++], nums[i]);
+        } else if (nums[i] == 2) {
+            std::swap(nums[r--], nums[i--]);
+        }
+    }
+}
+
+FTEST(test_sortColors) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        sortColors(nns);
+        LOG(INFO) << nums << " color sorted " << nns;
+    };
+
+    t({2, 0, 2, 1, 1, 0});
+    t({2, 0, 1});
 }
 
 /**
@@ -312,9 +500,70 @@ Output: "BANC"
 Note:
 If there is no such window in S that covers all characters in T, return the empty string "".
 If there is such window, you are guaranteed that there will always be only one unique minimum window in S.
+
+ THOUGHTS:
+  A   D   O   B   E   C   O   D   E   B   A   N   C                              ABC
+  1           1       1                                  cnt=0                   111
+  0           0       0(r)                               SCN,cnt=3               000
+  0(l)        0       0(r)                               CHK,res=ADOBEC,cnt=2    100
+(0→1)→l       0       0(r)                               MOV,cnt=2               100
+      l       0(-1)   0              -1   0(r)           SCN,cnt=3               0-10
+              ------→ 0(l)            0   0(r)           CHK,res=CODEBA,cnt=3    000
+                    (0→1)→l                              MOV,cnt=2               001
+                          l           0   0       0      SCN,cnt=3               000
+                          ----------→ 0(l)0       0      CHK,res=BANC,cnt=3      000
+
 */
 std::string minWindow(std::string s, std::string t) {
-    return "";
+    int mm[128] = {0};
+    for (char c : t) {
+        ++(mm[c]);
+    }
+    int min_left = -1;
+    int min_len = INT_MAX;
+    int count = 0;
+    size_t l = 0;
+    for (size_t r = 0; r < s.size(); ++r) {
+        if (--mm[s[r]] >= 0) {       // if c not concern, always negative
+            ++count;
+        }
+        while (count == t.size()) { // all words collected
+            if (mm[s[l]] == 0 && r - l + 1 < min_len) {
+                min_len = r - l + 1;
+                min_left = l;
+            }
+            if (++mm[s[l]] > 0) { // only when vaild char hapend, count modified breaking while loop
+                --count;
+            }
+            ++l;
+        }
+    }
+    return min_left == -1 ? "" : s.substr(min_left, min_len);
+}
+
+FTEST(test_minWindow) {
+    auto t = [](const std::string& s, const std::string& t) {
+        auto re = minWindow(s, t);
+        LOG(INFO) << s << " min window of " << t << ": " << re;
+        return re;
+    };
+    FEXP(t("", ""), "");
+    FEXP(t("", "A"), "");
+    FEXP(t("A", ""), "");
+    FEXP(t("A", "A"), "A");
+    FEXP(t("A", "AA"), "");
+    FEXP(t("A", "AB"), "");
+    FEXP(t("AB", "AB"), "AB");
+    FEXP(t("AB", "ABC"), "");
+    FEXP(t("ABC", "ABC"), "ABC");
+    FEXP(t("ADBDCEEABFC", "ABC"), "ABFC");
+    FEXP(t("ADOBECODEBANC", "ABC"), "BANC");
+    FEXP(t("ABC", "AABBCC"), "");
+    FEXP(t("ABAABBBCC", "AABBCC"), "AABBBCC");
+    FEXP(t("ADBDCEEABF", "AABBCC"), "");
+    FEXP(t("ADBDCEEAAFBBCFCC", "AABBCC"), "AAFBBCFC");
+    FEXP(t("ADOBECODEBAN", "AABBCC"), "");
+    FEXP(t("ADOBECODEAABANCCCBB", "AABBCC"), "ABANCCCB");
 }
 
 /**
