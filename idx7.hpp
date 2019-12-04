@@ -583,7 +583,64 @@ Output:
 ]
 */
 std::vector<std::vector<int>> combine(int n, int k) {
-    return {};
+    if (k <= 0) {
+        return {};
+    }
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    std::function<void(int)> r_func;
+    r_func = [&](int start) {
+        if (re.size() >= k) {
+            res.emplace_back(re);
+            return;
+        }
+
+        for (size_t i = start; i <= n; ++i) {
+            re.emplace_back(i);
+            r_func(i + 1);
+            re.pop_back();
+        }
+    };
+
+    auto iter_func = [&] {
+        re.resize(k, 0);
+        int i = 0;
+        while (i >= 0) {
+            ++re[i];
+            if (re[i] > n) {
+                --i;
+            } else if (i == k - 1) {
+                res.emplace_back(re);
+            } else {
+                ++i;
+                re[i] = re[i - 1];
+            }
+        }
+    };
+
+    iter_func();
+    return res;
+}
+
+FTEST(test_combine) {
+    auto t = [](int n, int k) {
+        auto re = combine(n, k);
+        LOG(INFO) << n << ", " << k << " combine: " << re;
+        return re;
+    };
+    t(0, 0);
+    t(0, 1);
+    t(1, 0);
+    t(1, 1);
+    t(2, 1);
+    t(1, 2);
+    t(2, 2);
+    t(1, 3);
+    t(3, 1);
+    t(3, 2);
+    t(2, 3);
+    t(3, 3);
+    t(4, 2);
 }
 
 /**
@@ -606,7 +663,56 @@ Output:
 ]
 */
 std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
-    return {};
+    std::sort(nums.begin(), nums.end());
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    std::function<void(int, int)> r_func;
+    r_func = [&](int start, int level) {
+        if (re.size() >= level) {
+            res.emplace_back(re);
+            return;
+        }
+        for (size_t i = start; i < nums.size(); ++i) {
+            re.emplace_back(nums[i]);
+            r_func(i + 1, level);
+            re.pop_back();
+        }
+    };
+    auto recursive = [&] {
+        for (size_t i = 0; i <= nums.size(); ++i) {
+            r_func(0, i);
+        }
+        return res;
+    };
+    auto iter = [&] {
+        res.emplace_back();
+        for (int& num : nums) {
+            int len = res.size();
+            for (size_t j = 0; j < len; ++j) {
+                res.emplace_back(res[j]);
+                res.back().emplace_back(num);
+            }
+        }
+        return res;
+    };
+    return iter();
+}
+
+FTEST(test_subsets) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = subsets(nns);
+        LOG(INFO) << nums << " subsets: " << re;
+        return re;
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 1});
+    t({1, 1, 2});
+    t({1, 1, 2, 2});
 }
 
 /**
@@ -627,8 +733,60 @@ Given word = "ABCCED", return true.
 Given word = "SEE", return true.
 Given word = "ABCB", return false.
 */
-bool exist(std::vector<std::vector<char>>& board, std::string word) {
+bool wordExistInMatrix(std::vector<std::vector<char>>& board, std::string word) {
+    if (board.empty() || board.front().empty() || word.empty()) {
+        return false;
+    }
+    size_t m = board.front().size();
+    size_t n = board.size();
+    std::function<bool(int, int, size_t)> r_func;
+    r_func = [&](int x, int y, size_t idx) {
+        if (idx >= word.size()) {
+            return true;
+        }
+        if (x < 0 || x >= n || y < 0 || y >= m) {
+            return false;
+        }
+        char c = board[x][y];
+        if (c != word[idx]) {
+            return false;
+        }
+
+        board[x][y] = '#';
+        bool re = r_func(x + 1, y, idx + 1) || r_func(x, y + 1, idx + 1) ||
+                r_func(x - 1, y, idx + 1) || r_func(x, y - 1, idx + 1);
+        board[x][y] = c;
+        return re;
+    };
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < m; ++j) {
+            if (board[i][j] == word.front()) {
+                if (r_func(i, j, 0)) {
+                    return true;
+                }
+            }
+        }
+    }
     return false;
+}
+
+FTEST(test_wordExistInMatrix) {
+    auto t = [](const std::vector<std::vector<char>>& board, const std::string& word) {
+        std::vector<std::vector<char>> nns = board;
+        auto re = wordExistInMatrix(nns, word);
+        LOG(INFO) << board << " exist " << word << ": " << re;
+        return re;
+    };
+
+    FEXP(t({}, ""), true);
+    FEXP(t({{}}, ""), true);
+    FEXP(t({{}}, "A"), false);
+    FEXP(t({{'A'}}, ""), true);
+    FEXP(t({{'A'}}, "A"), true);
+    FEXP(t({{'A'}}, "B"), false);
+    FEXP(t({{'A', 'B', 'C', 'E'}, {'S', 'F', 'C', 'S'}, {'A', 'D', 'E', 'E'}}, "ABCCED"), true);
+    FEXP(t({{'A', 'B', 'C', 'E'}, {'S', 'F', 'C', 'S'}, {'A', 'D', 'E', 'E'}}, "SEE"), true);
+    FEXP(t({{'A', 'B', 'C', 'E'}, {'S', 'F', 'C', 'S'}, {'A', 'D', 'E', 'E'}}, "ABCB"), false);
 }
 
 /**
@@ -667,5 +825,25 @@ for (int i = 0; i < len; i++) {
 ```
 */
 int removeDuplicatesII(std::vector<int>& nums) {
-    return true;
+    size_t i = 0;
+    for (int num: nums) {
+        if (i < 2 || num > nums[i - 2]) {
+            nums[i++] = num;
+        }
+    }
+    return i;
+}
+
+FTEST(test_removeDuplicatesII) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = removeDuplicatesII(nns);
+        LOG(INFO) << nums << " remove dups size: " << re << ", " << nns;
+        return re;
+    };
+
+    t({-2147483648, -2147483648, -2147483648, 1, 1, 1, 2});
+    t({1, 1, 1, 2, 2, 3});
+    t({1, 1, 1, 1, 2, 2, 2, 3});
+    t({0, 0, 1, 1, 1, 1, 2, 3, 3});
 }
