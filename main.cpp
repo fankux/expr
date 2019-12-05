@@ -690,6 +690,8 @@ void avl_tree() {}
 #include "idx5.hpp"
 #include "idx6.hpp"
 #include "idx7.hpp"
+#include "idx8.hpp"
+#include "idx9.hpp"
 
 int main() {
 
@@ -700,7 +702,7 @@ int main() {
 //    }
 
 //  ↘↓↘→
-    test_removeDuplicatesII();
+    test_partitionLinkList();
 
     // TODO.. dijistra
 

@@ -174,18 +174,18 @@ int searchRotate(std::vector<int>& nums, int target) {
     ssize_t l = 0;
     ssize_t h = nums.size() - 1;
     while (l <= h) {
-        size_t mid = (l + h) / 2;
+        size_t mid = l + (h - l) / 2;
         if (nums[mid] == target) {
             return mid;
         }
         if (nums[l] <= nums[mid]) {
-            if (target >= nums[l] && target < nums[mid]) { // left half sorted
+            if (nums[l] <= target && target < nums[mid]) { // left half sorted
                 h = mid - 1;
             } else {
                 l = mid + 1;
             }
         } else {
-            if (target > nums[mid] && target <= nums[h]) { // right half sorted
+            if (nums[mid] < target && target <= nums[h]) { // right half sorted
                 l = mid + 1;
             } else {
                 h = mid - 1;
@@ -203,7 +203,12 @@ FTEST(test_searchRotate) {
         return n;
     };
 
+    FEXP(t({}, 1), -1);
+    FEXP(t({1}, 1), 0);
+    FEXP(t({1}, 2), -1);
     FEXP(t({3, 1}, 1), 1);
+    FEXP(t({3, 1}, 3), 0);
+    FEXP(t({3, 1}, 2), -1);
     FEXP(t({4, 5, 6, 7, 0, 1, 2}, 0), 4);
     FEXP(t({4, 5, 6, 7, 0, 1, 2}, -3), -1);
 }
