@@ -466,7 +466,56 @@ Input: s1 = "abcde", s2 = "caebd"
 Output: false
 */
 bool isScramble(std::string s1, std::string s2) {
-    return false;
+    auto recursive_func = [&]() {
+        if (s1.size() != s2.size()) {
+            return false;
+        }
+        if (s1 == s2) {
+            return true;
+        }
+        size_t len = s1.size();
+        char mm[26] = {0};
+        for (size_t i = 0; i < len; ++i) {
+            ++mm[s1[i] - 'a'];
+            --mm[s2[i] - 'a'];
+        }
+        for (char i : mm) {
+            if (i != 0) {
+                return false;
+            }
+        }
+        for (size_t i = 1; i < len; ++i) {
+            if ((isScramble(s1.substr(0, i), s2.substr(0, i)) &&
+                    isScramble(s1.substr(i), s2.substr(i))) ||
+                    (isScramble(s1.substr(0, i), s2.substr(len - i)) &&
+                            isScramble(s1.substr(i), s2.substr(0, len - i)))) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto dp_func = [&] {
+        // TODO..
+    };
+
+    return recursive_func();
+}
+
+FTEST(test_isScramble) {
+    auto t = [](const std::string& s1, const std::string& s2) {
+        auto re = isScramble(s1, s2);
+        LOG(INFO) << s1 << " scramble " << s2 << ": " << re;
+        return re;
+    };
+    FEXP(t("", ""), false);
+    FEXP(t("", "a"), false);
+    FEXP(t("a", ""), false);
+    FEXP(t("great", "great"), true);
+    FEXP(t("great", "rgeat"), true);
+    FEXP(t("great", "eatrg"), true);
+    FEXP(t("great", "rgtae"), true);
+    FEXP(t("great", "rgaet"), true);
 }
 
 /**
@@ -485,7 +534,50 @@ nums2 = [2,5,6],       n = 3
 
 Output: [1,2,2,3,5,6]
 */
-void merge(std::vector<int>& nums1, int m, std::vector<int>& nums2, int n) {
+void mergeSortedArray(std::vector<int>& nums1, int m, std::vector<int>& nums2, int n) {
+    int i = m - 1;
+    int j = n - 1;
+    int k = m + n - 1;
+    while (i >= 0 && j >= 0) {
+        if (nums1[i] >= nums2[j]) {
+            nums1[k--] = nums1[i--];
+        } else {
+            nums1[k--] = nums2[j--];
+        }
+    }
+    while (j >= 0) {
+        nums1[k--] = nums2[j--];
+    }
+}
+
+FTEST(test_mergeSortedArray) {
+    auto t = [](const std::vector<int>& nums1, int m, const std::vector<int>& nums2) {
+        std::vector<int> nn = nums1;
+        std::vector<int> nn2 = nums2;
+        mergeSortedArray(nn, m, nn2, nn2.size());
+        LOG(INFO) << nums1 << " merge " << nums2 << ": " << nn;
+    };
+
+    t({}, 0, {});
+    t({1}, 1, {});
+    t({1, 1}, 2, {});
+    t({1, 2}, 2, {});
+    t({1, 2, 3}, 3, {});
+    t({0}, 0, {1});
+    t({1, 0}, 1, {1});
+    t({1, 0}, 1, {2});
+    t({2, 0}, 1, {1});
+    t({1, 1, 0}, 2, {0});
+    t({1, 1, 0}, 2, {1});
+    t({1, 1, 0}, 2, {2});
+    t({1, 2, 0}, 2, {1});
+    t({1, 2, 0}, 2, {2});
+    t({1, 2, 0}, 2, {3});
+    t({0, 0}, 0, {1, 2});
+    t({0, 0, 0}, 0, {1, 2, 3});
+    t({1, 2, 3, 0, 0, 0}, 3, {1, 2, 3});
+    t({1, 2, 3, 0, 0, 0}, 3, {2, 5, 6});
+    t({1, 3, 5, 7, 9, 0, 0, 0, 0}, 5, {2, 4, 6, 8});
 }
 
 /**
@@ -514,11 +606,40 @@ Example 2:
 Input: 0
 Output: [0]
 Explanation: We define the gray code sequence to begin with 0.
-             A gray code sequence of n has size = 2n, which for n = 0 the size is 20 = 1.
+             A gray code sequence of n has size = 2^n, which for n = 0 the size is 2^0 = 1.
              Therefore, for n = 0 the gray code sequence is [0].
+
+ THOUGHTS:
+ FOR EXAMPLE: n=3, for each code in current res list,
+    BITOR with "1 left move N bit", then put it to res.
+  INIT  : 000
+  LMOV 0(001): 000 | 001
+  LMOV 1(010): 000   001 | 010  011
+  LMOV 2(100): 000   001   010  011 | 100 101 110 111
 */
 std::vector<int> grayCode(int n) {
-    return {};
+    std::vector<int> res{0};
+    for (int i = 0; i < n; ++i) {
+        size_t len = res.size();
+        for (int j = len - 1; j >= 0; --j) {
+            res.emplace_back(res[j]);
+            res.back() = res.back() | (1 << i);
+        }
+    }
+    return res;
+}
+
+FTEST(test_grayCode) {
+    auto t = [](int n) {
+        auto re = grayCode(n);
+        LOG(INFO) << n << " grap codes: " << re;
+    };
+
+    t(0);
+    t(1);
+    t(2);
+    t(3);
+    t(4);
 }
 
 /**
@@ -540,5 +661,40 @@ Output:
 ]
 */
 std::vector<std::vector<int>> subsetsWithDup(std::vector<int>& nums) {
-    return {};
+    std::sort(nums.begin(), nums.end());
+    std::vector<std::vector<int>> res{{}};
+    size_t last_size = 1;
+    for (size_t i = 0; i < nums.size(); ++i) {
+        int len = res.size();
+        if (i == 0 || nums[i] != nums[i - 1]) {
+            last_size = len;
+        }
+        for (size_t j = len - last_size; j < len; ++j) {
+            res.emplace_back(res[j]);
+            res.back().emplace_back(nums[i]);
+        }
+    }
+    return res;
+}
+
+FTEST(test_subsetsWithDup) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = subsetsWithDup(nns);
+        LOG(INFO) << nums << " subsets: " << re;
+        return re;
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 1});
+    t({1, 1, 1});
+    t({1, 1, 2});
+    t({1, 2, 2});
+    t({1, 1, 2, 2});
+    t({5, 5, 5, 5});
+    t({5, 5, 5, 5, 5});
+    t({4, 4, 4, 1, 4});
 }

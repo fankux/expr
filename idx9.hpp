@@ -26,7 +26,65 @@ Output: 3
 Explanation: It could be decoded as "BZ" (2 26), "VF" (22 6), or "BBF" (2 2 6).
 */
 int numDecodings(std::string s) {
-    return 0;
+    if (s.empty() || s[0] == '0') {
+        return 0;
+    }
+    std::function<int(size_t)> recursive_func;
+    recursive_func = [&](size_t start) {
+        if (start >= s.size()) {
+            return 1;
+        }
+        if (s[start] == '0') {
+            return 0;
+        }
+        int res = 0;
+        if (start + 1 < s.size()) {
+            int code = std::strtoul(s.substr(start, 2).c_str(), nullptr, 10);
+            if (code > 0 && code <= 26) {
+                res += recursive_func(start + 2);
+            }
+        }
+        return res + recursive_func(start + 1);
+    };
+    auto dp_func = [&] {
+        size_t len = s.size();
+        std::vector<int> dp(len + 1, 0); // len+1 for end state handle
+        dp[0] = 1;
+        for (size_t i = 1; i < len + 1; ++i) {
+            dp[i] = s[i - 1] == '0' ? 0 : dp[i - 1];
+            if (i > 1 && (s[i - 2] == '1' || (s[i - 2] == '2' && s[i - 1] <= '6'))) {
+                dp[i] += dp[i - 2];
+            }
+        }
+        return dp.back();
+    };
+    return dp_func();
+}
+
+FTEST(test_numDecodings) {
+    auto t = [](const std::string& s) {
+        auto re = numDecodings(s);
+        LOG(INFO) << s << " decode ways: " << re;
+        return re;
+    };
+    FEXP(t(""), 0);
+    FEXP(t("01"), 0);
+    FEXP(t("1"), 1);
+    FEXP(t("10"), 1);
+    FEXP(t("11"), 2);
+    FEXP(t("20"), 1);
+    FEXP(t("25"), 2);
+    FEXP(t("26"), 2);
+    FEXP(t("27"), 1);
+    FEXP(t("225"), 3);
+    FEXP(t("226"), 3);
+    FEXP(t("227"), 2);
+    FEXP(t("026"), 0);
+    FEXP(t("206"), 1);
+    FEXP(t("1226"), 5);
+    FEXP(t("1227"), 3);
+    FEXP(t("1787897759966261825913315262377298132516969578441236833255596967132573482281598412163216914566534565"),
+            3);
 }
 
 /**
@@ -37,9 +95,81 @@ Note: 1 ≤ m ≤ n ≤ length of list.
 Example:
 Input: 1->2->3->4->5->NULL, m = 2, n = 4
 Output: 1->4->3->2->5->NULL
+
+THOUGHTS:
+    1  → [2  →  3  →  4] →  5  →  NULL, m=2, n=4
+    f     p                             i=1
+       1 ↘   pre↘
+ null  ← [2  ←  3  →  4] →  5  →  NULL
+  pre     p   next
+        pre ↘-→ p                       i=2
+       1 ↘
+ null  ← [2  ←  3  ←  4] →  5  →  NULL
+         pre    p   next
+              pre ↘-→ p                 i=3
+ null  ← [2  ←  3  ←  4] →  5  →  NULL
+               pre    p   next
+                    pre ↘-→ p           i=4
+    1  → [4  →  3  →  2] →  5  →  NULL
+    f     pre               p
+
+ reverse from head:
+   [4  →  3  →  2  →  1] →  5  →  NULL
+ f  pre             head    p
+
+ reverse all:
+   [1  ←  2  ←  3  ←  4  →  5] →  NULL
+                     pre    p   next
+                          pre ↘-→ p     i=5
+   [5  →  4  →  3  →  2  →  1] →  NULL
+ f  p               pre   head    next
+
 */
 ListNode* reverseBetween(ListNode* head, int m, int n) {
-    return nullptr;
+    int i = 1;
+    ListNode* p = head;
+    ListNode* pre = nullptr;
+    while (p && i < m) {
+        pre = p;
+        p = p->next;
+        ++i;
+    }
+    while (p && p->next && i < n) {
+        ListNode* next = p->next;
+        p->next = next->next;
+        next->next = (pre ? pre->next : head);
+        (pre ? pre->next : head) = next;
+        ++i;
+    }
+    return head;
+}
+
+FTEST(test_reverseBetween) {
+    auto t = [](const std::vector<int>& nums, int m, int n) {
+        ListNode* list = list_convert_leetcode(create_list(nums));
+        ListNode* re = reverseBetween(list, m, n);
+        LOG(INFO) << nums << " reverse between " << m << ", " << n << ": ";
+        print_list(re);
+    };
+
+    t({}, 0, 0);
+    t({1}, 0, 1);
+    t({1}, 1, 1);
+    t({1, 2}, 1, 1);
+    t({1, 2}, 2, 2);
+    t({1, 2}, 1, 2);
+    t({1, 2, 3}, 1, 1);
+    t({1, 2, 3}, 2, 2);
+    t({1, 2, 3}, 3, 3);
+    t({1, 2, 3}, 1, 2);
+    t({1, 2, 3}, 2, 3);
+    t({1, 2, 3}, 1, 3);
+    t({1, 2, 3, 4}, 1, 2);
+    t({1, 2, 3, 4}, 2, 3);
+    t({1, 2, 3, 4}, 1, 3);
+    t({1, 2, 3, 4, 5}, 1, 2);
+    t({1, 2, 3, 4, 5}, 2, 3);
+    t({1, 2, 3, 4, 5}, 1, 3);
 }
 
 /**
