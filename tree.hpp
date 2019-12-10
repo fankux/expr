@@ -1,18 +1,19 @@
 #pragma once
 
 #include <stack>
+#include <ostream>
 #include "util.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct TreeNode {
-    explicit TreeNode(int value) : v(value) {}
+    explicit TreeNode(int value) : val(value) {}
 
     TreeNode* p = nullptr;
-    TreeNode* l = nullptr;
-    TreeNode* r = nullptr;
 
-    int v = 0;
+    TreeNode* left = nullptr;
+    TreeNode* right = nullptr;
+    int val = 0;
 };
 
 /**
@@ -43,66 +44,97 @@ TreeNode* create_tree(std::vector<TreeNode*>* nodes = nullptr) {
         nodes->emplace_back(n5);
     }
 
-    n0->l = n1;
+    n0->left = n1;
     n1->p = n0;
 
-    n0->r = n2;
+    n0->right = n2;
     n2->p = n0;
 
-    n1->l = n3;
+    n1->left = n3;
     n3->p = n1;
 
-    n1->r = n4;
+    n1->right = n4;
     n4->p = n1;
 
-    n2->l = n5;
+    n2->left = n5;
     n5->p = n2;
 
     return n0;
 }
 
-void print_tree(TreeNode* n) {
-    if (n == nullptr) {
-        return;
+struct TreeNodeStub {
+    TreeNodeStub(int val) : v(val), null(false) {}
+
+    TreeNodeStub(nullptr_t n) {}
+
+    TreeNode* create_node() {
+        return null ? nullptr : new TreeNode(v);
     }
 
-    int ws_col = 50;
+    int v = 0;
+    bool null = true;
 
-    std::stringstream ss;
+    friend inline LogStream& operator<<(LogStream& ss, const TreeNodeStub& stub) {
+        ss << (stub.null ? "nullptr" : std::to_string(stub.v));
+        return ss;
+    }
+};
+
+TreeNode* create_tree(const std::vector<TreeNodeStub>& nums) {
+    TreeNode* root = nullptr;
+    TreeNode* p = nullptr;
+    bool left_or_right = true;
+    std::deque<TreeNode*> qq;
+    for (auto num : nums) {
+        if (root == nullptr) {
+            root = num.create_node();
+            qq.push_back(root);
+            continue;
+        }
+        while (p == nullptr && !qq.empty()) {
+            p = qq.front();
+            left_or_right = true;
+            qq.pop_front();
+        }
+        if (p == nullptr) { // FIXME.. root free
+            return nullptr;
+        }
+        if (left_or_right) {
+            p->left = num.create_node();
+            left_or_right = false;
+            qq.push_back(p->left);
+        } else {
+            p->right = num.create_node();
+            qq.push_back(p->right);
+            p = nullptr;
+        }
+    }
+    return root;
+}
+
+std::vector<TreeNodeStub> output_tree(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    if (root == nullptr) {
+        return res;
+    }
     std::deque<TreeNode*> q;
-    q.emplace_back(n);
-
+    q.emplace_back(root);
     bool go = true;
     while (!q.empty() || go) {
         for (size_t i = q.size(); i > 0; --i) {
             TreeNode* p = q.front();
             q.pop_front();
-
-            int value_len = p == nullptr ? 4 : std::to_string(p->v).size();
-            int remain_len = ws_col - value_len;
-            int space_len = remain_len / 2;
-            for (int k = 0; k < space_len; ++k) {
-                ss << " ";
-            }
-            if (remain_len % 2 != 0) {
-                ss << " ";
-            }
             if (p == nullptr) {
-                ss << "null";
+                res.emplace_back(nullptr);
             } else {
-                ss << p->v;
-            }
-            for (int k = 0; k < space_len; ++k) {
-                ss << " ";
+                res.emplace_back(p->val);
             }
 
-            if (p != nullptr && (p->l || p->r)) {
-                q.emplace_back(p->l);
-                q.emplace_back(p->r);
+            if (p != nullptr && (p->left || p->right)) {
+                q.emplace_back(p->left);
+                q.emplace_back(p->right);
             }
         }
-        ss << '\n';
-
         go = !q.empty();
         for (size_t i = q.size(); i > 0; --i) {
             if (q[i] != nullptr) {
@@ -110,10 +142,77 @@ void print_tree(TreeNode* n) {
                 break;
             }
         }
-        ws_col /= 2;
+    }
+    if (res.back().null) {
+        res.pop_back();
+    }
+    return res;
+}
+
+std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n);
+
+std::vector<TreeNodeStub> output_tree_inorder(TreeNode* root) {
+    return inorder_morris_travel(root);
+}
+
+std::string print_tree(TreeNode* n) {
+    if (n == nullptr) {
+        return "";
     }
 
-    LOG(INFO) << "tree:\n" << ss.str();
+    int ws_col = 50;
+    std::stringstream ss;
+    std::deque<std::pair<TreeNode*, int>> q;
+    q.emplace_back(n, 0);
+
+    int level = 0;
+    bool go = true;
+    while (!q.empty() || go) {
+        int idx = std::pow(2, (level++)) - 1;
+        for (size_t i = q.size(); i > 0; --i) {
+            if (i == 1 && q.front().first == nullptr) {
+                q.pop_front();
+                continue;
+            }
+            TreeNode* p = q.front().first;
+            int pos = q.front().second;
+            q.pop_front();
+
+            while (idx < pos) {
+                ss << std::string(ws_col, ' ');
+                ++idx;
+            }
+            ++idx;
+
+            int value_len = p == nullptr ? 1 : std::to_string(p->val).size();
+            int remain_len = ws_col - value_len;
+            int space_len = remain_len / 2;
+
+            ss << std::string(space_len + (remain_len % 2 != 0 ? 1 : 0), ' ') <<
+               (p == nullptr ? "N" : std::to_string(p->val)) << std::string(space_len, ' ');
+
+            if (p != nullptr && (p->left || p->right)) {
+                q.emplace_back(p->left, 2 * pos + 1);
+                q.emplace_back(p->right, 2 * pos + 2);
+            }
+        }
+        ss << '\n';
+
+        go = !q.empty();
+        for (size_t i = q.size(); i > 0; --i) {
+            if (q[i].first != nullptr) {
+                go = true;
+                break;
+            }
+        }
+        ws_col /= 2;
+    }
+    return ss.str();
+}
+
+FTEST(test_print_tree) {
+//    LOG(INFO) << "\n" << print_tree(create_tree({4, 1, nullptr, nullptr, 2, nullptr, 3}));
+    LOG(INFO) << "\n" << print_tree(create_tree({1, nullptr, 2, nullptr, 3, nullptr, 4}));
 }
 
 int tree_height(TreeNode* n) {
@@ -121,7 +220,7 @@ int tree_height(TreeNode* n) {
         return 0;
     }
 
-    return std::max(tree_height(n->l), tree_height(n->r)) + 1;
+    return std::max(tree_height(n->left), tree_height(n->right)) + 1;
 }
 
 FTEST(test_tree_height) {
@@ -136,13 +235,13 @@ void preorder_stack_travel(TreeNode* n) {
     std::stringstream ss;
     while (n != nullptr || !stack.empty()) {
         if (n != nullptr) {
-            ss << n->v << " ";
+            ss << n->val << " ";
             stack.emplace_back(n);
-            n = n->l;
+            n = n->left;
         } else {
             n = stack.back();
             stack.pop_back();
-            n = n->r;
+            n = n->right;
         }
     }
     LOG(INFO) << ss.str();
@@ -154,12 +253,12 @@ void inorder_stack_travel(TreeNode* n) {
     while (n != nullptr || !stack.empty()) {
         if (n != nullptr) {
             stack.emplace_back(n);
-            n = n->l;
+            n = n->left;
         } else {
             n = stack.back();
             stack.pop_back();
-            ss << n->v << " ";
-            n = n->r;
+            ss << n->val << " ";
+            n = n->right;
         }
     }
     LOG(INFO) << ss.str();
@@ -173,18 +272,18 @@ void postorder_stack_travel(TreeNode* n) {
     while (n != nullptr || !stack.empty()) {
         while (n != nullptr) {
             stack.emplace_back(n);
-            n = n->l;
+            n = n->left;
         }
 
         n = stack.back();
-        if (n->r == nullptr || n->r == last) {
-            ss << n->v << " ";
+        if (n->right == nullptr || n->right == last) {
+            ss << n->val << " ";
             stack.back();
             stack.pop_back();
             last = n;
             n = nullptr;
         } else {
-            n = n->r;
+            n = n->right;
         }
     }
     LOG(INFO) << ss.str();
@@ -195,9 +294,9 @@ void preorder_recursive_travel(TreeNode* n) {
         return;
     }
 
-    LOG(INFO) << n->v << " ";
-    preorder_recursive_travel(n->l);
-    preorder_recursive_travel(n->r);
+    LOG(INFO) << n->val << " ";
+    preorder_recursive_travel(n->left);
+    preorder_recursive_travel(n->right);
 }
 
 void inorder_recursive_travel(TreeNode* n) {
@@ -205,9 +304,9 @@ void inorder_recursive_travel(TreeNode* n) {
         return;
     }
 
-    inorder_recursive_travel(n->l);
-    LOG(INFO) << n->v << " ";
-    inorder_recursive_travel(n->r);
+    inorder_recursive_travel(n->left);
+    LOG(INFO) << n->val << " ";
+    inorder_recursive_travel(n->right);
 }
 
 void postorder_recursive_travel(TreeNode* n) {
@@ -215,9 +314,9 @@ void postorder_recursive_travel(TreeNode* n) {
         return;
     }
 
-    postorder_recursive_travel(n->l);
-    postorder_recursive_travel(n->r);
-    LOG(INFO) << n->v << " ";
+    postorder_recursive_travel(n->left);
+    postorder_recursive_travel(n->right);
+    LOG(INFO) << n->val << " ";
 }
 
 /**
@@ -231,24 +330,24 @@ void preorder_morris_travel(TreeNode* n) {
     TreeNode* pre = nullptr;
     std::stringstream ss;
     while (n != nullptr) {
-        if (n->l == nullptr) {
-            ss << n->v << " ";
-            n = n->r;
+        if (n->left == nullptr) {
+            ss << n->val << " ";
+            n = n->right;
             continue;
         }
 
-        pre = n->l;
-        while (pre->r && pre->r != n) {
-            pre = pre->r;
+        pre = n->left;
+        while (pre->right && pre->right != n) {
+            pre = pre->right;
         }
 
-        if (pre->r == nullptr) {
-            ss << n->v << " ";
-            pre->r = n;
-            n = n->l;
+        if (pre->right == nullptr) {
+            ss << n->val << " ";
+            pre->right = n;
+            n = n->left;
         } else { // if (pre->r == n)
-            pre->r = nullptr;
-            n = n->r;
+            pre->right = nullptr;
+            n = n->right;
         }
     }
     LOG(INFO) << ss.str();
@@ -261,31 +360,32 @@ void preorder_morris_travel(TreeNode* n) {
  *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。输出当前节点。当前节点更新为当前节点的右孩子。
  * 3. 重复以上1、2直到当前节点为空。
  */
-void inorder_morris_travel(TreeNode* n) {
+std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n) {
+    std::vector<TreeNodeStub> res;
     TreeNode* pre = nullptr;
     std::stringstream ss;
     while (n != nullptr) {
-        if (n->l == nullptr) {
-            ss << n->v << " ";
-            n = n->r;
+        if (n->left == nullptr) {
+            res.emplace_back(n->val);
+            n = n->right;
             continue;
         }
 
-        pre = n->l;
-        while (pre->r && pre->r != n) {
-            pre = pre->r;
+        pre = n->left;
+        while (pre->right && pre->right != n) {
+            pre = pre->right;
         }
 
-        if (pre->r == nullptr) {
-            pre->r = n;
-            n = n->l;
+        if (pre->right == nullptr) {
+            pre->right = n;
+            n = n->left;
         } else { // if (pre->r == n)
-            pre->r = nullptr;
-            ss << n->v << " ";
-            n = n->r;
+            pre->right = nullptr;
+            res.emplace_back(n->val);
+            n = n->right;
         }
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
 /**
@@ -302,11 +402,11 @@ void postorder_morris_travel(TreeNode* n) {
             return;
         }
         TreeNode* x = from;
-        TreeNode* y = from->r;
+        TreeNode* y = from->right;
         TreeNode* z;
         while (true) {
-            z = y->r;
-            y->r = x;
+            z = y->right;
+            y->right = x;
             x = y;
             y = z;
             if (x == to) {
@@ -318,35 +418,35 @@ void postorder_morris_travel(TreeNode* n) {
     std::stringstream ss;
 
     TreeNode temp(0);
-    temp.l = n;
+    temp.left = n;
 
     TreeNode* pre = nullptr;
     while (n != nullptr) {
-        if (n->l == nullptr) {
-            n = n->r;
+        if (n->left == nullptr) {
+            n = n->right;
             continue;
         }
 
-        pre = n->l;
-        while (n->r != nullptr && pre->r != n) {
-            pre = pre->r;
+        pre = n->left;
+        while (n->right != nullptr && pre->right != n) {
+            pre = pre->right;
         }
 
-        if (pre->r == nullptr) {
-            pre->r = n;
-            n = n->l;
+        if (pre->right == nullptr) {
+            pre->right = n;
+            n = n->left;
         } else { // if (pre->r == n)
 
             reverse_morris_node(n, pre);
             TreeNode* p = pre;
             while (p) {
-                ss << p->v << " ";
-                p = p->r;
+                ss << p->val << " ";
+                p = p->right;
             }
             reverse_morris_node(pre, n);
 
-            pre->r = nullptr;
-            n = n->r;
+            pre->right = nullptr;
+            n = n->right;
         }
     }
     LOG(INFO) << ss.str();
@@ -358,11 +458,11 @@ void levelorder_recursive_travel_handle(TreeNode* n, int level, std::stringstrea
     }
 
     if (level == 1) {
-        ss << n->v << " ";
+        ss << n->val << " ";
         return;
     }
-    levelorder_recursive_travel_handle(n->l, level - 1, ss);
-    levelorder_recursive_travel_handle(n->r, level - 1, ss);
+    levelorder_recursive_travel_handle(n->left, level - 1, ss);
+    levelorder_recursive_travel_handle(n->right, level - 1, ss);
 }
 
 void levelorder_recursive_travel(TreeNode* n) {
@@ -389,13 +489,13 @@ void levelorder_stack_travel(TreeNode* n) {
             TreeNode* p = q.front();
             q.pop_front();
 
-            ss << p->v << " ";
+            ss << p->val << " ";
 
-            if (p->l) {
-                q.emplace_back(p->l);
+            if (p->left) {
+                q.emplace_back(p->left);
             }
-            if (p->r) {
-                q.emplace_back(p->r);
+            if (p->right) {
+                q.emplace_back(p->right);
             }
         }
     }
@@ -425,21 +525,21 @@ void levelorder_zigzag_travel(TreeNode* n) {
                 p = q.back();
                 q.pop_back();
             }
-            ss << p->v << " ";
+            ss << p->val << " ";
 
             if (direction) {
-                if (p->l) {
-                    q.emplace_back(p->l);
+                if (p->left) {
+                    q.emplace_back(p->left);
                 }
-                if (p->r) {
-                    q.emplace_back(p->r);
+                if (p->right) {
+                    q.emplace_back(p->right);
                 }
             } else {
-                if (p->r) {
-                    q.emplace_front(p->r);
+                if (p->right) {
+                    q.emplace_front(p->right);
                 }
-                if (p->l) {
-                    q.emplace_front(p->l);
+                if (p->left) {
+                    q.emplace_front(p->left);
                 }
             }
         }
@@ -483,21 +583,21 @@ FTEST(test_binary_tree_travel) {
 }
 
 int next_node_of_inorder_travel(TreeNode* n) {
-    if (n->r == nullptr) {
+    if (n->right == nullptr) {
         while (n->p) {
-            if (n->p->l == n) {
-                return n->p->v;
+            if (n->p->left == n) {
+                return n->p->val;
             } else {
                 n = n->p;
             }
         }
 
     } else {
-        n = n->r;
-        while (n->l) {
-            n = n->l;
+        n = n->right;
+        while (n->left) {
+            n = n->left;
         }
-        return n->v;
+        return n->val;
     }
 
     return -1;
@@ -553,10 +653,10 @@ int max_sum_path(TreeNode* p, int& sum, std::vector<std::vector<TreeNode*>>& pat
     if (p == nullptr) {
         return 0;
     }
-    int left = std::max(max_sum_path(p->l, sum, path), 0);
-    int right = std::max(max_sum_path(p->r, sum, path), 0);
+    int left = std::max(max_sum_path(p->left, sum, path), 0);
+    int right = std::max(max_sum_path(p->right, sum, path), 0);
 
-    int sum_in = left + right + p->v;
+    int sum_in = left + right + p->val;
     if (sum_in >= sum) {
         path.emplace_back(std::vector<TreeNode*>{p});
         sum = sum_in;
@@ -564,7 +664,7 @@ int max_sum_path(TreeNode* p, int& sum, std::vector<std::vector<TreeNode*>>& pat
 
     }
 
-    return std::max(left, right) + p->v;
+    return std::max(left, right) + p->val;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
