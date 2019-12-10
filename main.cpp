@@ -692,6 +692,7 @@ void avl_tree() {}
 #include "idx7.hpp"
 #include "idx8.hpp"
 #include "idx9.hpp"
+#include "idx10.hpp"
 
 int main() {
 
@@ -702,7 +703,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_isInterleave();
+    test_isSymmetric();
 
     // TODO... dijistra
     // TODO... LSM tree
