@@ -703,7 +703,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_isSymmetric();
+    test_isTreeBalanced();
 
     // TODO... dijistra
     // TODO... LSM tree

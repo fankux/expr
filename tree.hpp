@@ -155,19 +155,17 @@ std::vector<TreeNodeStub> output_tree_inorder(TreeNode* root) {
     return inorder_morris_travel(root);
 }
 
-std::string print_tree(TreeNode* n) {
+std::string print_tree(TreeNode* n, int ws_col = 50) {
     if (n == nullptr) {
         return "";
     }
 
-    int ws_col = 50;
     std::stringstream ss;
     std::deque<std::pair<TreeNode*, int>> q;
     q.emplace_back(n, 0);
 
     int level = 0;
-    bool go = true;
-    while (!q.empty() || go) {
+    while (!q.empty()) {
         int idx = std::pow(2, (level++)) - 1;
         for (size_t i = q.size(); i > 0; --i) {
             if (i == 1 && q.front().first == nullptr) {
@@ -197,21 +195,13 @@ std::string print_tree(TreeNode* n) {
             }
         }
         ss << '\n';
-
-        go = !q.empty();
-        for (size_t i = q.size(); i > 0; --i) {
-            if (q[i].first != nullptr) {
-                go = true;
-                break;
-            }
-        }
         ws_col /= 2;
     }
     return ss.str();
 }
 
 FTEST(test_print_tree) {
-//    LOG(INFO) << "\n" << print_tree(create_tree({4, 1, nullptr, nullptr, 2, nullptr, 3}));
+    LOG(INFO) << "\n" << print_tree(create_tree({4, 1, nullptr, nullptr, 2, nullptr, 3}));
     LOG(INFO) << "\n" << print_tree(create_tree({1, nullptr, 2, nullptr, 3, nullptr, 4}));
 }
 
