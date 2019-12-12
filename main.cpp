@@ -693,6 +693,8 @@ void avl_tree() {}
 #include "idx8.hpp"
 #include "idx9.hpp"
 #include "idx10.hpp"
+#include "idx11.hpp"
+#include "idx12.hpp"
 
 int main() {
 
@@ -703,7 +705,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_isTreeBalanced();
+    test_maxPathSum();
 
     // TODO... dijistra
     // TODO... LSM tree

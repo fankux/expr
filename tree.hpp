@@ -9,66 +9,30 @@
 struct TreeNode {
     explicit TreeNode(int value) : val(value) {}
 
-    TreeNode* p = nullptr;
-
     TreeNode* left = nullptr;
     TreeNode* right = nullptr;
     int val = 0;
+
+    TreeNode* p = nullptr;
 };
 
-/**
- *
- *         0
- *       /  \
- *     /     \
- *    1       2
- *   / \     /
- *  3   4   5
- *
- */
-TreeNode* create_tree(std::vector<TreeNode*>* nodes = nullptr) {
+struct LCNode {
+    explicit LCNode(int value) : val(value) {}
 
-    TreeNode* n0 = new TreeNode(0);
-    TreeNode* n1 = new TreeNode(1);
-    TreeNode* n2 = new TreeNode(2);
-    TreeNode* n3 = new TreeNode(3);
-    TreeNode* n4 = new TreeNode(4);
-    TreeNode* n5 = new TreeNode(5);
-
-    if (nodes != nullptr) {
-        nodes->emplace_back(n0);
-        nodes->emplace_back(n1);
-        nodes->emplace_back(n2);
-        nodes->emplace_back(n3);
-        nodes->emplace_back(n4);
-        nodes->emplace_back(n5);
-    }
-
-    n0->left = n1;
-    n1->p = n0;
-
-    n0->right = n2;
-    n2->p = n0;
-
-    n1->left = n3;
-    n3->p = n1;
-
-    n1->right = n4;
-    n4->p = n1;
-
-    n2->left = n5;
-    n5->p = n2;
-
-    return n0;
-}
+    LCNode* left = nullptr;
+    LCNode* right = nullptr;
+    LCNode* next = nullptr;
+    int val = 0;
+};
 
 struct TreeNodeStub {
     TreeNodeStub(int val) : v(val), null(false) {}
 
     TreeNodeStub(nullptr_t n) {}
 
-    TreeNode* create_node() {
-        return null ? nullptr : new TreeNode(v);
+    template<typename T=TreeNode>
+    T* create_node() {
+        return null ? nullptr : new T(v);
     }
 
     int v = 0;
@@ -80,14 +44,15 @@ struct TreeNodeStub {
     }
 };
 
-TreeNode* create_tree(const std::vector<TreeNodeStub>& nums) {
-    TreeNode* root = nullptr;
-    TreeNode* p = nullptr;
+template<typename T=TreeNode>
+T* create_tree(const std::vector<TreeNodeStub>& nums) {
+    T* root = nullptr;
+    T* p = nullptr;
     bool left_or_right = true;
-    std::deque<TreeNode*> qq;
+    std::deque<T*> qq;
     for (auto num : nums) {
         if (root == nullptr) {
-            root = num.create_node();
+            root = num.create_node<T>();
             qq.push_back(root);
             continue;
         }
@@ -100,11 +65,11 @@ TreeNode* create_tree(const std::vector<TreeNodeStub>& nums) {
             return nullptr;
         }
         if (left_or_right) {
-            p->left = num.create_node();
+            p->left = num.create_node<T>();
             left_or_right = false;
             qq.push_back(p->left);
         } else {
-            p->right = num.create_node();
+            p->right = num.create_node<T>();
             qq.push_back(p->right);
             p = nullptr;
         }
@@ -155,13 +120,14 @@ std::vector<TreeNodeStub> output_tree_inorder(TreeNode* root) {
     return inorder_morris_travel(root);
 }
 
-std::string print_tree(TreeNode* n, int ws_col = 50) {
+template<typename T=TreeNode>
+std::string print_tree(T* n, std::function<char(T*)> next_flag, int ws_col = 50) {
     if (n == nullptr) {
         return "";
     }
 
     std::stringstream ss;
-    std::deque<std::pair<TreeNode*, int>> q;
+    std::deque<std::pair<T*, int>> q;
     q.emplace_back(n, 0);
 
     int level = 0;
@@ -172,7 +138,7 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
                 q.pop_front();
                 continue;
             }
-            TreeNode* p = q.front().first;
+            T* p = q.front().first;
             int pos = q.front().second;
             q.pop_front();
 
@@ -187,7 +153,8 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
             int space_len = remain_len / 2;
 
             ss << std::string(space_len + (remain_len % 2 != 0 ? 1 : 0), ' ') <<
-               (p == nullptr ? "N" : std::to_string(p->val)) << std::string(space_len, ' ');
+               (p == nullptr ? "N" : std::to_string(p->val)) <<
+               std::string(std::max(space_len - 1, 0), ' ') << next_flag(p);
 
             if (p != nullptr && (p->left || p->right)) {
                 q.emplace_back(p->left, 2 * pos + 1);
@@ -198,6 +165,14 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
         ws_col /= 2;
     }
     return ss.str();
+}
+
+std::string print_tree(TreeNode* n, int ws_col = 50) {
+    return print_tree<TreeNode>(n, [](TreeNode*) { return ' '; }, ws_col);
+}
+
+std::string print_tree(LCNode* n, int ws_col = 50) {
+    return print_tree<LCNode>(n, [](LCNode* p) { return p && p->next ? '>' : ' '; }, ws_col);
 }
 
 FTEST(test_print_tree) {
@@ -214,7 +189,7 @@ int tree_height(TreeNode* n) {
 }
 
 FTEST(test_tree_height) {
-    TreeNode* root = create_tree();
+    TreeNode* root = create_tree({0, 1, 2, 3, 4, 5});
     LOG(INFO) << "tree height: " << tree_height(root);
 }
 
@@ -540,7 +515,7 @@ void levelorder_zigzag_travel(TreeNode* n) {
 }
 
 FTEST(test_binary_tree_travel) {
-    TreeNode* root = create_tree();
+    TreeNode* root = create_tree({0, 1, 2, 3, 4, 5});
     print_tree(root);
 
     LOG(INFO) << "recursive:";
@@ -594,41 +569,41 @@ int next_node_of_inorder_travel(TreeNode* n) {
 }
 
 FTEST(test_next_node_of_inorder_travel) {
-    std::vector<TreeNode*> nodes;
-    TreeNode* root = create_tree(&nodes);
+    TreeNode* tree = create_tree({0, 1, 2, 3, 4, 5});
+    std::vector<TreeNodeStub> nodes = output_tree(tree);
 
     LOG(INFO) << "\nnext node of:";
-    int ret = next_node_of_inorder_travel(nodes[0]);
+    int ret = next_node_of_inorder_travel(nodes[0].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {
         LOG(INFO) << "no next";
     }
-    ret = next_node_of_inorder_travel(nodes[1]);
+    ret = next_node_of_inorder_travel(nodes[1].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {
         LOG(INFO) << "no next";
     }
-    ret = next_node_of_inorder_travel(nodes[2]);
+    ret = next_node_of_inorder_travel(nodes[2].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {
         LOG(INFO) << "no next";
     }
-    ret = next_node_of_inorder_travel(nodes[3]);
+    ret = next_node_of_inorder_travel(nodes[3].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {
         LOG(INFO) << "no next";
     }
-    ret = next_node_of_inorder_travel(nodes[4]);
+    ret = next_node_of_inorder_travel(nodes[4].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {
         LOG(INFO) << "no next";
     }
-    ret = next_node_of_inorder_travel(nodes[5]);
+    ret = next_node_of_inorder_travel(nodes[5].create_node());
     if (ret != -1) {
         LOG(INFO) << ret;
     } else {

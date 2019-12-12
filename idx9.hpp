@@ -711,5 +711,5 @@ FTEST(test_isSameTree) {
     FEXP(t({1, 2, 3}, {1, 2, 3}), true);
     FEXP(t({1, 2, 1}, {1, 1, 2}), false);
     FEXP(t({10, 5, 15}, {10, 5, nullptr, nullptr, 15}), false);
-    FEXP(isSameTree(create_tree(), create_tree({0, 1, 2, 3, 4, 5})), true);
+    FEXP(isSameTree(create_tree({0,1,2,3,4,5}), create_tree({0, 1, 2, 3, 4, 5})), true);
 }
