@@ -508,159 +508,157 @@ void test_edit_distance() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-ssize_t bin_search(const std::vector<int>& nums, int target) {
-    std::cout << "[";
-    for (auto num : nums) {
-        std::cout << num << " ";
-    }
-    std::cout << "] find " << target << ": ";
-
-    if (nums.empty()) {
-        return -1;
-    }
-
-    ssize_t l = 0;
-    ssize_t h = nums.size() - 1;
-    while (l <= h) {
-        size_t mid = (l + h) / 2;
-        if (nums[mid] == target) {
-            return mid;
-        }
+ssize_t lower_bound(const std::vector<int>& nums, int target) {
+    size_t l = 0;
+    size_t h = nums.size();
+    while (l < h) {
+        size_t mid = l + (h - l) / 2;
         if (nums[mid] < target) {
             l = mid + 1;
         } else {
-            h = mid - 1;
+            h = mid;
         }
     }
-    return -1;
+    return l;
 }
 
-ssize_t bin_search_1st_great_equal(const std::vector<int>& nums, int target) {
-    std::cout << "[";
-    for (auto num : nums) {
-        std::cout << num << " ";
-    }
-    std::cout << "] 1st great equal " << target << ": ";
-
-    if (nums.empty()) {
-        return -1;
-    }
-
-    ssize_t l = 0;
-    ssize_t h = nums.size() - 1;
-    while (l <= h) {
-        size_t mid = (l + h) / 2;
-        if (nums[mid] < target) {
-            l = mid + 1;
-        } else {
-            h = mid - 1;
-        }
-    }
-    return h + 1 >= nums.size() ? -1 : h + 1;
-}
-
-ssize_t bin_search_1st_great(const std::vector<int>& nums, int target) {
-    std::cout << "[";
-    for (auto num : nums) {
-        std::cout << num << " ";
-    }
-    std::cout << "] 1st great " << target << ": ";
-
-    if (nums.empty()) {
-        return -1;
-    }
-
-    ssize_t l = 0;
-    ssize_t h = nums.size() - 1;
-    while (l <= h) {
-        size_t mid = (l + h) / 2;
+ssize_t upper_bound(const std::vector<int>& nums, int target) {
+    int l = 0;
+    int h = nums.size();
+    while (l < h) {
+        size_t mid = l + (h - l) / 2;
         if (nums[mid] <= target) {
             l = mid + 1;
         } else {
-            h = mid - 1;
+            h = mid;
         }
     }
-    return h + 1 >= nums.size() ? -1 : h + 1;
+    return l;
+}
+
+ssize_t bin_search(const std::vector<int>& nums, int target) {
+    ssize_t re = lower_bound(nums, target);
+    return re == nums.size() || nums[re] != target ? -1 : re;
+}
+
+ssize_t bin_search_1st_great_equal(const std::vector<int>& nums, int target) {
+    ssize_t re = lower_bound(nums, target);
+    return re == nums.size() ? -1 : re;
+}
+
+ssize_t bin_search_1st_great(const std::vector<int>& nums, int target) {
+    ssize_t re = upper_bound(nums, target);
+    return re == nums.size() ? -1 : re;
 }
 
 void test_bin_search() {
-    std::cout << "binary search" << std::endl;
-    std::cout << bin_search({}, 1) << std::endl;
-    std::cout << bin_search({1}, 0) << std::endl;
-    std::cout << bin_search({1}, 2) << std::endl;
-    std::cout << bin_search({1}, 1) << std::endl;
-    std::cout << bin_search({1, 2}, 0) << std::endl;
-    std::cout << bin_search({1, 2}, 3) << std::endl;
-    std::cout << bin_search({1, 2}, 1) << std::endl;
-    std::cout << bin_search({1, 2}, 2) << std::endl;
-    std::cout << bin_search({1, 2, 3}, 0) << std::endl;
-    std::cout << bin_search({1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search({1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search({1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search({1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4}, 1) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4}, 2) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4}, 3) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4}, 4) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4, 5}, 1) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4, 5}, 2) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4, 5}, 3) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4, 5}, 4) << std::endl;
-    std::cout << bin_search({1, 2, 3, 4, 5}, 5) << std::endl;
-    std::cout << bin_search({1, 2, 2, 4, 5}, 2) << std::endl;
-    std::cout << bin_search({1, 2, 3, 3, 5}, 3) << std::endl;
+    auto binary_search_t = [](const std::vector<int>& nums, int target) {
+        auto re = bin_search(nums, target);
+        LOG(INFO) << nums << " find " << target << ": " << re;
+        return re;
+    };
+    binary_search_t({}, 1);
+    binary_search_t({1}, 0);
+    binary_search_t({1}, 2);
+    binary_search_t({1}, 1);
+    binary_search_t({1, 2}, 0);
+    binary_search_t({1, 2}, 3);
+    binary_search_t({1, 2}, 1);
+    binary_search_t({1, 2}, 2);
+    binary_search_t({1, 2, 3}, 0);
+    binary_search_t({1, 2, 3}, 1);
+    binary_search_t({1, 2, 3}, 2);
+    binary_search_t({1, 2, 3}, 3);
+    binary_search_t({1, 2, 3}, 4);
+    binary_search_t({1, 2, 3, 4}, 1);
+    binary_search_t({1, 2, 3, 4}, 2);
+    binary_search_t({1, 2, 3, 4}, 3);
+    binary_search_t({1, 2, 3, 4}, 4);
+    binary_search_t({1, 2, 3, 4, 5}, 1);
+    binary_search_t({1, 2, 3, 4, 5}, 2);
+    binary_search_t({1, 2, 3, 4, 5}, 3);
+    binary_search_t({1, 2, 3, 4, 5}, 4);
+    binary_search_t({1, 2, 3, 4, 5}, 5);
+    binary_search_t({1, 2, 2, 4, 5}, 2);
+    binary_search_t({1, 2, 3, 3, 5}, 3);
 
-    std::cout << "\nbinary search 1st greater equal" << std::endl;
-    std::cout << bin_search_1st_great_equal({}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1}, 0) << std::endl;
-    std::cout << bin_search_1st_great_equal({1}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2}, 0) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2}, 3) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3}, 0) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 3) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4}, 4) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 1) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 3) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 4) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 4, 5}, 5) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 2, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_1st_great_equal({1, 2, 3, 3, 5}, 3) << std::endl;
+    auto bound_t = [](const std::vector<int>& nums, int target) {
+        auto re = lower_bound(nums, target);
+        LOG(INFO) << nums << " lower x>=" << target << "(closed): " << re;
+        re = upper_bound(nums, target);
+        LOG(INFO) << nums << " upper x<=" << target << "(unclosed): " << re;
+        return re;
+    };
+    bound_t({1}, 1);
+    bound_t({1, 1}, 1);
+    bound_t({1, 1, 1}, 1);
+    bound_t({1, 1, 1, 1}, 1);
+    bound_t({1, 1, 1, 1, 1}, 1);
+    bound_t({1}, 0);
+    bound_t({1}, 2);
+    bound_t({1, 1, 1, 1, 1}, 0);
+    bound_t({1, 1, 1, 1, 1}, 2);
+    bound_t({1, 2, 2, 2, 3}, 2);
 
-    std::cout << "\nbinary search 1st greater " << std::endl;
-    std::cout << bin_search_1st_great({}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1}, 0) << std::endl;
-    std::cout << bin_search_1st_great({1}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1, 2}, 0) << std::endl;
-    std::cout << bin_search_1st_great({1, 2}, 3) << std::endl;
-    std::cout << bin_search_1st_great({1, 2}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1, 2}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3}, 0) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3}, 3) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3}, 4) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4}, 3) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4}, 4) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 1) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 3) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 4) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 4, 5}, 5) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 2, 4, 5}, 2) << std::endl;
-    std::cout << bin_search_1st_great({1, 2, 3, 3, 5}, 3) << std::endl;
+    auto first_ge_t = [](const std::vector<int>& nums, int target) {
+        auto re = bin_search_1st_great_equal(nums, target);
+        LOG(INFO) << nums << " 1st x>=" << target << ": " << re;
+        return re;
+    };
+    first_ge_t({}, 1);
+    first_ge_t({1}, 0);
+    first_ge_t({1}, 2);
+    first_ge_t({1}, 1);
+    first_ge_t({1, 2}, 0);
+    first_ge_t({1, 2}, 3);
+    first_ge_t({1, 2}, 1);
+    first_ge_t({1, 2}, 2);
+    first_ge_t({1, 2, 3}, 0);
+    first_ge_t({1, 2, 3}, 1);
+    first_ge_t({1, 2, 3}, 2);
+    first_ge_t({1, 2, 3}, 3);
+    first_ge_t({1, 2, 3}, 4);
+    first_ge_t({1, 2, 3, 4}, 1);
+    first_ge_t({1, 2, 3, 4}, 2);
+    first_ge_t({1, 2, 3, 4}, 3);
+    first_ge_t({1, 2, 3, 4}, 4);
+    first_ge_t({1, 2, 3, 4, 5}, 1);
+    first_ge_t({1, 2, 3, 4, 5}, 2);
+    first_ge_t({1, 2, 3, 4, 5}, 3);
+    first_ge_t({1, 2, 3, 4, 5}, 4);
+    first_ge_t({1, 2, 3, 4, 5}, 5);
+    first_ge_t({1, 2, 2, 4, 5}, 2);
+    first_ge_t({1, 2, 3, 3, 5}, 3);
+
+    auto first_g_t = [](const std::vector<int>& nums, int target) {
+        auto re = bin_search_1st_great(nums, target);
+        LOG(INFO) << nums << " 1st x>" << target << ": " << re;
+        return re;
+    };
+    first_g_t({}, 1);
+    first_g_t({1}, 0);
+    first_g_t({1}, 2);
+    first_g_t({1}, 1);
+    first_g_t({1, 2}, 0);
+    first_g_t({1, 2}, 3);
+    first_g_t({1, 2}, 1);
+    first_g_t({1, 2}, 2);
+    first_g_t({1, 2, 3}, 0);
+    first_g_t({1, 2, 3}, 1);
+    first_g_t({1, 2, 3}, 2);
+    first_g_t({1, 2, 3}, 3);
+    first_g_t({1, 2, 3}, 4);
+    first_g_t({1, 2, 3, 4}, 1);
+    first_g_t({1, 2, 3, 4}, 2);
+    first_g_t({1, 2, 3, 4}, 3);
+    first_g_t({1, 2, 3, 4}, 4);
+    first_g_t({1, 2, 3, 4, 5}, 1);
+    first_g_t({1, 2, 3, 4, 5}, 2);
+    first_g_t({1, 2, 3, 4, 5}, 3);
+    first_g_t({1, 2, 3, 4, 5}, 4);
+    first_g_t({1, 2, 3, 4, 5}, 5);
+    first_g_t({1, 2, 2, 4, 5}, 2);
+    first_g_t({1, 2, 3, 3, 5}, 3);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -705,7 +703,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_maxPathSum();
+    test_bin_search();
 
     // TODO... dijistra
     // TODO... LSM tree

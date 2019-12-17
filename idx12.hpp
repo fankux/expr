@@ -220,7 +220,51 @@ Input: "race a car"
 Output: false
 */
 bool isPalindrome(std::string s) {
-    return false;
+    int i = 0;
+    int j = s.size() - 1;
+    while (i < j) {
+        while (i < j && !isalnum(s[i])) {
+            ++i;
+        }
+        while (i < j && !isalnum(s[j])) {
+            --j;
+        }
+        if (i >= j) {
+            break;
+        }
+        if ((s[i] | (1 << 5)) != (s[j] | (1 << 5))) {
+            return false;
+        }
+        ++i;
+        --j;
+    }
+    return true;
+}
+
+FTEST(test_isPalindromeStr) {
+    auto t = [](const std::string& s) {
+        auto re = isPalindrome(s);
+        LOG(INFO) << s << " is palindrome: " << re;
+        return re;
+    };
+
+    FEXP(t(""), true);
+    FEXP(t(","), true);
+    FEXP(t(" "), true);
+    FEXP(t(" ,"), true);
+    FEXP(t(" , "), true);
+    FEXP(t("1"), true);
+    FEXP(t("121"), true);
+    FEXP(t("122"), false);
+    FEXP(t("1a1"), true);
+    FEXP(t("1aa"), false);
+    FEXP(t("a1A"), true);
+    FEXP(t("a,1A"), true);
+    FEXP(t("a,1 A"), true);
+    FEXP(t("a, 1A"), true);
+    FEXP(t("a, 1A"), true);
+    FEXP(t("A man, a plan, a canal: Panama"), true);
+    FEXP(t("race a car"), false);
 }
 
 /**
@@ -297,7 +341,59 @@ Output: 0
 Explanation: The endWord "cog" is not in wordList, therefore no possible transformation.
 */
 int ladderLength(std::string beginWord, std::string endWord, std::vector<std::string>& wordList) {
+    size_t len = beginWord.size();
+    if (len == 0 && wordList.empty()) {
+        return 1;
+    }
+    std::unordered_set<std::string> words(wordList.begin(), wordList.end());
+    std::vector<std::map<char, std::vector<std::string*>>> mm(len);
+    for (auto& word : wordList) {
+        for (size_t i = 0; i < len; ++i) {
+            mm[i][word[i]].emplace_back(&word);
+        }
+    }
+    std::deque<std::string> qq;
+    qq.push_back(beginWord);
+    int step = 1;
+    while (!qq.empty()) {
+        for (size_t qi = qq.size(); qi > 0; --qi) {
+            std::string word = qq.front();
+            qq.pop_front();
+            for (size_t i = 0; i < len; ++i) {
+                for (auto& entry : mm[i]) {
+                    char c = word[i];
+                    word[i] = entry.first;
+                    if (word == endWord) {
+                        return step + 1;
+                    }
+                    if (words.count(word) == 1) {
+                        qq.push_back(word);
+                        words.erase(word);
+                    }
+                    word[i] = c;
+                }
+            }
+        }
+        ++step;
+    }
     return 0;
+}
+
+FTEST(test_ladderLength) {
+    auto t = [](const std::string beginWord, const std::string& endWord,
+            const std::vector<std::string>& wordList) {
+        std::vector<std::string> nns = wordList;
+        auto re = ladderLength(beginWord, endWord, nns);
+        LOG(INFO) << beginWord << " to " << endWord << " ladder length: " << re;
+        return re;
+    };
+
+    FEXP(t("", "", {}), 1);
+    FEXP(t("a", "c", {"d"}), 0);
+    FEXP(t("a", "c", {"c"}), 2);
+    FEXP(t("a", "c", {"a", "b", "c"}), 2);
+    FEXP(t("ad", "bc", {"ac", "bc"}), 3);
+    FEXP(t("hit", "cog", {"hot", "dot", "dog", "lot", "log", "cog"}), 5);
 }
 
 /**
