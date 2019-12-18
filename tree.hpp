@@ -243,7 +243,6 @@ void postorder_stack_travel(TreeNode* n) {
         n = stack.back();
         if (n->right == nullptr || n->right == last) {
             ss << n->val << " ";
-            stack.back();
             stack.pop_back();
             last = n;
             n = nullptr;

@@ -155,9 +155,82 @@ Return:
    [5,4,11,2],
    [5,8,4,5]
 ]
+
+ THOUGHTS:
+    iteration method use post order traversal
 */
 std::vector<std::vector<int>> pathSum(TreeNode* root, int sum) {
-    return {};
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    std::function<void(TreeNode*, int)> r_func;
+    r_func = [&](TreeNode* p, int target) {
+        if (p == nullptr) {
+            return;
+        }
+        if (p->left == nullptr && p->right == nullptr && p->val == target) {
+            re.emplace_back(p->val);
+            res.emplace_back(re);
+            re.pop_back();
+            return;
+        }
+        re.emplace_back(p->val);
+        r_func(p->left, target - p->val);
+        r_func(p->right, target - p->val);
+        re.pop_back();
+    };
+    auto iter_func = [&] {
+        TreeNode* last = root;
+        std::stack<std::pair<TreeNode*, int>> qq;
+        while (root || !qq.empty()) {
+            while (root) {
+                qq.emplace(root, sum);
+                re.emplace_back(root->val);
+                sum -= root->val;
+                root = root->left;
+            }
+            root = qq.top().first;
+            sum = qq.top().second;
+            if (root->left == nullptr && root->right == nullptr && sum == root->val) {
+                res.emplace_back(re);
+            }
+            if (root->right == nullptr || root->right == last) {
+                last = root;
+                qq.pop();
+                re.pop_back();
+                root = nullptr; // force stack to pop
+            } else {
+                sum -= root->val;
+                root = root->right;
+            }
+        }
+    };
+    iter_func();
+    return res;
+}
+
+FTEST(test_pathSum) {
+    auto t = [](const std::vector<TreeNodeStub>& nodes, int sum) {
+        TreeNode* tree = create_tree(nodes);
+        auto re = pathSum(tree, sum);
+        LOG(INFO) << "\n" << print_tree(tree) << "\n has sum " << sum << ": " << re;
+        return re;
+    };
+
+    t({}, 0);
+    t({}, 1);
+    t({nullptr}, 1);
+    t({1}, 1);
+    t({1}, 2);
+    t({1, 2}, 1);
+    t({1, 2}, 3);
+    t({1, nullptr, 2}, 2);
+    t({1, nullptr, 2}, 3);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, nullptr, 1}, 27);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, nullptr, 1}, 22);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, nullptr, 1}, 26);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, nullptr, 1}, 18);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, nullptr, 1}, 17);
+    t({5, 4, 8, 11, nullptr, 13, 4, 7, 2, nullptr, nullptr, 5, 1}, 22);
 }
 
 /**
@@ -246,7 +319,7 @@ Explanation:
 As shown below, there are 3 ways you can generate "rabbit" from S.
 (The caret symbol ^ means the chosen letters)
 
- rabbbit
+rabbbit
 ^^^^ ^^
 rabbbit
 ^^ ^^^^
@@ -271,9 +344,54 @@ babgbag
   ^  ^^
 babgbag
     ^^^
+
+ THOUGHTS:
+   dp[i][j] = s[i-1] == t[j-1] ? (dp[i-1][j-1] + dp[i-1][j]) : dp[i-1][j]
+   | \ |' '| b | a | g |
+   |' '| 1 | 0 | 0 | 0 |
+   |-----↓-↘-----------|
+   | b | 1 | 1 | 0 | 0 |
+   |-----↓---↓-↘-------|
+   | a | 1 | 1 | 1 | 0 |
+   |-----↓-↘-↓---↓-----|
+   | b | 1 | 2 | 1 | 0 |
+   |-----↓---↓---↓-↘---|
+   | g | 1 | 2 | 1 | 1 |
+   |-------↘-↓---↓---↓-|
+   | b | 1 | 3 | 1 | 1 |
+   |-----------↘-↓---↓-|
+   | a | 1 | 3 | 4 | 1 |
+   |---------------↘-↓--
+   | g | 1 | 4 | 4 | 5 |
 */
 int numDistinct(std::string s, std::string t) {
-    return 0;
+    size_t len1 = s.size();
+    size_t len2 = t.size();
+    std::vector<std::vector<uint32_t>> dp(len1 + 1, std::vector<uint32_t>(len2 + 1, 0));
+    dp[0][0] = 1;
+    for (size_t i = 1; i <= len1; ++i) {
+        dp[i][0] = 1;
+    }
+    for (size_t i = 1; i <= len1; ++i) {
+        size_t range = std::min(i, len2);
+        for (size_t j = 1; j <= range; ++j) {
+            dp[i][j] = dp[i - 1][j];
+            if (s[i - 1] == t[j - 1]) {
+                dp[i][j] += dp[i - 1][j - 1];
+            }
+        }
+    }
+    return dp.back().back();
+}
+
+FTEST(test_numDistinct) {
+    auto t = [](const std::string& s, const std::string& t) {
+        auto re = numDistinct(s, t);
+        LOG(INFO) << s << " of " << t << " number of distinct: " << re;
+    };
+    t("acdg", "bg");
+    t("rabbbit", "rabbit");
+    t("babgbag", "bag");
 }
 
 /**
@@ -397,7 +515,59 @@ The number of nodes in the given tree is less than 6000.
 -100 <= node.val <= 100
 */
 Node* connectBinaryTreeII(Node* root) {
-    return nullptr;
+    if (root == nullptr) {
+        return nullptr;
+    }
+    Node* p = root;
+    while (p->left || p->right || p->next) {
+        if (p->left == nullptr && p->right == nullptr) {
+            p = p->next;
+            continue;
+        }
+        Node* start = p->left ? p->left : p->right;
+        while (p) {
+            Node* next = nullptr;
+            Node* q = p->next;
+            while (q) {
+                if (q->left) {
+                    next = q->left;
+                    break;
+                }
+                if (q->right) {
+                    next = q->right;
+                    break;
+                }
+                q = q->next;
+            }
+            if (p->left) {
+                p->left->next = p->right ? p->right : next;
+            }
+            if (p->right) {
+                p->right->next = next;
+            }
+            p = p->next;
+        }
+        p = start;
+    }
+    return root;
+}
+
+FTEST(test_connectBinaryTreeII) {
+    auto t = [](const std::vector<TreeNodeStub>& nodes) {
+        Node* tree = create_tree<Node>(nodes);
+        auto re = connectBinaryTreeII(tree);
+        LOG(INFO) << nodes << " connect: \n" << print_tree(re);
+        return re;
+    };
+
+    t({});
+    t({1});
+    t({1, 2, 3});
+    t({1, 2, 3, 4, 5, 6, 7});
+    t({1, 2, 3, 4, 5, nullptr, 7});
+    t({3, 9, 20, nullptr, nullptr, 15, 7});
+    t({3, 9, 20, nullptr, nullptr, 15, 7, 5, nullptr, nullptr, 6});
+    t({1, 2, 3, 4, 5, nullptr, 6, 7, nullptr, nullptr, nullptr, nullptr, 8});
 }
 
 /**
@@ -470,8 +640,30 @@ Output: [1,3,3,1]
 Follow up:
 Could you optimize your algorithm to use only O(k) extra space?
 */
-std::vector<int> PascalGetRow(int rowIndex) {
-    return {};
+std::vector<int> pascalGetRow(int rowIndex) {
+    std::vector<int> line(rowIndex + 1, 0);
+    line[0] = 1;
+    for (int i = 0; i <= rowIndex; ++i) {
+        for (int j = i; j >= 1; --j) {
+            line[j] += line[j - 1];
+        }
+    }
+    return line;
+}
+
+FTEST(test_pascalGetRow) {
+    auto t = [](int numRows) {
+        auto re = pascalGetRow(numRows);
+        LOG(INFO) << numRows << " pascal: \n" << re;
+        return re;
+    };
+
+    t(0);
+    t(1);
+    t(2);
+    t(3);
+    t(4);
+    t(5);
 }
 
 /**
@@ -491,7 +683,23 @@ The minimum path sum from top to bottom is 11 (i.e., 2 + 3 + 5 + 1 = 11).
 Note:
 Bonus point if you are able to do this using only O(n) extra space,
  where n is the total number of rows in the triangle.
+
+ THOUGHTS:
+ copy last row, accumulate from bottom to top,
+ always fetch min one, the first number is result finally
+
+ 2            11[2+9]
+ 3 4          9 [3+6] 10[4+6]
+ 6 5 7    =>  7 [6+1] 6 [5+1] 10[7+3]
+ 4 1 8 3      4       1       8      3
+
 */
 int minimumTotal(std::vector<std::vector<int>>& triangle) {
-    return 0;
+    std::vector<int> dp(triangle.back());
+    for (int i = triangle.size() - 2; i >= 0; --i) {
+        for (int j = 0; j <= i; ++j) {
+            dp[j] = std::min(dp[j], dp[j + 1]) + triangle[i][j];
+        }
+    }
+    return dp.front();
 }
