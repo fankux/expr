@@ -538,6 +538,9 @@ void avl_tree() {}
 #include "idx10.hpp"
 #include "idx11.hpp"
 #include "idx12.hpp"
+#include "idx13.hpp"
+
+using namespace LCIndex13;
 
 int main() {
 
@@ -548,7 +551,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_numDistinct();
+    test_palindromePartition();
 
     // TODO... dijistra
     // TODO... Graph reverse

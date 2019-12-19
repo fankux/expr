@@ -4,9 +4,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct GraphNode {
-    explicit GraphNode(int value) : v(value) {}
+class GraphNode {
+public:
+    int val;
+    std::vector<Node*> neighbors;
 
-    int v = 0;
-    std::vector<GraphNode*> ps;
+    GraphNode() = default;
+
+    GraphNode(int _val, std::vector<Node*> _neighbors) {
+        val = _val;
+        neighbors = _neighbors;
+    }
 };
+

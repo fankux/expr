@@ -51,6 +51,11 @@ public:
         flush();
     }
 
+    inline LogStream& operator<<(char val) {
+        _ss << val;
+        return *this;
+    }
+
     inline LogStream& operator<<(int16_t val) {
         _ss << val;
         return *this;
@@ -265,11 +270,11 @@ FTEST(test_util) {
     LOG(INFO) << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
 
     LOG(INFO) << 9999 << std::vector<std::string>{"5", "8", "6", "4", "7"}
-            << std::list<std::string>{"5", "8", "6", "4", "7"}
-            << std::deque<std::string>{"5", "8", "6", "4", "7"}
-            << std::set<std::string>{"5", "8", "6", "4", "7"}
-            << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
-            << std::map<int, std::string>{{10, "10"}, {20, "20"}}
-            << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
+              << std::list<std::string>{"5", "8", "6", "4", "7"}
+              << std::deque<std::string>{"5", "8", "6", "4", "7"}
+              << std::set<std::string>{"5", "8", "6", "4", "7"}
+              << std::unordered_set<std::string>{"5", "8", "6", "4", "7"}
+              << std::map<int, std::string>{{10, "10"}, {20, "20"}}
+              << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
 
 }

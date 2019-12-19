@@ -6,7 +6,7 @@
 #include "strs.hpp"
 
 typedef LCListNode ListNode;
-typedef LCNode Node;
+typedef LCTreeNode Node;
 
 /**
  ///////////// 121. Best Time to Buy and Sell Stock
@@ -339,6 +339,9 @@ wordList = ["hot","dot","dog","lot","log"]
 
 Output: 0
 Explanation: The endWord "cog" is not in wordList, therefore no possible transformation.
+
+ THOUGHTS:
+    BFS search
 */
 int ladderLength(std::string beginWord, std::string endWord, std::vector<std::string>& wordList) {
     size_t len = beginWord.size();
@@ -407,7 +410,47 @@ Output: 4
 Explanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.
 */
 int longestConsecutive(std::vector<int>& nums) {
-    return 0;
+    int res = 0;
+    std::unordered_set<int> ss(nums.begin(), nums.end());
+    for (auto num : nums) {
+        if (ss.count(num) == 0) {
+            continue;
+        }
+        int pre = num - 1;
+        while (ss.count(pre)) {
+            ss.erase(pre--);
+        }
+        int next = num + 1;
+        while (ss.count(next)) {
+            ss.erase(next++);
+        }
+        int sum = next - pre - 1;
+        res = std::max(res, sum);
+    }
+    return res;
+}
+
+FTEST(test_longestConsecutive) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = longestConsecutive(nns);
+        LOG(INFO) << nums << " longest consecutive length: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({1}), 1);
+    FEXP(t({1, 3}), 1);
+    FEXP(t({1, -1}), 1);
+    FEXP(t({1, 2}), 2);
+    FEXP(t({2, 1}), 2);
+    FEXP(t({1, 0}), 2);
+    FEXP(t({1, 0, -1}), 3);
+    FEXP(t({0, 1, 2}), 3);
+    FEXP(t({1, 2, 3}), 3);
+    FEXP(t({-1, 1, 2, 3}), 3);
+    FEXP(t({100, 4, 200, 1, 3, 2}), 4);
+    FEXP(t({3, 4, 200, 1, 3, 2, 5}), 5);
 }
 
 /**
@@ -471,5 +514,50 @@ Surrounded regions shouldn’t be on the border,
  border will be flipped to 'X'. Two cells are connected if
  they are adjacent cells connected horizontally or vertically.
 */
-void solve(std::vector<std::vector<char>>& board) {
+void surroundedRegionSolve(std::vector<std::vector<char>>& board) {
+    if (board.empty() || board.front().empty()) {
+        return;
+    }
+    int row = board.size();
+    int column = board.front().size();
+    std::function<void(int, int)> r_func;
+    r_func = [&](int x, int y) {
+        if (x < 0 || y < 0 || x >= row || y >= column) {
+            return;
+        }
+        if (board[x][y] != 'O') {
+            return;
+        }
+        board[x][y] = '#';
+        r_func(x + 1, y);
+        r_func(x - 1, y);
+        r_func(x, y + 1);
+        r_func(x, y - 1);
+    };
+    for (int i = 0; i < row; ++i) {
+        r_func(i, 0);
+        r_func(i, column - 1);
+    }
+    for (int i = 1; i < column - 1; ++i) {
+        r_func(0, i);
+        r_func(row - 1, i);
+    }
+    for (int i = 0; i < row; ++i) {
+        for (int j = 0; j < column; ++j) {
+            board[i][j] = board[i][j] == '#' ? 'O' : 'X';
+        }
+    }
+}
+
+FTEST(test_surroundedRegionSolve) {
+    auto t = [](const std::vector<std::vector<char>>& board) {
+        std::vector<std::vector<char>> nns = board;
+        surroundedRegionSolve(nns);
+        LOG(INFO) << board << " surrounded region solve: " << nns;
+    };
+
+    t({});
+    t({{}});
+    t({{'X'}});
+    t({{'X', 'X', 'X', 'X'}, {'X', 'O', 'O', 'X'}, {'X', 'X', 'O', 'X'}, {'X', 'O', 'X', 'X'}});
 }

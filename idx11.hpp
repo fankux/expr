@@ -6,7 +6,7 @@
 #include "strs.hpp"
 
 typedef LCListNode ListNode;
-typedef LCNode Node;
+typedef LCTreeNode Node;
 
 /**
  ///////////// 111. Minimum Depth of Binary Tree

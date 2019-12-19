@@ -170,6 +170,31 @@ double findMedianSortedArrays(std::vector<int>& nums1, std::vector<int>& nums2) 
  Example 2:
  Input: "cbbd"
  Output: "bb"
+
+ THOUGHTS:
+ We initiate at diagonal, and iterate direction is [TOP->BOTTOM(diagonal line)]->RIGHT,
+    just TOP-RIGHT half is enough because parlindrome is symmetric.
+ dp[i][j] means if from i to j is palindrome.
+ d[i][j] = {
+    1                           (if i ==j )
+    s[i]==[j]                   (j=i+i, adjacent)
+    s[i]==[j] && s[i+1]==[j-1]  (j>i+i, not adjacent, this why our iterate direction chosen)
+ }
+
+       j=0 -->                                  0   1   2   3   4
+        \ | b | a | b | a | d |             \ | b | a | b | a | d |
+ i=0  | b | T |   |   |   |   |        0  | b | T | F*| T | F | T |
+  ↓   -------------------------           ------------↗---↗---↗----
+      | a |   | T |   |   |   |        1  | a |   | T | F*| T | F |
+      -------------------------           ----------------↗---↗----
+      | b |   |   | T |   |   |   =>   2  | b |   |   | T | F*| T |
+      -------------------------           --------------------↗----
+      | a |   |   |   | T |   |        3  | a |   |   |   | T | F*|
+      -------------------------           -------------------------
+      | d |   |   |   |   | T |        4  | d |   |   |   |   | T |
+      -------------------------           -------------------------
+    * means i,j is adjacent
+
  */
 std::string longestPalindrome(std::string s) {
     size_t n = s.size();
@@ -180,7 +205,7 @@ std::string longestPalindrome(std::string s) {
     for (size_t i = 0; i < n; ++i) {
         dp[i][i] = 1;
         for (size_t j = 0; j < i; ++j) {
-            if (i == j + 1) { // adjucent
+            if (i == j + 1) { // adjacent
                 dp[j][i] = s[i] == s[j];
             } else if (i > j + 1) {
                 dp[j][i] = s[i] == s[j] && dp[j + 1][i - 1];

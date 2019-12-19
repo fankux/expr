@@ -16,12 +16,12 @@ struct TreeNode {
     TreeNode* p = nullptr;
 };
 
-struct LCNode {
-    explicit LCNode(int value) : val(value) {}
+struct LCTreeNode {
+    explicit LCTreeNode(int value) : val(value) {}
 
-    LCNode* left = nullptr;
-    LCNode* right = nullptr;
-    LCNode* next = nullptr;
+    LCTreeNode* left = nullptr;
+    LCTreeNode* right = nullptr;
+    LCTreeNode* next = nullptr;
     int val = 0;
 };
 
@@ -171,8 +171,8 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
     return print_tree<TreeNode>(n, [](TreeNode*) { return ' '; }, ws_col);
 }
 
-std::string print_tree(LCNode* n, int ws_col = 50) {
-    return print_tree<LCNode>(n, [](LCNode* p) { return p && p->next ? '>' : ' '; }, ws_col);
+std::string print_tree(LCTreeNode* n, int ws_col = 50) {
+    return print_tree<LCTreeNode>(n, [](LCTreeNode* p) { return p && p->next ? '>' : ' '; }, ws_col);
 }
 
 FTEST(test_print_tree) {
