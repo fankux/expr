@@ -539,8 +539,10 @@ void avl_tree() {}
 #include "idx11.hpp"
 #include "idx12.hpp"
 #include "idx13.hpp"
+#include "idx14.hpp"
 
 using namespace LCIndex13;
+using namespace LCIndex14;
 
 int main() {
 
@@ -551,7 +553,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_wordBreakII();
+    test_LRUCache();
 
     // TODO... dijistra
     // TODO... Graph reverse

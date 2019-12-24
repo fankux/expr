@@ -59,6 +59,31 @@ LCListNode* list_convert_leetcode(LinkNode* p) {
     return head;
 }
 
+LCListNode* list_convert_leetcode(LinkNode* p, std::vector<LCListNode*>& nodes) {
+    if (p == nullptr) {
+        return nullptr;
+    }
+
+    LCListNode* head = nullptr;
+    LCListNode* prev = nullptr;
+    while (p) {
+        LCListNode* lc = new LCListNode(p->v);
+        nodes.emplace_back(lc);
+        if (head == nullptr) {
+            head = lc;
+            prev = lc;
+
+            p = p->next;
+            continue;
+        }
+
+        prev->next = lc;
+        prev = lc;
+        p = p->next;
+    }
+    return head;
+}
+
 void print_list(LinkNode* n) {
     if (n == nullptr) {
         LOG(INFO) << "NULL";
@@ -181,3 +206,187 @@ FTEST(test_add_two_list) {
     res = add_two_list(r, l);
     print_list(res);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<class T>
+class FListNode {
+public:
+    template<class X> friend
+    class FList;
+
+    FListNode() = default;
+
+    virtual ~FListNode() {
+        _prev = nullptr;
+        _next = nullptr;
+    }
+
+    explicit FListNode(const T& data) : _data(data) {}
+
+    T& data() {
+        return _data;
+    }
+
+    FListNode* next() {
+        return _prev;
+    };
+
+    FListNode* prev() {
+        return _prev;
+    };
+
+    friend LogStream& operator<<(LogStream& ls, const FListNode& lock) {
+        ls << lock._data;
+        return ls;
+    }
+
+private:
+    FListNode* _prev = nullptr;
+    FListNode* _next = nullptr;
+    T _data;
+};
+
+template<class T>
+class FList {
+public:
+    explicit FList() = default;
+
+    virtual ~FList() {
+        clear();
+    }
+
+    inline void clear() {
+        FListNode<T>* p = _head;
+        FListNode<T>* q = p;
+        for (size_t i = _len; i > 0; --i) {
+            p = p->_next;
+            free(q);
+            q = p;
+        }
+        _len = 0;
+    }
+
+    inline size_t size() {
+        return _len;
+    }
+
+    inline bool empty() {
+        return _len == 0;
+    }
+
+    inline bool add_tail(const T& data) {
+        FListNode<T>* node = new(std::nothrow) FListNode<T>(data);
+        if (node == nullptr) {
+            return false;
+        }
+        return add_tail(node);
+    }
+
+    inline bool add_tail(FListNode<T>* node) {
+        if (empty()) {
+            node->_prev = nullptr;
+            node->_next = nullptr;
+            _tail = node;
+            _head = _tail;
+        } else {
+            node->_next = nullptr;
+            node->_prev = _tail;
+            _tail->_next = node;
+            _tail = _tail->_next;
+        }
+        ++_len;
+        return true;
+    }
+
+    inline bool add_head(const T& data) {
+        FListNode<T>* node = new(std::nothrow) FListNode<T>(data);
+        if (node == nullptr) {
+            return false;
+        }
+        return add_head(node);
+    }
+
+    inline bool add_head(FListNode<T>* node) {
+        if (empty()) {
+            node->_prev = nullptr;
+            node->_next = nullptr;
+            _head = node;
+            _tail = _head;
+        } else {
+            node->_prev = nullptr;
+            node->_next = _head;
+            _head->_prev = node;
+            _head = _head->_prev;
+        }
+        ++_len;
+    }
+
+    inline bool insert(FListNode<T>* pos, FListNode<T>* node) {
+        if (node == nullptr) {
+            return false;
+        }
+        if (pos == nullptr) {
+            return add_head(node);
+        }
+        if (pos->_next == nullptr) {
+            return add_tail(node);
+        }
+        node->_prev = pos;
+        node->_next = pos->_next;
+        pos->_next->_prev = pos;
+        pos->_next = pos;
+        return true;
+    }
+
+    inline FListNode<T>* pop_head() {
+        if (empty()) {
+            return nullptr;
+        }
+        FListNode<T>* p = nullptr;
+        if (_len == 1) { /* last one node */
+            p = _head;
+            _head = nullptr;
+            _tail = nullptr;
+        } else {
+            p = _head;
+            _head = _head->_next;
+            _head->_prev = nullptr;
+
+        }
+        --_len;
+        return p;
+    }
+
+    inline void detach(FListNode<T>* p) {
+        if (_len == 1) {
+            _head = nullptr;
+            _tail = nullptr;
+        } else {
+            if (p->_prev == nullptr) {
+                _head = p->_next;
+                p->_next->_prev = nullptr;
+            } else if (p->_next == nullptr) {
+                _tail = p->_prev;
+                p->_prev->_next = nullptr;
+            } else {
+                p->_next->_prev = p->_prev;
+                p->_prev->_next = p->_next;
+            }
+        }
+        --_len;
+    }
+
+    inline FListNode<T>* head() {
+        return _head;
+    }
+
+    inline FListNode<T>* tail() {
+        return _tail;
+    }
+
+private:
+    size_t _len = 0;
+    FListNode<T>* _head = nullptr;
+    FListNode<T>* _tail = nullptr;
+};
