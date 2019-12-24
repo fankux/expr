@@ -94,7 +94,8 @@ Example:
 TODO.. graph
 
 Input:
-{"$id":"1","neighbors":[{"$id":"2","neighbors":[{"$ref":"1"},{"$id":"3","neighbors":[{"$ref":"2"},{"$id":"4","neighbors":[{"$ref":"3"},{"$ref":"1"}],"val":4}],"val":3}],"val":2},{"$ref":"4"}],"val":1}
+{"$id":"1","neighbors":[{"$id":"2","neighbors":[{"$ref":"1"},{"$id":"3","neighbors":[{"$ref":"2"},
+ {"$id":"4","neighbors":[{"$ref":"3"},{"$ref":"1"}],"val":4}],"val":3}],"val":2},{"$ref":"4"}],"val":1}
 
 Explanation:
 Node 1's value is 1, and it has two neighbors: Node 2 and 4.
@@ -158,7 +159,32 @@ You cannot travel back to station 2, as it requires 4 unit of gas but you only h
 Therefore, you can't travel around the circuit once no matter where you start.
 */
 int canCompleteCircuit(std::vector<int>& gas, std::vector<int>& cost) {
-    return 0;
+    int total = 0;
+    int sum = 0;
+    int start = 0;
+    for (size_t i = 0; i < gas.size(); ++i) {
+        total += gas[i] - cost[i];
+        sum += gas[i] - cost[i];
+        if (sum < 0) {
+            sum = 0;
+            start = i + 1;
+        }
+    }
+    return total < 0 ? -1 : start;
+}
+
+FTEST(test_canCompleteCircuit) {
+    auto t = [](const std::vector<int>& gas, const std::vector<int>& cost) {
+        std::vector<int> g = gas;
+        std::vector<int> c = cost;
+        auto re = canCompleteCircuit(g, c);
+        LOG(INFO) << "gas:" << gas << ", cost:" << cost << " can circuit: " << re;
+        return re;
+    };
+
+    FEXP(t({}, {}), 0);
+    FEXP(t({2, 3, 4}, {3, 4, 3}), -1);
+    FEXP(t({1, 2, 3, 4, 5}, {3, 4, 5, 1, 2}), 3);
 }
 
 /**
@@ -203,7 +229,24 @@ Input: [4,1,2,1,2]
 Output: 4
 */
 int singleNumber(std::vector<int>& nums) {
-    return 0;
+    for (int i = 1; i < nums.size(); ++i) {
+        nums[0] ^= nums[i];
+    }
+    return nums[0];
+}
+
+FTEST(test_singleNumber) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = singleNumber(nns);
+        LOG(INFO) << nums << " single number: " << re;
+        return re;
+    };
+
+    FEXP(t({1}), 1);
+    FEXP(t({1, 2, 2}), 1);
+    FEXP(t({2, 2, 1}), 1);
+    FEXP(t({4, 1, 2, 1, 2}), 4);
 }
 
 /**
@@ -240,17 +283,30 @@ random_index: the index of the node (range from 0 to n-1) where random pointer p
  or null if it does not point to any node.
 
 Example 1:
-TODO.. graph
+ _____________    ______________    ______________    ______________    _____________
+ | 7 | next -|--->| 13 | next -|--->| 11 | next -|--->| 10 | next -|--->| 1 | next -|--->NULL
+ |___|_rand__|    |____|_rand__|    |____|_rand__|    |____|_rand__|    |___|_rand__|     ↑
+   ↑____|_________________|           ↑_____|_________________|          ↑     |          |
+   |____|___________________________________|____________________________|_____|          |
+        |                                   |____________________________|                |
+        |_________________________________________________________________________________|
 
 Input: head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
 Output: [[7,null],[13,0],[11,4],[10,2],[1,0]]
 Example 2:
-TODO.. graph
+ _____________    _____________
+ | 1 | next -|--->| 2 | next -|--->NULL
+ |___|_rand__|    |___|_rand__|
+                    ↑_____|
 
 Input: head = [[1,1],[2,1]]
 Output: [[1,1],[2,1]]
 Example 3:
-TODO.. graph
+ _____________    _____________    _____________
+ | 3 | next -|--->| 3 | next -|--->| 3 | next -|--->NULL
+ |___|_rand__|    |___|_rand__|    |___|_rand__|     ↑
+    ↑___|________________|                |__________|
+        |____________________________________________|
 
 Input: head = [[3,null],[3,0],[3,null]]
 Output: [[3,null],[3,0],[3,null]]
@@ -280,7 +336,30 @@ public:
 };
 
 Node* copyRandomList(Node* head) {
-    return nullptr;
+    if (head == nullptr) {
+        return nullptr;
+    }
+    Node* p = head;
+    while (p) {
+        Node* next = p->next;
+        p->next = new Node(p->val);
+        p->next->next = next;
+        p = next;
+    }
+    p = head;
+    while (p) {
+        p->next->random = p->random ? p->random->next : nullptr;
+        p = p->next->next;
+    }
+    p = head;
+    head = p->next;
+    while (p) {
+        Node* next = p->next;
+        p->next = next->next;
+        p = next->next;
+        next->next = p ? p->next : nullptr;
+    }
+    return head;
 }
 }
 
@@ -309,7 +388,45 @@ Input: s = "catsandog", wordDict = ["cats", "dog", "sand", "and", "cat"]
 Output: false
 */
 bool wordBreak(std::string s, std::vector<std::string>& wordDict) {
-    return false;
+    TrieNode* dict = create_trie(wordDict);
+    size_t len = s.size();
+    std::vector<std::vector<size_t>> dp(len);
+    for (int i = len - 1; i >= 0; --i) {
+        int pos = i;
+        TrieNode* n = dict;
+        while (pos < len && n) {
+            n = n->nexts[s[pos++]];
+            // pos is word right border that is unclosed or the s.end().
+            // pos == len must be preorder than dp[pos] avoiding memory over range.
+            if (n && n->end && (pos == len || !dp[pos].empty())) {
+                dp[i].emplace_back(pos);
+            }
+        }
+    }
+    return !dp[0].empty();
+}
+
+FTEST(test_wordBreak) {
+    auto t = [](const std::string& s, const std::vector<std::string>& wordDict) {
+        std::vector<std::string> nns = wordDict;
+        auto re = wordBreak(s, nns);
+        LOG(INFO) << s << ", " << wordDict << " break: " << re;
+        return re;
+    };
+
+    t("abcdef", {"abcde", "ab", "ef"});
+    t("abcdef", {"abcde", "fg"});
+    t("abcdef", {"ab", "cd", "ef"});
+    t("abcdef", {"abc", "ab", "cd", "ef"});
+    t("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+    t("abcdef", {"abcde", "ab", "cd", "ef"});
+    t("abcdef", {"abcde", "ab", "abc", "cd", "ef", "d", "def"});
+    t("pineapplepenapple", {"apple", "pen", "applepen", "pine", "pineapple"});
+    t("aaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"});
+    t("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa",
+            "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"});
 }
 
 /**
@@ -352,7 +469,67 @@ Output:
 []
 */
 std::vector<std::string> wordBreakII(std::string s, std::vector<std::string>& wordDict) {
-    return {};
+    TrieNode* dict = create_trie(wordDict);
+    size_t len = s.size();
+    std::vector<std::vector<size_t>> dp(len);
+    for (int i = len - 1; i >= 0; --i) {
+        int pos = i;
+        TrieNode* n = dict;
+        while (pos < len && n) {
+            n = n->nexts[s[pos++]];
+            // pos is word right border that is unclosed or the s.end().
+            // pos == len must be preorder than dp[pos] avoiding memory over range.
+            if (n && n->end && (pos == len || !dp[pos].empty())) {
+                dp[i].emplace_back(pos);
+            }
+        }
+    }
+    std::vector<size_t> re{0};
+    std::vector<std::string> res;
+    std::function<void(int)> r_func;
+    r_func = [&](int start) {
+        if (start >= len) {
+            res.emplace_back();
+            for (size_t i = 1; i < re.size(); ++i) {
+                if (i > 1) {
+                    res.back() += ' ';
+                }
+                res.back() += s.substr(re[i - 1], re[i] - re[i - 1]);
+            }
+            return;
+        }
+        for (auto& next : dp[start]) {
+            re.emplace_back(next);
+            r_func(next);
+            re.pop_back();
+        }
+    };
+    r_func(0);
+    return res;
+}
+
+FTEST(test_wordBreakII) {
+    auto t = [](const std::string& s, const std::vector<std::string>& wordDict) {
+        std::vector<std::string> nns = wordDict;
+        auto re = wordBreakII(s, nns);
+        LOG(INFO) << s << ", " << wordDict << " break: " << re;
+        return re;
+    };
+
+    t("abcdef", {"abcde", "ab", "ef"});
+    t("abcdef", {"abcde", "fg"});
+    t("abcdef", {"ab", "cd", "ef"});
+    t("abcdef", {"abc", "ab", "cd", "ef"});
+    t("abcdef", {"abc", "ab", "cde", "cd", "ef"});
+    t("abcdef", {"abcde", "ab", "cd", "ef"});
+    t("abcdef", {"abcde", "ab", "abc", "cd", "ef", "d", "def"});
+    t("pineapplepenapple", {"apple", "pen", "applepen", "pine", "pineapple"});
+    t("catsanddog", {"cat", "cats", "and", "sand", "dog"});
+    t("aaaaaaaaaaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa"});
+    t("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaa", {"a", "aa", "aaa", "aaaa", "aaaaa",
+            "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"});
 }
 
 }

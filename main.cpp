@@ -551,7 +551,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙
-    test_palindromePartition();
+    test_wordBreakII();
 
     // TODO... dijistra
     // TODO... Graph reverse
