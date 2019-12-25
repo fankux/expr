@@ -84,30 +84,28 @@ LCListNode* list_convert_leetcode(LinkNode* p, std::vector<LCListNode*>& nodes) 
     return head;
 }
 
-void print_list(LinkNode* n) {
+std::string print_list(LinkNode* n) {
     if (n == nullptr) {
-        LOG(INFO) << "NULL";
-        return;
+        return "NULL";
     }
     std::stringstream ss;
     while (n) {
         ss << n->v << ", ";
         n = n->next;
     }
-    LOG(INFO) << ss.str();
+    return ss.str();
 }
 
-void print_list(LCListNode* n) {
+std::string print_list(LCListNode* n) {
     if (n == nullptr) {
-        LOG(INFO) << "NULL";
-        return;
+        return "NULL";
     }
     std::stringstream ss;
     while (n) {
         ss << n->val << ", ";
         n = n->next;
     }
-    LOG(INFO) << ss.str();
+    return ss.str();
 }
 
 FTEST(test_list) {
