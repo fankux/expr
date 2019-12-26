@@ -54,7 +54,41 @@ Output: 0
 Explanation: The result cannot be 2, because [-2,-1] is not a subarray.
  */
 int maxProduct(std::vector<int>& nums) {
-    return 0;
+    size_t len = nums.size();
+    if (len == 0) {
+        return 0;
+    }
+    int min_dp = nums.front();
+    int max_dp = nums.front();
+    int res = nums.front();
+    for (size_t i = 1; i < len; ++i) {
+        int mx = max_dp;
+        int mn = min_dp;
+        max_dp = std::max(std::max(mx * nums[i], mn * nums[i]), nums[i]);
+        min_dp = std::min(std::min(mx * nums[i], mn * nums[i]), nums[i]);
+        res = std::max(res, max_dp);
+    }
+    return res;
+}
+
+FTEST(test_maxProduct) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = maxProduct(nns);
+        LOG(INFO) << nums << " max product: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({0}), 0);
+    FEXP(t({-1}), -1);
+    FEXP(t({INT_MIN}), INT_MIN);
+    FEXP(t({1, -1}), 1);
+    FEXP(t({-1, -1}), 1);
+    FEXP(t({INT_MIN + 1, -1}), INT_MAX);
+    FEXP(t({2, 3, -2, 4}), 6);
+    FEXP(t({-2, 0, -1}), 0);
+    FEXP(t({-4, -3, -2}), 12);
 }
 
 /**
@@ -123,24 +157,50 @@ minStack.getMin();   --> Returns -2.
  * obj->pop();
  * int param_3 = obj->top();
  * int param_4 = obj->getMin();
+
+ THOUGHTS:
+    Each time when we push value onto stach which less than current minimum,
+    we push current minimum value onto top first, then push the value,
+    in this way, can we get the next minimum value when current minimum one poped.
  */
 class MinStack {
 public:
     /** initialize your data structure here. */
     MinStack() {
+        _min = INT_MAX;
     }
 
     void push(int x) {
+        if (x < _min) {
+            _ss.push(_min);
+            _min = x;
+        }
+        _ss.push(x);
     }
 
     void pop() {
+        if (_ss.empty()) {
+            return;
+        }
+        int t = _ss.top();
+        _ss.pop();
+        if (t == _min) {
+            _min = _ss.top();
+            _ss.pop();
+        }
     }
 
     int top() {
+        return _ss.top();
     }
 
     int getMin() {
+        return _min;
     }
+
+private:
+    int _min;
+    std::stack<int> _ss;
 };
 
 /**
@@ -235,14 +295,23 @@ int lengthOfLongestSubstringTwoDistinct(std::string s) {
 /**
  ///////////// 160. Intersection of Two Linked Lists
 Write a program to find the node at which the intersection of two singly linked lists begins.
-
 For example, the following two linked lists:
-TODO.. graph
 
-begin to intersect at node c1.
+ A:            (a1) → (a2)
+                           ↘
+                             → (c1) → (c2) → (c3)
+                           ↗
+ B:     (b1) → (b2) → (b3)
+
+ begin to intersect at node c1.
 
 Example 1:
-TODO.. graph
+
+ A:            (4) → (1)
+                         ↘
+                           → (8) → (4) → (5)
+                         ↗
+ B:     (5) → (0) → (1)
 
 Input: intersectVal = 8, listA = [4,1,8,4,5], listB = [5,0,1,8,4,5], skipA = 2, skipB = 3
 Output: Reference of the node with value = 8
@@ -253,7 +322,12 @@ Input Explanation: The intersected node's value is 8
  There are 3 nodes before the intersected node in B.
 
 Example 2:
-TODO.. graph
+
+ A:     (0) → (9) → (1)
+                         ↘
+                           → (2) → (4)
+                         ↗
+ B:                 (3)
 
 Input: intersectVal = 2, listA = [0,9,1,2,4], listB = [3,2,4], skipA = 3, skipB = 1
 Output: Reference of the node with value = 2
@@ -263,9 +337,11 @@ Input Explanation: The intersected node's value is 2
  it reads as [3,2,4]. There are 3 nodes before the intersected node in A;
  There are 1 node before the intersected node in B.
 
-
 Example 3:
-TODO.. graph
+
+ A:     (2) → (6) → (4)
+
+ B:           (1) → (5)
 
 Input: intersectVal = 0, listA = [2,6,4], listB = [1,5], skipA = 3, skipB = 2
 Output: null
@@ -275,13 +351,37 @@ Input Explanation: From the head of A, it reads as [2,6,4].
 Explanation: The two lists do not intersect, so return null.
 
 Notes:
-If the two linked lists have no intersection at all, return null.
-The linked lists must retain their original structure after the function returns.
-You may assume there are no cycles anywhere in the entire linked structure.
-Your code should preferably run in O(n) time and use only O(1) memory.
+ - If the two linked lists have no intersection at all, return null.
+ - The linked lists must retain their original structure after the function returns.
+ - You may assume there are no cycles anywhere in the entire linked structure.
+ - Your code should preferably run in O(n) time and use only O(1) memory.
+
+ THOUGHTS:
+                |--lenA--|
+  A:            (4) → (1)
+                         ↘
+                           → (8) → (4) → (5)
+                         ↗   |-----lenC-----|
+ B:     (5) → (0) → (1)
+       |-----lenB-----|
+
+    A steps: (lenA + lenC)(linkA end, to linkB) + lenB
+    B steps: (lenB + lenC)(linkB end, to linkA) + lenA
+    A steps equals to B steps,
+    either no intersection between A and B(a=b=nullptr) or they meet at the intersection.
+
  */
 ListNode* getIntersectionNode(ListNode* headA, ListNode* headB) {
-    return nullptr;
+    if (headA == nullptr || headB == nullptr) {
+        return nullptr;
+    }
+    ListNode* a = headA;
+    ListNode* b = headB;
+    while (a != b) {
+        a = a ? a->next : headB;
+        b = b ? b->next : headA;
+    }
+    return a;
 }
 
 }

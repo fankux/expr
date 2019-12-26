@@ -58,7 +58,37 @@ Note:
 Your solution should be in logarithmic complexity.
  */
 int findPeakElement(std::vector<int>& nums) {
-    return 0;
+    int l = 0;
+    int r = nums.size() - 1; // to test nums[mid+1] safely, using closed right border
+    while (l < r) {
+        int mid = l + (r - l) / 2;
+        if (nums[mid] < nums[mid + 1]) {
+            l = mid + 1;
+        } else {
+            r = mid;
+        }
+    }
+    return r;
+}
+
+FTEST(test_findPeakElement) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = findPeakElement(nns);
+        LOG(INFO) << nums << " peak: " << re;
+        return re;
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({2, 1});
+    t({1, 1});
+    t({1, 2, 1});
+    t({1, 2, 1, 3});
+    t({1, 2, 1, 3, 1});
+    t({1, 2, 3, 1});
+    t({1, 2, 1, 3, 5, 6, 4});
 }
 
 /**
@@ -100,7 +130,9 @@ int maximumGap(std::vector<int>& nums) {
 /**
  ///////////// 165. Compare Version Numbers
 Compare two version numbers version1 and version2.
-If version1 > version2 return 1; if version1 < version2 return -1;otherwise return 0.
+ If version1 > version2 return 1;
+ if version1 < version2 return -1;
+ otherwise return 0.
 You may assume that the version strings are non-empty and contain only digits and the . character.
 The . character does not represent a decimal point and is used to separate number sequences.
 For instance, 2.5 is not "two and a half" or "half way to version three",
@@ -158,9 +190,75 @@ Output: "2"
 Example 3:
 Input: numerator = 2, denominator = 3
 Output: "0.(6)"
+
+ THOUGHTS:
+    once repeated remainder in fractional part, the fractional is Recurring.
+    notice that, we use set to remeber the remainder instead of quotient,
+    see:
+    1. 1 / 333   quotient: 0, remainder: 1
+    2. 10 / 333   quotient: 0, remainder: 10
+    3. 100 / 333   quotient: 0, remainder: 100
+    4. 1000 / 333   quotient: 3, remainder: 1
+    step 1~3, quotient is same as 0, so that step 2 could output wrong result
+    if we use quotient as a repeat checker.
+    But 4 output the correct result. remainder is a good checker.
+
  */
 std::string fractionToDecimal(int numerator, int denominator) {
-    return "";
+    bool negative = ((numerator < 0) ^ (denominator < 0)) && numerator != 0;
+    std::string res = negative ? "-" : "";
+    int64_t num = abs((int64_t) numerator);
+    int64_t deno = abs((int64_t) denominator);
+    if (num < deno && num != 0) {
+        res += "0.";
+    } else {
+        res += std::to_string(num / deno);
+        num = num % deno;
+        if (num != 0) {
+            res += '.';
+        }
+    }
+    int pos = 0;
+    std::map<int64_t, int> ee;
+    std::string fraction;
+    while (num != 0) {
+        auto entry = ee.find(num);
+        if (entry != ee.end()) {
+            fraction.insert(entry->second, "(");
+            fraction += ")";
+            break;
+        } else {
+            ee.emplace(num, pos++);
+        }
+        num *= 10;
+        fraction += std::to_string(num / deno);
+        num %= deno;
+    }
+    return res + fraction;
+}
+
+FTEST(test_fractionToDecimal) {
+    auto t = [](int numerator, int denominator) {
+        auto re = fractionToDecimal(numerator, denominator);
+        LOG(INFO) << numerator << '/' << denominator << "=" << re;
+        return re;
+    };
+
+    FEXP(t(0, 2), "0");
+    FEXP(t(0, -2), "0");
+    FEXP(t(1, 1), "1");
+    FEXP(t(-1, 1), "-1");
+    FEXP(t(1, -1), "-1");
+    FEXP(t(-1, -1), "1");
+    FEXP(t(1, 2), "0.5");
+    FEXP(t(1, -2), "-0.5");
+    FEXP(t(2, 1), "2");
+    FEXP(t(11, 5), "2.2");
+    FEXP(t(2, 3), "0.(6)");
+    FEXP(t(4, 333), "0.(012)");
+    FEXP(t(1, 6), "0.1(6)");
+    FEXP(t(1, 333), "0.(003)");
+    FEXP(t(-1, -2147483648), "0.0000000004656612873077392578125");
 }
 
 /**
@@ -230,7 +328,34 @@ Input: [2,2,1,1,1,2,2]
 Output: 2
  */
 int majorityElement(std::vector<int>& nums) {
-    return 0;
+    int res = nums.front();
+    int count = 1;
+    for (size_t i = 1; i < nums.size(); ++i) {
+        if (count == 0) {
+            res = nums[i];
+            ++count;
+        } else {
+            nums[i] == res ? ++count : --count;
+        }
+    }
+    return res;
+}
+
+FTEST(test_majorityElement) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = majorityElement(nns);
+        LOG(INFO) << nums << " majority: " << re;
+        return re;
+    };
+
+    FEXP(t({1}), 1);
+    FEXP(t({1, 1}), 1);
+    FEXP(t({1, 2, 2}), 2);
+    FEXP(t({1, 2, 2, 1}), 2);
+    FEXP(t({1, 2, 2, 1, 1}), 1);
+    FEXP(t({3, 2, 3}), 3);
+    FEXP(t({2, 2, 1, 1, 1, 2, 2}), 2);
 }
 
 /**
