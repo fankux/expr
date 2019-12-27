@@ -567,9 +567,10 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_numIslands();
+    test_containsDuplicate();
 
     // TODO... dijistra
+    // TODO... nearest coordinates
     // TODO... Graph reverse
     // TODO... LSM tree
 

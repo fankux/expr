@@ -41,9 +41,34 @@ Explanation:
 8^2 + 2^2 = 68
 6^2 + 8^2 = 100
 1^2 + 0^2 + 0^2 = 1
+
+ THOUGHTS:
+    not happy number MUST exist 4. and square action would be recurring.
+
  */
-bool isHappy(int n) {
-    return false;
+bool isHappyNumber(int n) {
+    while (n != 1 && n != 4) {
+        int sum = 0;
+        while (n) {
+            sum += (n % 10) * (n % 10);
+            n /= 10;
+        }
+        n = sum;
+    }
+    return n == 1;
+}
+
+FTEST(test_isHappyNumber) {
+    auto t = [](int n) {
+        auto re = isHappyNumber(n);
+        LOG(INFO) << n << " is happy number: " << re;
+        return re;
+    };
+
+    FEXP(t(1), true);
+    FEXP(t(2), false);
+    FEXP(t(11), false);
+    FEXP(t(19), true);
 }
 
 /**
@@ -66,9 +91,39 @@ Example:
 Input: 10
 Output: 4
 Explanation: There are 4 prime numbers less than 10, they are 2, 3, 5, 7.
+
+ THOUGHTS:
+    Sieve of Eratosthenes
  */
 int countPrimes(int n) {
-    return 0;
+    int res = 0;
+    std::vector<bool> primes(n, true);
+    for (int i = 2; i < n; ++i) {
+        if (!primes[i]) {
+            continue;
+        }
+        ++res;
+        for (int j = 2; i * j < n; ++j) {
+            primes[i * j] = false;
+        }
+    }
+    return res;
+}
+
+FTEST(test_countPrimes) {
+    auto t = [](int n) {
+        auto re = countPrimes(n);
+        LOG(INFO) << "prime count less than " << n << ": " << re;
+        return re;
+    };
+
+    FEXP(t(1), 0);
+    FEXP(t(2), 0);
+    FEXP(t(10), 4);
+    FEXP(t(11), 4);
+    FEXP(t(12), 5);
+    FEXP(t(19), 7);
+    FEXP(t(20), 8);
 }
 
 /**
@@ -109,7 +164,41 @@ Follow up:
 A linked list can be reversed either iteratively or recursively. Could you implement both?
  */
 ListNode* reverseList(ListNode* head) {
-    return nullptr;
+    auto head_func = [&] {
+        ListNode* p = head;
+        while (p && p->next) {
+            ListNode* oh = head;
+            head = p->next;
+            p->next = head->next;
+            head->next = oh;
+        }
+        return head;
+    };
+    auto tail_func = [&] {
+        ListNode* pre = nullptr;
+        while (head) {
+            ListNode* n = head->next;
+            head->next = pre;
+            pre = head;
+            head = n;
+        }
+        return pre;
+    };
+    return head_func();
+}
+
+FTEST(test_reverseList) {
+    auto t = [](const std::vector<int>& nums) {
+        ListNode* l1 = list_convert_leetcode(create_list(nums));
+        LOG(INFO) << nums << "reverse: " << print_list(reverseList(l1));
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 2, 3, 4});
+    t({1, 2, 3, 4, 5});
 }
 
 /**
@@ -137,9 +226,85 @@ Note:
 The input prerequisites is a graph represented by a list of edges, not adjacency matrices.
  Read more about how a graph is represented.
 You may assume that there are no duplicate edges in the input prerequisites.
+
+ THOUGHTS:
+    detect graph circle
+
  */
 bool courseSchedule(int numCourses, std::vector<std::vector<int>>& prerequisites) {
-    return false;
+    std::vector<std::vector<int>> graph(numCourses);
+    auto BFS_func = [&] {
+        std::vector<int> ins(numCourses, 0);
+        for (auto& prerequisite : prerequisites) {
+            ++ins[prerequisite[0]];
+            graph[prerequisite[1]].emplace_back(prerequisite[0]);
+        }
+        std::deque<int> qq;
+        for (size_t i = 0; i < ins.size(); ++i) {
+            if (ins[i] == 0) {
+                qq.emplace_back(i);
+            }
+        }
+        while (!qq.empty()) {
+            int c = qq.front();
+            qq.pop_front();
+            for (int n : graph[c]) {
+                if (--ins[n] == 0) {
+                    qq.emplace_back(n);
+                }
+            }
+        }
+        for (int in : ins) {
+            if (in != 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto DFS_func = [&] {
+        std::vector<int> visited(numCourses, 0); // 0:invisited, 1:good, -1:failed
+        for (auto& prerequisite : prerequisites) {
+            graph[prerequisite[0]].emplace_back(prerequisite[1]);
+        }
+        std::function<bool(int)> DFS_rfunc;
+        DFS_rfunc = [&](int start) {
+            if (visited[start] != 0) {
+                return visited[start] == 1;
+            }
+            visited[start] = -1;
+            for (int n : graph[start]) {
+                if (!DFS_rfunc(n)) {
+                    return false;
+                }
+            }
+            visited[start] = 1;
+            return true;
+        };
+        for (int i = 0; i < numCourses; ++i) {
+            if (!DFS_rfunc(i)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    return DFS_func();
+}
+
+FTEST(test_courseSchedule) {
+    auto t = [](int n, const std::vector<std::vector<int>>& nums) {
+        std::vector<std::vector<int>> nns = nums;
+        auto re = courseSchedule(n, nns);
+        LOG(INFO) << n << ", " << nums << " can finish: " << re;
+        return re;
+    };
+
+    FEXP(t(0, {}), true);
+    FEXP(t(1, {}), true);
+    FEXP(t(1, {{0, 0}}), false);
+    FEXP(t(2, {{0, 1}}), true);
+    FEXP(t(2, {{1, 0}}), true);
+    FEXP(t(2, {{1, 0}, {0, 1}}), false);
+    FEXP(t(4, {{1, 0}, {2, 0}, {3, 1}, {3, 2}}), true);
 }
 
 /**
@@ -169,23 +334,68 @@ All inputs are guaranteed to be non-empty strings.
 class Trie {
 public:
     /** Initialize your data structure here. */
-    Trie() {
-    }
+    Trie() = default;
 
     /** Inserts a word into the trie. */
     void insert(std::string word) {
+        TrieNode* p = &root;
+        for (char c : word) {
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                p->nexts[c] = new TrieNode(c);
+            }
+            p = p->nexts[c];
+        }
+        p->end = !word.empty();
     }
 
     /** Returns if the word is in the trie. */
     bool search(std::string word) {
-        return false;
+        TrieNode* p = &root;
+        for (char c : word) {
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                return false;
+            }
+            p = p->nexts[c];
+        }
+        return p != nullptr && p->end;
     }
 
     /** Returns if there is any word in the trie that starts with the given prefix. */
     bool startsWith(std::string prefix) {
-        return false;
+        TrieNode* p = &root;
+        for (char c : prefix) {
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                return false;
+            }
+            p = p->nexts[c];
+        }
+        return p != nullptr;
     }
+
+private:
+    struct TrieNode {
+        explicit TrieNode(char value) : v(value) {
+            for (auto& next : nexts) {
+                next = nullptr;
+            }
+        }
+
+        TrieNode* nexts[26]{nullptr};
+        char v = 0;
+        bool end = false;
+    };
+
+    TrieNode root{'\0'};
 };
+
+FTEST(test_leetcodeTrie) {
+    Trie trie;
+    trie.insert("Trie");
+    FEXP(trie.search("a"), false);
+}
 
 
 /**
@@ -234,7 +444,80 @@ The input prerequisites is a graph represented by a list of edges, not adjacency
 You may assume that there are no duplicate edges in the input prerequisites.
  */
 std::vector<int> courseScheduleII(int numCourses, std::vector<std::vector<int>>& prerequisites) {
-    return {};
+    std::vector<int> res;
+    std::vector<std::vector<int>> graph(numCourses);
+    auto BFS_func = [&]() -> decltype(res) {
+        std::vector<int> ins(numCourses, 0);
+        for (auto& prerequisite : prerequisites) {
+            ++ins[prerequisite[0]];
+            graph[prerequisite[1]].emplace_back(prerequisite[0]);
+        }
+        std::deque<int> qq;
+        for (size_t i = 0; i < ins.size(); ++i) {
+            if (ins[i] == 0) {
+                qq.emplace_back(i);
+            }
+        }
+        while (!qq.empty()) {
+            int c = qq.front();
+            qq.pop_front();
+            res.emplace_back(c);
+            for (int n : graph[c]) {
+                if (--ins[n] == 0) {
+                    qq.emplace_back(n);
+                }
+            }
+        }
+        return res.size() != numCourses ? res.clear(), res : res;
+    };
+    auto DFS_func = [&]() -> decltype(res) {
+        std::vector<int> visited(numCourses, 0); // 0:invisited, 1:good, -1:failed
+        for (auto& prerequisite : prerequisites) {
+            graph[prerequisite[0]].emplace_back(prerequisite[1]);
+        }
+        std::function<bool(int)> DFS_rfunc;
+        DFS_rfunc = [&](int start) {
+            if (visited[start] != 0) {
+                return visited[start] == 1;
+            }
+            visited[start] = -1;
+            for (int n : graph[start]) {
+                if (!DFS_rfunc(n)) {
+                    return false;
+                }
+            }
+            if (res.size() < numCourses) {
+                res.emplace_back(start);
+            }
+            visited[start] = 1;
+            return true;
+        };
+        for (int i = 0; i < numCourses; ++i) {
+            if (!DFS_rfunc(i)) {
+                return {};
+            }
+        }
+        return res;
+    };
+    return BFS_func();
+}
+
+FTEST(test_courseScheduleII) {
+    auto t = [](int n, const std::vector<std::vector<int>>& nums) {
+        std::vector<std::vector<int>> nns = nums;
+        auto re = courseScheduleII(n, nns);
+        LOG(INFO) << n << ", " << nums << " can finish: " << re;
+        return re;
+    };
+
+    t(0, {});
+    t(1, {});
+    t(1, {{0, 0}});
+    t(2, {{0, 1}});
+    t(2, {{1, 0}});
+    t(2, {{1, 0}, {0, 1}});
+    t(2, {{1, 0}, {0, 1}});
+    t(4, {{1, 0}, {2, 0}, {3, 1}, {3, 2}});
 }
 
 }

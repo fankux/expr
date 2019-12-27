@@ -30,23 +30,94 @@ You may assume that all words are consist of lowercase letters a-z.
  * WordDictionary* obj = new WordDictionary();
  * obj->addWord(word);
  * bool param_2 = obj->search(word);
+
+ OPTIMISE:
+    BFS
  */
 class WordDictionary {
+private:
+    struct TrieNode {
+        explicit TrieNode(char value) : v(value) {
+            for (auto& next : nexts) {
+                next = nullptr;
+            }
+        }
+
+        std::set<int> any_idxs;
+        TrieNode* nexts[26]{nullptr};
+        char v = 0;
+        bool end = false;
+    };
+
 public:
     /** Initialize your data structure here. */
-    WordDictionary() {
-    }
+    WordDictionary() = default;
 
     /** Adds a word into the data structure. */
     void addWord(std::string word) {
+        TrieNode* p = &root;
+        for (char c : word) {
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                p->nexts[c] = new TrieNode(c);
+            }
+            p->any_idxs.emplace(c);
+            p = p->nexts[c];
+        }
+        p->end = !word.empty();
     }
 
-    /** Returns if the word is in the data structure. A word could contain the dot character '.' to represent any one letter. */
-    bool search(std::string word) {
-        return false;
+    bool search(std::string word, int start, TrieNode* p) {
+        for (size_t i = start; i < word.size(); ++i) {
+            char c = word[i];
+            if (c == '.') {
+                for (auto& next : p->nexts) {
+                    if (next == nullptr) {
+                        continue;
+                    }
+                    if (search(word, i + 1, next)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                return false;
+            }
+            p = p->nexts[c];
+        }
+        return p != nullptr && p->end;
     }
+
+    /** Returns if the word is in the data structure.
+     * A word could contain the dot character '.' to represent any one letter. */
+    bool search(std::string word) {
+        return search(word, 0, &root);
+    }
+
+private:
+    TrieNode root{'\0'};
 };
 
+FTEST(test_WordDictionary) {
+    WordDictionary dict;
+    dict.addWord("trie");
+    FEXP(dict.search("trie"), true);
+    FEXP(dict.search("trid"), false);
+    FEXP(dict.search(".rie"), true);
+    FEXP(dict.search("t.ie"), true);
+    FEXP(dict.search("tr.e"), true);
+    FEXP(dict.search("...."), true);
+    FEXP(dict.search("tri."), true);
+
+    dict.addWord("ran");
+    dict.addWord("rune");
+    dict.addWord("runner");
+    dict.addWord("runs");
+    FEXP(dict.search("r.n"), true);
+}
 
 /**
  ///////////// 212. Word Search II
@@ -72,7 +143,86 @@ The values of words are distinct.
  */
 std::vector<std::string> findWords(std::vector<std::vector<char>>& board,
         std::vector<std::string>& words) {
-    return {};
+    if (board.empty() || board.front().empty()) {
+        return {};
+    }
+    size_t row = board.size();
+    size_t col = board.front().size();
+
+    TrieNode root('\0');
+    auto add_func = [&](const std::string& word) {
+        TrieNode* p = &root;
+        for (char c : word) {
+            c -= 'a';
+            if (p->nexts[c] == nullptr) {
+                p->nexts[c] = new TrieNode(c);
+            }
+            p = p->nexts[c];
+        }
+        p->end = true;
+    };
+
+    std::string re;
+    std::vector<std::string> res;
+    std::function<void(int, int, TrieNode*)> r_func;
+    r_func = [&](int x, int y, TrieNode* p) {
+        if (x < 0 || x >= row || y < 0 || y >= col || p == nullptr || board[x][y] == '#') {
+            return;
+        }
+        int c = board[x][y] - 'a';
+        if (p->nexts[c] == nullptr) {
+            return;
+        }
+
+        re += board[x][y];
+        board[x][y] = '#';
+        if (p->nexts[c]->end) {
+            p->nexts[c]->end = false; // deduplicate
+            res.emplace_back(re);
+        }
+
+        p = p->nexts[c];
+        r_func(x, y + 1, p);
+        r_func(x, y - 1, p);
+        r_func(x + 1, y, p);
+        r_func(x - 1, y, p);
+
+        re.pop_back();
+        board[x][y] = c + 'a';
+    };
+    for (auto& word : words) {
+        add_func(word);
+    }
+    for (size_t i = 0; i < row; ++i) {
+        for (size_t j = 0; j < col; ++j) {
+            r_func(i, j, &root);
+        }
+    }
+    return res;
+}
+
+FTEST(test_findWords) {
+    std::vector<std::vector<char>> board = {
+            {'o', 'a', 'a', 'n'},
+            {'e', 't', 'a', 'e'},
+            {'i', 'h', 'k', 'r'},
+            {'i', 'f', 'l', 'v'}
+    };
+    auto t = [&](const std::vector<std::string>& words) {
+        std::vector<std::string> nns = words;
+        auto re = findWords(board, nns);
+        LOG(INFO) << words << " find: " << re;
+        return re;
+    };
+
+    t({"oath", "pea", "eat", "rain"});
+    t({"oath", "oat", "pea", "eat", "rain"});
+
+    board = {{'a', 'a'}};
+    t({"a"});
+
+    board = {{'a', 'a', 'a'}};
+    t({"a"});
 }
 
 /**
@@ -176,9 +326,45 @@ Output: false
 Example 3:
 Input: [1,1,1,3,3,4,3,2,4,2]
 Output: true
+
+ TODO...
+ bit trie
+
  */
 bool containsDuplicate(std::vector<int>& nums) {
+    std::unordered_set<int> mm;
+    for (int num : nums) {
+        if (mm.count(num) == 1) {
+            return true;
+        }
+        mm.emplace(num);
+    }
     return false;
+}
+
+FTEST(test_containsDuplicate) {
+    auto t = [&](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = containsDuplicate(nns);
+        LOG(INFO) << nums << " contains duplicate: " << re;
+        return re;
+    };
+
+    FEXP(t({}), false);
+    FEXP(t({1}), false);
+    FEXP(t({1, 2}), false);
+    FEXP(t({1, 1}), true);
+    FEXP(t({1, 1, 2}), true);
+    FEXP(t({1, 2, 1}), true);
+    FEXP(t({2, 1, 1}), true);
+    FEXP(t({1, 2, 3, 1}), true);
+    FEXP(t({1, 2, 3, 4}), false);
+    FEXP(t({1, 1, 1, 3, 3, 4, 3, 2, 4, 2}), true);
+    FEXP(t({1, 10, 1, 3, 3, 4, 3, 2, 4, 2}), true);
+    FEXP(t({1, 5, -2, -4, 0}), false);
+    FEXP(t({0, 4, 5, 0, 3, 6}), true);
+    FEXP(t({0, 4, 5, 10, 3, 6}), false);
+    FEXP(t({10, 4, 5, 10, 3, 6}), true);
 }
 
 /**
