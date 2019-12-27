@@ -1,0 +1,267 @@
+#pragma once
+
+#include "list.hpp"
+#include "subs.hpp"
+#include "strs.hpp"
+#include "graph.hpp"
+
+namespace LCIndex21 {
+
+/**
+ ///////////// 211. Add and Search Word - Data structure design
+Design a data structure that supports the following two operations:
+ - void addWord(word)
+ - bool search(word)
+search(word) can search a literal word or a regular expression string containing
+ only letters a-z or .. A . means it can represent any one letter.
+
+Example:
+addWord("bad")
+addWord("dad")
+addWord("mad")
+search("pad") -> false
+search("bad") -> true
+search(".ad") -> true
+search("b..") -> true
+Note:
+You may assume that all words are consist of lowercase letters a-z.
+ **
+ * Your WordDictionary object will be instantiated and called as such:
+ * WordDictionary* obj = new WordDictionary();
+ * obj->addWord(word);
+ * bool param_2 = obj->search(word);
+ */
+class WordDictionary {
+public:
+    /** Initialize your data structure here. */
+    WordDictionary() {
+    }
+
+    /** Adds a word into the data structure. */
+    void addWord(std::string word) {
+    }
+
+    /** Returns if the word is in the data structure. A word could contain the dot character '.' to represent any one letter. */
+    bool search(std::string word) {
+        return false;
+    }
+};
+
+
+/**
+ ///////////// 212. Word Search II
+Given a 2D board and a list of words from the dictionary, find all words in the board.
+Each word must be constructed from letters of sequentially adjacent cell,
+ where "adjacent" cells are those horizontally or vertically neighboring.
+ The same letter cell may not be used more than once in a word.
+
+Example:
+Input:
+board = [
+  ['o','a','a','n'],
+  ['e','t','a','e'],
+  ['i','h','k','r'],
+  ['i','f','l','v']
+]
+words = ["oath","pea","eat","rain"]
+Output: ["eat","oath"]
+
+Note:
+All inputs are consist of lowercase letters a-z.
+The values of words are distinct.
+ */
+std::vector<std::string> findWords(std::vector<std::vector<char>>& board,
+        std::vector<std::string>& words) {
+    return {};
+}
+
+/**
+ ///////////// 213. House Robber II
+You are a professional robber planning to rob houses along a street.
+Each house has a certain amount of money stashed. All houses at this place are arranged in a circle.
+That means the first house is the neighbor of the last one.
+ Meanwhile, adjacent houses have security system connected and it will automatically
+ contact the police if two adjacent houses were broken into on the same night.
+Given a list of non-negative integers representing the amount of money of each house,
+ determine the maximum amount of money you can rob tonight without alerting the police.
+
+Example 1:
+Input: [2,3,2]
+Output: 3
+Explanation: You cannot rob house 1 (money = 2) and then rob house 3 (money = 2),
+             because they are adjacent houses.
+
+Example 2:
+Input: [1,2,3,1]
+Output: 4
+Explanation: Rob house 1 (money = 1) and then rob house 3 (money = 3).
+             Total amount you can rob = 1 + 3 = 4.
+ */
+int robII(std::vector<int>& nums) {
+    return 0;
+}
+
+/**
+ ///////////// 214. Shortest Palindrome
+Given a string s, you are allowed to convert it to a palindrome by adding characters in front of it.
+ Find and return the shortest palindrome you can find by performing this transformation.
+
+Example 1:
+Input: "aacecaaa"
+Output: "aaacecaaa"
+
+Example 2:
+Input: "abcd"
+Output: "dcbabcd"
+ */
+std::string shortestPalindrome(std::string s) {
+    return "";
+}
+
+/**
+ ///////////// 215. Kth Largest Element in an Array
+Find the kth largest element in an unsorted array.
+ Note that it is the kth largest element in the sorted order, not the kth distinct element.
+
+Example 1:
+Input: [3,2,1,5,6,4] and k = 2
+Output: 5
+
+Example 2:
+Input: [3,2,3,1,2,4,5,5,6] and k = 4
+Output: 4
+Note:
+You may assume k is always valid, 1 ≤ k ≤ array's length.
+ */
+int findKthLargest(std::vector<int>& nums, int k) {
+    return 0;
+}
+
+/**
+ ///////////// 216. Combination Sum III
+Find all possible combinations of k numbers that add up to a number n,
+ given that only numbers from 1 to 9 can be used and each combination should
+ be a unique set of numbers.
+
+Note:
+All numbers will be positive integers.
+The solution set must not contain duplicate combinations.
+
+Example 1:
+Input: k = 3, n = 7
+Output: [[1,2,4]]
+
+Example 2:
+Input: k = 3, n = 9
+Output: [[1,2,6], [1,3,5], [2,3,4]]
+ */
+std::vector<std::vector<int>> combinationSum3(int k, int n) {
+    return {};
+}
+
+/**
+ ///////////// 217. Contains Duplicate
+Given an array of integers, find if the array contains any duplicates.
+Your function should return true if any value appears at least twice in the array,
+ and it should return false if every element is distinct.
+
+Example 1:
+Input: [1,2,3,1]
+Output: true
+
+Example 2:
+Input: [1,2,3,4]
+Output: false
+
+Example 3:
+Input: [1,1,1,3,3,4,3,2,4,2]
+Output: true
+ */
+bool containsDuplicate(std::vector<int>& nums) {
+    return false;
+}
+
+/**
+ ///////////// 218. The Skyline Problem
+A city's skyline is the outer contour of the silhouette formed by all the buildings in
+ that city when viewed from a distance. Now suppose you are given the locations
+ and height of all the buildings as shown on a cityscape photo (Figure A),
+ write a program to output the skyline formed by these buildings collectively (Figure B).
+TODO.. figure
+
+Buildings Skyline Contour
+The geometric information of each building is represented by a triplet of integers [Li, Ri, Hi],
+ where Li and Ri are the x coordinates of the left and right edge of the ith building,
+ respectively, and Hi is its height. It is guaranteed that 0 ≤ Li, Ri ≤ INT_MAX, 0 < Hi ≤ INT_MAX,
+ and Ri - Li > 0. You may assume all buildings are perfect rectangles grounded
+ on an absolutely flat surface at height 0.
+For instance, the dimensions of all buildings in Figure A are recorded as:
+ [ [2 9 10], [3 7 15], [5 12 12], [15 20 10], [19 24 8] ] .
+The output is a list of "key points" (red dots in Figure B) in the format of
+ [ [x1,y1], [x2, y2], [x3, y3], ... ] that uniquely defines a skyline.
+ A key point is the left endpoint of a horizontal line segment.
+ Note that the last key point, where the rightmost building ends,
+ is merely used to mark the termination of the skyline, and always has zero height.
+ Also, the ground in between any two adjacent buildings should be considered
+ part of the skyline contour.
+For instance, the skyline in Figure B should be represented as:
+ [ [2 10], [3 15], [7 12], [12 0], [15 10], [20 8], [24, 0] ].
+
+Notes:
+The number of buildings in any input list is guaranteed to be in the range [0, 10000].
+The input list is already sorted in ascending order by the left x position Li.
+The output list must be sorted by the x position.
+There must be no consecutive horizontal lines of equal height in the output skyline.
+ For instance, [...[2 3], [4 5], [7 5], [11 5], [12 7]...] is not acceptable;
+ the three lines of height 5 should be merged into one in the final
+ output as such: [...[2 3], [4 5], [12 7], ...]
+ */
+std::vector<std::vector<int>> getSkyline(std::vector<std::vector<int>>& buildings) {
+    return {};
+}
+
+/**
+ ///////////// 219. Contains Duplicate II
+Given an array of integers and an integer k,
+ find out whether there are two distinct indices i and j in the array such
+ that nums[i] = nums[j] and the absolute difference between i and j is at most k.
+
+Example 1:
+Input: nums = [1,2,3,1], k = 3
+Output: true
+
+Example 2:
+Input: nums = [1,0,1,1], k = 1
+Output: true
+
+Example 3:
+Input: nums = [1,2,3,1,2,3], k = 2
+Output: false
+ */
+bool containsNearbyDuplicate(std::vector<int>& nums, int k) {
+    return false;
+}
+
+/**
+ ///////////// 220. Contains Duplicate III
+Given an array of integers, find out whether there are two distinct indices i
+ and j in the array such that the absolute difference between nums[i]
+ and nums[j] is at most t and the absolute difference between i and j is at most k.
+
+Example 1:
+Input: nums = [1,2,3,1], k = 3, t = 0
+Output: true
+
+Example 2:
+Input: nums = [1,0,1,1], k = 1, t = 2
+Output: true
+
+Example 3:
+Input: nums = [1,5,9,1,5,9], k = 2, t = 3
+Output: false
+ */
+bool containsNearbyAlmostDuplicate(std::vector<int>& nums, int k, int t) {
+    return false;
+}
+
+}

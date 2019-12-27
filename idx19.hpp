@@ -40,7 +40,12 @@ Follow up:
 If this function is called many times, how would you optimize it?
  */
 int hammingWeight(uint32_t n) {
-    return 0;
+    int res = 0;
+    while (n) {
+        n = (n & n - 1);
+        ++res;
+    }
+    return res;
 }
 
 /**
@@ -76,7 +81,40 @@ Explanation: Rob house 1 (money = 2), rob house 3 (money = 9) and rob house 5 (m
              Total amount you can rob = 2 + 9 + 1 = 12.
  */
 int rob(std::vector<int>& nums) {
-    return 0;
+    size_t len = nums.size();
+    if (len < 2) {
+        return nums.empty() ? 0 : nums.front();
+    }
+    int dp0 = nums[0];
+    int dp1 = std::max(nums[0], nums[1]);
+    for (size_t i = 2; i < len; ++i) {
+        int t = std::max(dp1, dp0 + nums[i]);
+        dp0 = dp1;
+        dp1 = t;
+    }
+    return std::max(dp0, dp1);
+}
+
+FTEST(test_rob) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = rob(nns);
+        LOG(INFO) << nums << " rob max " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({1}), 1);
+    FEXP(t({1, 2}), 2);
+    FEXP(t({2, 1}), 2);
+    FEXP(t({1, 2, 3}), 4);
+    FEXP(t({1, 3, 2}), 3);
+    FEXP(t({2, 1, 3}), 5);
+    FEXP(t({2, 3, 1}), 3);
+    FEXP(t({3, 1, 2}), 5);
+    FEXP(t({3, 2, 1}), 4);
+    FEXP(t({1, 2, 3, 1}), 4);
+    FEXP(t({2, 7, 9, 3, 1}), 12);
 }
 
 /**
@@ -125,7 +163,56 @@ Input:
 Output: 3
  */
 int numIslands(std::vector<std::vector<char>>& grid) {
-    return 0;
+    if (grid.empty() || grid.front().empty()) {
+        return 0;
+    }
+    size_t row = grid.size();
+    size_t col = grid.front().size();
+    int res = 0;
+    std::function<bool(int, int)> r_func;
+    r_func = [&](int x, int y) {
+        if (x < 0 || x >= row || y < 0 || y >= col || grid[x][y] != '1') {
+            return false;
+        }
+        grid[x][y] = '#';
+        r_func(x, y + 1);
+        r_func(x, y - 1);
+        r_func(x + 1, y);
+        r_func(x - 1, y);
+        return true;
+    };
+    for (size_t i = 0; i < row; ++i) {
+        for (size_t j = 0; j < col; ++j) {
+            if (r_func(i, j)) {
+                ++res;
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_numIslands) {
+    auto t = [](const std::vector<std::vector<char>>& grid) {
+        std::vector<std::vector<char>> nns = grid;
+        auto re = numIslands(nns);
+        LOG(INFO) << grid << " number of islands: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({{}}), 0);
+    FEXP(t({{'0'}}), 0);
+    FEXP(t({{'1'}}), 1);
+    FEXP(t({
+            {'1', '1', '1', '1', '0'},
+            {'1', '1', '0', '1', '0'},
+            {'1', '1', '0', '0', '0'},
+            {'0', '0', '0', '0', '0'}}), 1);
+    FEXP(t({
+            {'1', '1', '0', '0', '0'},
+            {'1', '1', '0', '0', '0'},
+            {'0', '0', '1', '0', '0'},
+            {'0', '0', '0', '1', '1'}}), 3);
 }
 
 }

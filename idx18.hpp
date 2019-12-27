@@ -95,8 +95,60 @@ Try to come up as many solutions as you can, there are at least 3 different ways
  solve this problem.
 Could you do it in-place with O(1) extra space?
  */
-void rotate(std::vector<int>& nums, int k) {
+void rotateArray(std::vector<int>& nums, int k) {
+    size_t len = nums.size();
+    if (len == 0) {
+        return;
+    }
+    auto swap_two_end = [&] {
+        k %= len;
+        for (int l = 0, r = len - k - 1; l < r; l++, r--) {
+            std::swap(nums[l], nums[r]);
+        }
+        for (int l = len - k, r = len - 1; l < r; l++, r--) {
+            std::swap(nums[l], nums[r]);
+        }
+        for (int l = 0, r = len - 1; l < r; l++, r--) {
+            std::swap(nums[l], nums[r]);
+        }
+    };
+    auto swap_index = [&] {
+        int start = 0;
+        int pos = 0;
+        int t = nums[pos];
+        for (size_t i = 0; i < len; ++i) {
+            pos = (pos + k) % len;
+            std::swap(nums[pos], t);
+            if (pos == start) {
+                pos = ++start;
+                t = nums[pos % len];
+            }
+        }
+    };
+    swap_index();
+}
 
+FTEST(test_rotateArray) {
+    auto t = [](const std::vector<int>& nums, int k) {
+        std::vector<int> nns = nums;
+        rotateArray(nns, k);
+        LOG(INFO) << nums << " rotate " << k << ": " << nns;
+    };
+
+    t({}, 0);
+    t({1}, 0);
+    t({1}, 1);
+    t({1}, 2);
+    t({1}, 3);
+    t({1, 2}, 1);
+    t({1, 2}, 2);
+    t({1, 2}, 3);
+    t({1, 2, 3}, 1);
+    t({1, 2, 3}, 2);
+    t({1, 2, 3}, 3);
+    t({1, 2, 3, 4, 5, 6}, 2);
+    t({1, 2, 3, 4, 5, 6, 7}, 3);
+    t({-1, -100, 3, 99}, 3);
 }
 
 /**
@@ -128,9 +180,68 @@ In Java, the compiler represents the signed integers using 2's complement notati
 
 Follow up:
 If this function is called many times, how would you optimize it?
+
+ THOUGHTS:
+
+ bit patter method:
+Step 0.
+abcd efgh ijkl mnop qrst uvwx yzAB CDEF <-- n
+
+Step 1.
+                    abcd efgh ijkl mnop <-- n >> 16, same as (n & 0xffff0000) >> 16
+qrst uvwx yzAB CDEF                     <-- n << 16, same as (n & 0x0000ffff) << 16
+qrst uvwx yzAB CDEF abcd efgh ijkl mnop <-- after OR
+
+Step 2.
+          qrst uvwx           abcd efgh <-- (n & 0xff00ff00) >> 8
+yzAB CDEF           ijkl mnop           <-- (n & 0x00ff00ff) << 8
+yzAB CDEF qrst uvwx ijkl mnop abcd efgh <-- after OR
+
+Step 3.
+     yzAB      qrst      ijkl      abcd <-- (n & 0xf0f0f0f0) >> 4
+CDEF      uvwx      mnop      efgh      <-- (n & 0x0f0f0f0f) << 4
+CDEF yzAB uvwx qrst mnop ijkl efgh abcd <-- after OR
+
+Step 4.
+  CD   yz   uv   qr   mn   ij   ef   ab <-- (n & 0xcccccccc) >> 2
+EF   AB   wx   st   op   kl   gh   cd   <-- (n & 0x33333333) << 2
+EFCD AByz wxuv stqr opmn klij ghef cdab <-- after OR
+
+Step 5.
+ E C  A y  w u  s q  o m  k i  g e  c a <-- (n & 0xaaaaaaaa) >> 1
+F D  B z  x v  t r  p n  l j  h f  d b  <-- (n & 0x55555555) << 1
+FEDC BAzy xwvu tsrq ponm lkji hgfe dcba <-- after OR
+
  */
 uint32_t reverseBits(uint32_t n) {
-    return 0;
+    auto common_func = [&] {
+        uint32_t res = 0;
+        for (int i = 0; i < 32; ++i) {
+            res = (res << 1) + ((n >> i) & 1);
+        }
+        return res;
+    };
+    auto bit_pattern = [&] {
+        n = (n >> 16) | (n << 16);
+        n = ((n & 0xff00ff00) >> 8) | ((n & 0x00ff00ff) << 8);
+        n = ((n & 0xf0f0f0f0) >> 4) | ((n & 0x0f0f0f0f) << 4);
+        n = ((n & 0xcccccccc) >> 2) | ((n & 0x33333333) << 2);
+        n = ((n & 0xaaaaaaaa) >> 1) | ((n & 0x55555555) << 1);
+        return n;
+    };
+    return common_func();
+}
+
+FTEST(bit_pattern) {
+    auto t = [](uint32_t n) {
+        uint32_t re = reverseBits(n);
+        LOG(INFO) << n << " reverse " << re;
+        return re;
+    };
+
+    FEXP(t(UINT32_MAX), UINT32_MAX);
+    FEXP(t(43261596), 964176192);
+    FEXP(t(4294967293), 3221225471);
 }
 
 }

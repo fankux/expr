@@ -543,6 +543,9 @@ void avl_tree() {}
 #include "idx17.hpp"
 #include "idx18.hpp"
 #include "idx19.hpp"
+#include "idx20.hpp"
+#include "idx21.hpp"
+#include "idx22.hpp"
 
 using namespace LCIndex13;
 using namespace LCIndex14;
@@ -551,6 +554,9 @@ using namespace LCIndex16;
 using namespace LCIndex17;
 using namespace LCIndex18;
 using namespace LCIndex19;
+using namespace LCIndex20;
+using namespace LCIndex21;
+using namespace LCIndex22;
 
 int main() {
 
@@ -561,7 +567,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_largestNumber();
+    test_numIslands();
 
     // TODO... dijistra
     // TODO... Graph reverse
