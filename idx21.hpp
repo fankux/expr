@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include "list.hpp"
 #include "subs.hpp"
 #include "strs.hpp"
@@ -284,7 +285,85 @@ Note:
 You may assume k is always valid, 1 ≤ k ≤ array's length.
  */
 int findKthLargest(std::vector<int>& nums, int k) {
-    return 0;
+    auto quick_sort_func = [&] {
+        auto partition = [&nums](int left, int r) {
+            if (left >= r) {
+                return r;
+            }
+            int pivot = nums[left];
+            int l = left + 1;
+            while (l <= r) {
+                if (nums[l] < pivot && pivot < nums[r]) {
+                    // there must be three(l, pivot, r) number exist
+                    // that ensure would out of range after l++, r--.
+                    std::swap(nums[l++], nums[r--]);
+                }
+                if (pivot >= nums[r]) {
+                    --r;
+                }
+                if (nums[l] >= pivot) {
+                    ++l;
+                }
+            }
+            std::swap(nums[left], nums[r]);
+            return r;
+        };
+
+        size_t len = nums.size();
+        int l = 0;
+        int r = len - 1;
+        while (l <= r) {
+            int pos = partition(l, r);
+            if (pos == k - 1) {
+                return nums[pos];
+            } else if (pos < k - 1) {
+                l = pos + 1;
+            } else { // pos > k - 1
+                r = pos - 1;
+            }
+        }
+        return (len == 0 || l >= len) ? -1 : nums[l];
+    };
+    auto heap_func = [&] {
+        if (k == 0 || k > nums.size()) {
+            return -1;
+        }
+        std::priority_queue<int> qq(nums.begin(), nums.end());
+        for (int i = 0; i < k - 1; ++i) {
+            qq.pop();
+        }
+        return qq.top();
+    };
+    return heap_func();
+}
+
+FTEST(test_findKthLargest) {
+    auto t = [&](const std::vector<int>& nums, int k) {
+        std::vector<int> nns = nums;
+        auto re = findKthLargest(nns, k);
+        LOG(INFO) << nums << " find " << k << "th: " << re;
+        return re;
+    };
+
+    FEXP(t({}, 0), -1);
+    FEXP(t({}, 1), -1);
+    FEXP(t({1}, 1), 1);
+    FEXP(t({1}, 2), -1);
+    FEXP(t({1, 2}, 1), 2);
+    FEXP(t({1, 2}, 2), 1);
+    FEXP(t({2, 1}, 1), 2);
+    FEXP(t({2, 1}, 2), 1);
+    FEXP(t({1, 2, 3}, 1), 3);
+    FEXP(t({1, 2, 3}, 2), 2);
+    FEXP(t({1, 2, 3}, 3), 1);
+    FEXP(t({3, 2, 1}, 1), 3);
+    FEXP(t({3, 2, 1}, 2), 2);
+    FEXP(t({3, 2, 1}, 3), 1);
+    FEXP(t({3, 1, 2}, 1), 3);
+    FEXP(t({3, 1, 2}, 2), 2);
+    FEXP(t({3, 1, 2}, 3), 1);
+    FEXP(t({3, 2, 1, 5, 6, 4}, 2), 5);
+    FEXP(t({3, 2, 3, 1, 2, 4, 5, 5, 6}, 4), 4);
 }
 
 /**
@@ -403,7 +482,40 @@ There must be no consecutive horizontal lines of equal height in the output skyl
  output as such: [...[2 3], [4 5], [12 7], ...]
  */
 std::vector<std::vector<int>> getSkyline(std::vector<std::vector<int>>& buildings) {
-    return {};
+    std::vector<std::pair<int, int>> vv;
+    for (auto& building : buildings) {
+        vv.emplace_back(building[0], -building[2]); // start when x equal, height descent order
+        vv.emplace_back(building[1], building[2]); // when x equal, height asend order
+    }
+    std::sort(vv.begin(), vv.end());
+    std::vector<std::vector<int>> res;
+    std::multiset<int> qq;
+    qq.emplace(0);
+    for (auto& v : vv) {
+        int pre = *(qq.rbegin());
+        if (v.second < 0) {          // start edge
+            qq.emplace(-v.second);
+        } else {                    // end edge
+            qq.erase(qq.find(v.second)); // delete first one
+        }
+        int top = *qq.rbegin();
+        if (pre != top) {
+            res.emplace_back(std::vector<int>{v.first, top});
+        }
+    }
+    return res;
+}
+
+FTEST(test_getSkyline) {
+    auto t = [&](const std::vector<std::vector<int>>& buildings) {
+        std::vector<std::vector<int>> nns = buildings;
+        auto re = getSkyline(nns);
+        LOG(INFO) << buildings << " get skylines: " << re;
+        return re;
+    };
+
+    t({{0, 2, 3}, {2, 5, 3}});
+    t({{2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8}});
 }
 
 /**

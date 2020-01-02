@@ -172,7 +172,8 @@ Output:
 
 Trivia:
 This problem was inspired by this original tweet by Max Howell:
-Google: 90% of our engineers use the software you wrote (Homebrew), but you can’t invert a binary tree on a whiteboard so f*** off.
+Google: 90% of our engineers use the software you wrote (Homebrew),
+ but you can’t invert a binary tree on a whiteboard so f*** off.
  */
 TreeNode* invertTree(TreeNode* root) {
     return nullptr;
@@ -201,7 +202,46 @@ You may assume that the given expression is always valid.
 Do not use the eval built-in library function.
  */
 int basicCalculatorII(std::string s) {
-    return 0;
+    std::stack<int> ss;
+    char last_op = '+';
+    int num = 0;
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (c >= '0' && c <= '9') {
+            num = num * 10 + (c - '0');
+        }
+        if ((!isspace(c) && !isdigit(c)) || i == s.size() - 1) {
+            if (last_op == '+') {
+                ss.push(num);
+            } else if (last_op == '-') {
+                ss.push(-num);
+            } else if (last_op == '*' || last_op == '/') {
+                ss.top() = last_op == '*' ? ss.top() * num : ss.top() / num;
+            }
+            last_op = c;
+            num = 0;
+        }
+    }
+    int res = 0;
+    while (!ss.empty()) {
+        res += ss.top();
+        ss.pop();
+    }
+    return res;
+}
+
+FTEST(test_basicCalculatorII) {
+    auto t = [&](const std::string& expr) {
+        auto re = basicCalculatorII(expr);
+        LOG(INFO) << expr << " = " << re;
+        return re;
+    };
+
+    FEXP(t("1+1"), 1 + 1);
+    FEXP(t("1+2"), 1 + 2);
+    FEXP(t("3+2*2"), 3 + 2 * 2);
+    FEXP(t("3/2"), 3 / 2);
+    FEXP(t(" 3+5 / 2 "), 3 + 5 / 2);
 }
 
 /**
@@ -271,7 +311,74 @@ What if the BST is modified (insert/delete operations) often and you need to
  find the kth smallest frequently? How would you optimize the kthSmallest routine?
  */
 int kthSmallest(TreeNode* root, int k) {
-    return 0;
+    int count = 0;
+    auto morris_method = [&] {
+        int res = -1;
+        while (root) {
+            if (root->left == nullptr) {
+                if (++count == k) {
+                    res = root->val;
+                }
+                root = root->right;
+                continue;
+            }
+            TreeNode* pre = root->left;
+            while (pre->right && pre->right != root) {
+                pre = pre->right;
+            }
+            if (pre->right == nullptr) {
+                pre->right = root;
+                root = root->left;
+            } else { // p->right == root
+                pre->right = nullptr;
+                if (++count == k) {
+                    res = root->val;
+                }
+                root = root->right; // back to parent
+            }
+        }
+        return res;
+    };
+    auto stack_method = [&] {
+        std::stack<TreeNode*> ss;
+        while (root || !ss.empty()) {
+            if (root != nullptr) {
+                ss.emplace(root);
+                root = root->left;
+            } else {
+                assert(!ss.empty());
+                root = ss.top();
+                ss.pop();
+
+                if (++count >= k) {
+                    return root->val;
+                }
+                root = root->right;
+            }
+        }
+        return -1;
+    };
+    return stack_method();
+}
+
+FTEST(test_kthSmallest) {
+    auto t = [&](const std::vector<TreeNodeStub>& nums, int k) {
+        TreeNode* tree = create_tree(nums);
+        auto re = kthSmallest(tree, k);
+        LOG(INFO) << nums << " " << k << "th smallest: " << re;
+        return re;
+    };
+
+    FEXP(t({}, 0), -1);
+    FEXP(t({}, 1), -1);
+    FEXP(t({1}, 1), 1);
+    FEXP(t({2, 1, 3}, 1), 1);
+    FEXP(t({2, 1, 3}, 2), 2);
+    FEXP(t({2, 1, 3}, 3), 3);
+    FEXP(t({1, nullptr, 2}, 1), 1);
+    FEXP(t({1, nullptr, 2}, 2), 2);
+    FEXP(t({3, 1, 4, nullptr, 2}, 1), 1);
+    FEXP(t({5, 3, 6, 2, 4, nullptr, nullptr, 1}, 3), 3);
 }
 
 }

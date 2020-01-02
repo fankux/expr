@@ -45,28 +45,26 @@ void test_reverse_stack() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-int partition(std::vector<int>& nums, int left, int right) {
-    int pivot = nums[left];
-
-    while (left < right) {
-        while (right > left && nums[right] >= pivot) {
-            --right;
-        }
-        nums[left] = nums[right];
-        while (left < right && nums[left] <= pivot) {
-            ++left;
-        }
-        nums[right] = nums[left];
-    }
-    nums[left] = pivot;
-
-    return left;
-}
-
 void qsort(std::vector<int>& nums, int start, int end) {
     if (nums.empty() || start >= end) {
         return;
     }
+
+    auto partition = [](std::vector<int>& nums, int left, int right) {
+        int pivot = nums[left];
+        while (left < right) {
+            while (left < right && pivot < nums[right]) {
+                --right;
+            }
+            nums[left] = nums[right];
+            while (left < right && nums[left] <= pivot) {
+                ++left;
+            }
+            nums[right] = nums[left];
+        }
+        nums[left] = pivot;
+        return left;
+    };
 
     int m = partition(nums, start, end);
     qsort(nums, start, m - 1);
@@ -77,15 +75,13 @@ void sort(std::vector<int>& nums) {
     qsort(nums, 0, nums.size() - 1);
 }
 
-void test_qsort_item(std::vector<int> nums) {
-    sort(nums);
-    for (int num : nums) {
-        std::cout << num << ",";
-    }
-    std::cout << std::endl;
-}
-
 void test_qsort() {
+    auto test_qsort_item = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        sort(nns);
+        LOG(INFO) << nums << " qsort: " << nns;
+    };
+
     test_qsort_item({});
     test_qsort_item({1});
     test_qsort_item({1, 2});
@@ -546,6 +542,7 @@ void avl_tree() {}
 #include "idx20.hpp"
 #include "idx21.hpp"
 #include "idx22.hpp"
+#include "idx23.hpp"
 
 using namespace LCIndex13;
 using namespace LCIndex14;
@@ -557,6 +554,7 @@ using namespace LCIndex19;
 using namespace LCIndex20;
 using namespace LCIndex21;
 using namespace LCIndex22;
+using namespace LCIndex23;
 
 int main() {
 
@@ -567,12 +565,14 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_containsDuplicate();
+    test_productExceptSelf();
 
     // TODO... dijistra
     // TODO... nearest coordinates
     // TODO... Graph reverse
+    // TODO... heap
     // TODO... LSM tree
+    // TODO... post traversal tree
 
     return 0;
 }

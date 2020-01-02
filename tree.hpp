@@ -172,7 +172,8 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
 }
 
 std::string print_tree(LCTreeNode* n, int ws_col = 50) {
-    return print_tree<LCTreeNode>(n, [](LCTreeNode* p) { return p && p->next ? '>' : ' '; }, ws_col);
+    return print_tree<LCTreeNode>(n, [](LCTreeNode* p) { return p && p->next ? '>' : ' '; },
+            ws_col);
 }
 
 FTEST(test_print_tree) {
@@ -326,8 +327,6 @@ void preorder_morris_travel(TreeNode* n) {
  */
 std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n) {
     std::vector<TreeNodeStub> res;
-    TreeNode* pre = nullptr;
-    std::stringstream ss;
     while (n != nullptr) {
         if (n->left == nullptr) {
             res.emplace_back(n->val);
@@ -335,7 +334,7 @@ std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n) {
             continue;
         }
 
-        pre = n->left;
+        TreeNode* pre = n->left;
         while (pre->right && pre->right != n) {
             pre = pre->right;
         }
@@ -639,6 +638,7 @@ struct TrieNode {
             next = nullptr;
         }
     }
+
     TrieNode* nexts[128]{nullptr};
     char v = 0;
     bool end = false;
