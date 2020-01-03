@@ -126,15 +126,20 @@ Note:
  - There is only one duplicate number in the array, but it could be repeated more than once.
 
  THOUGHTS:
-    binary_search:
-    1   3   4   2   2
-           mid
-       if count of number that less than mid, and this count less than
-       mid
+   BINARY_SEARCH_METHOD:
+    - Thought numbers from 1 to n whitout duplicates.
+        for each number N, the COUNT of numbers that less equal(<=) to N must be N.
+    - Now there are some duplicates exist. We get a MIDDLE[floor(1+n)/2]
+        - if duplicates less equal to MIDDLE,
+          the COUNT of numbers that less equal to MIDDLE must be greater than(>) MIDDLE
+        - if duplicates greater than MIDDLE,
+          the COUNT of numbers that less equal to MIDDLE must be less equal to (<=) MIDDLE
+    In this way, the binary search driven by the numbers sequence instead of array indices,
+    so the order of array dosen't matter.
 
-   link_method: treate it as a linked list with cycle, find the start point of cycle
+   LINK_METHOD: Treat it as a linked list with cycles, find the any start point of cycle.
 
-   bit_manipulation_method:
+   BIT_MANIPULATION_METHOD:
     - if no duplicate numbers exist, for each bit, nums[0]~nums[n] must equal to 0~n.
     - if dupliates exist, for each bit,
         count of bit 1 of nums[0]~nums[n] larger than 0~n, means duplicate number is 1 at this bit,
@@ -158,6 +163,23 @@ Note:
  */
 int findDuplicate(std::vector<int>& nums) {
     size_t len = nums.size();
+    auto bin_search_method = [&] {
+        int l = 1;
+        int r = len;
+        while (l < r) {
+            int mid = l + (r - l) / 2;
+            int count = 0;
+            for (int num : nums) {
+                count += num <= mid ? 1 : 0;
+            }
+            if (count <= mid) {
+                l = mid + 1;
+            } else {
+                r = mid;
+            }
+        }
+        return r;
+    };
     auto link_method = [&] {
         int slow = nums[0];
         int fast = nums[0];
@@ -195,9 +217,6 @@ int findDuplicate(std::vector<int>& nums) {
             mask = mask << 1;
         }
         return res;
-    };
-    auto bin_search_method = [&] {
-        // TODO...
     };
     return bit_manipulation_method();
 }
