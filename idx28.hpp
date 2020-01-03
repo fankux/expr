@@ -106,10 +106,120 @@ FTEST(test_moveZeroes) {
 
 
 /**
- ///////////// 287.
+ ///////////// 287. Find the Duplicate Number
+Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive),
+ prove that at least one duplicate number must exist.
+ Assume that there is only one duplicate number, find the duplicate one.
+
+Example 1:
+Input: [1,3,4,2,2]
+Output: 2
+
+Example 2:
+Input: [3,1,3,4,2]
+Output: 3
+
+Note:
+ - You must not modify the array (assume the array is read only).
+ - You must use only constant, O(1) extra space.
+ - Your runtime complexity should be less than O(n^2).
+ - There is only one duplicate number in the array, but it could be repeated more than once.
+
+ THOUGHTS:
+    binary_search:
+    1   3   4   2   2
+           mid
+       if count of number that less than mid, and this count less than
+       mid
+
+   link_method: treate it as a linked list with cycle, find the start point of cycle
+
+   bit_manipulation_method:
+    - if no duplicate numbers exist, for each bit, nums[0]~nums[n] must equal to 0~n.
+    - if dupliates exist, for each bit,
+        count of bit 1 of nums[0]~nums[n] larger than 0~n, means duplicate number is 1 at this bit,
+        and number could be recovered in this way.
+
+    for example: 3,1,2,3
+     0~n     nums[0]~nums[n]
+    0  00    3  11
+    1  01    1  01    ===>  duplicate number 3 compare to left 0, it's obviously
+    2  10    2  10
+    3  11    3  11
+
+    for example: 3,1,2,3,3
+     0~n     nums[0]~nums[n]
+    0  000    3  011
+    1  001    1  001
+    2  010    2  010
+    3  011    3  011
+    4  100    3  011
 
  */
+int findDuplicate(std::vector<int>& nums) {
+    size_t len = nums.size();
+    auto link_method = [&] {
+        int slow = nums[0];
+        int fast = nums[0];
+        while (slow < len && fast < len) {
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+            if (slow == fast) {
+                break;
+            }
+        }
+        slow = nums[0];
+        while (slow != fast) {
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return slow;
+    };
+    auto bit_manipulation_method = [&] {
+        int res = 0;
+        uint32_t mask = 1;
+        for (size_t b = 0; b < 32; ++b) {
+            int cnt1 = 0;
+            int cnt2 = 0;
+            for (size_t i = 0; i < len; ++i) {
+                if ((nums[i] & mask) > 0) {
+                    ++cnt1;
+                }
+                if ((i & mask) > 0) {
+                    ++cnt2;
+                }
+            }
+            if (cnt1 > cnt2) {
+                res |= mask;
+            }
+            mask = mask << 1;
+        }
+        return res;
+    };
+    auto bin_search_method = [&] {
+        // TODO...
+    };
+    return bit_manipulation_method();
+}
 
+FTEST(test_findDuplicate) {
+    auto t = [&](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = findDuplicate(nns);
+        LOG(INFO) << nums << " duplicate number: " << re;
+        return re;
+    };
+    FEXP(t({0, 0}), 0);
+    FEXP(t({0, 0}), 0);
+    FEXP(t({1, 1, 1}), 1);
+    FEXP(t({1, 2, 1}), 1);
+    FEXP(t({1, 2, 1}), 1);
+    FEXP(t({1, 2, 2}), 2);
+    FEXP(t({2, 2, 1}), 2);
+    FEXP(t({2, 1, 2}), 2);
+    FEXP(t({1, 3, 4, 2, 2}), 2);
+    FEXP(t({3, 1, 3, 4, 2}), 3);
+}
 
 /**
  ///////////// 288.

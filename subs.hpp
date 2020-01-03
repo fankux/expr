@@ -263,6 +263,7 @@ void test_bin_search() {
     bound_t({1, 1, 1, 1, 1}, 0);
     bound_t({1, 1, 1, 1, 1}, 2);
     bound_t({1, 2, 2, 2, 3}, 2);
+    bound_t({1, 2, 3, 5}, 4);
 
     auto first_ge_t = [](const std::vector<int>& nums, int target) {
         auto re = bin_search_1st_great_equal(nums, target);

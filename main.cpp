@@ -589,7 +589,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_fizzBuzz();
+    test_findDuplicate();
 
     // TODO... dijistra
     // TODO... nearest coordinates

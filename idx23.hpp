@@ -292,9 +292,76 @@ You may assume k is always valid, 1 ≤ k ≤ input array's size for non-empty a
 
 Follow up:
 Could you solve it in linear time?
+
+ THOUGHTS:
+ keep double queue always sorted descent, the front is always the max in window.
+   res      1  3  -1  -3  5  3  6  7     q
+            ↓  |   |   |  |  |  |  |     1
+               ↓   |   |  |  |  |  |     1,3 → 3        (3>1, from back to front, delete 1)
+   3               ↓   |  |  |  |  |     3,-1           (-1<3, add)
+   3                   ↓  |  |  |  |     3,-1 → 3,-1,-3 (index of -3 is 3 minus 1 whose
+                          |  |  |  |                     index of 3 is 2 less than k=3,
+                          |  |  |  |                     keep and output front 3)
+   5                      ↓  |  |  |     3,-1,-3 → 5    (pop front 3 which is out of window,
+                             |  |  |                     from back to front, delete -3,-1)
+   5                         ↓  |  |     5 → 5,3
+   6                            ↓  |     5,3 → 6        (from back to front, delete 3,5)
+   7                               ↓     6 → 7          (from back to front, delete 6)
+
  */
 std::vector<int> maxSlidingWindow(std::vector<int>& nums, int k) {
-    return {};
+    if (nums.empty() || k == 0) {
+        return {};
+    }
+    std::vector<int> res;
+    auto common_method = [&] {
+        std::multiset<int> ss(nums.begin(), nums.begin() + k);
+        res.emplace_back(*ss.rbegin());
+        for (size_t i = k; i < nums.size(); ++i) {
+            ss.erase(ss.find(nums[i - k]));
+            ss.emplace(nums[i]);
+            res.emplace_back(*ss.rbegin());
+        }
+        return res;
+    };
+    auto linear_method = [&] {
+        std::deque<size_t> qq;
+        for (size_t i = 0; i < nums.size(); ++i) {
+            if (!qq.empty() && qq.front() == i - k) {
+                qq.pop_front();
+            }
+            while (!qq.empty() && nums[qq.back()] < nums[i]) {
+                qq.pop_back();
+            }
+            qq.emplace_back(i);
+            if (i >= k - 1) {
+                res.emplace_back(nums[qq.front()]);
+            }
+        }
+        return res;
+    };
+    return linear_method();
+}
+
+FTEST(test_maxSlidingWindow) {
+    auto t = [&](const std::vector<int>& nums, int k) {
+        std::vector<int> nns = nums;
+        auto re = maxSlidingWindow(nns, k);
+        LOG(INFO) << nums << " " << k << " window maxs: " << re;
+        return re;
+    };
+
+    t({}, 0);
+    t({1}, 0);
+    t({1}, 1);
+    t({1, 2}, 1);
+    t({1, 2, 3}, 1);
+    t({1, 2}, 2);
+    t({1, 2, 3}, 2);
+    t({1, 2, 3}, 3);
+    t({1, 3, -1, -3, 5, 3, 6, 7}, 1);
+    t({1, 3, -1, -3, 5, 3, 6, 7}, 2);
+    t({1, 3, -1, -3, 5, 3, 6, 7}, 3);
 }
 
 /**
@@ -316,8 +383,55 @@ Consider the following matrix:
 Given target = 5, return true.
 Given target = 20, return false.
  */
-bool searchMatrix(std::vector<std::vector<int>>& matrix, int target) {
-    return true;
+bool searchMatrixII(std::vector<std::vector<int>>& matrix, int target) {
+    if (matrix.empty() || matrix.front().empty()) {
+        return false;
+    }
+    size_t row = matrix.size();
+    size_t col = matrix.front().size();
+    if (target < matrix[0][0] || target > matrix[row - 1][col - 1]) {
+        return false;
+    }
+    int i = row - 1;
+    int j = 0;
+    while (i >= 0 && j < col) {
+        if (matrix[i][j] == target) {
+            return true;
+        }
+        if (matrix[i][j] < target) {
+            ++j;
+        } else {
+            --i;
+        }
+    }
+    return false;
+}
+
+FTEST(test_searchMatrixII) {
+    std::vector<std::vector<int>> matrix = {
+            {1, 4, 7, 11, 15},
+            {2, 5, 8, 12, 19},
+            {3, 6, 9, 16, 22},
+            {10, 13, 14, 17, 24},
+            {18, 21, 23, 26, 30}
+    };
+    auto t = [&](int target) {
+        auto re = searchMatrixII(matrix, target);
+        LOG(INFO) << matrix << " find " << target << ": " << re;
+        return re;
+    };
+
+    FEXP(t(0), false);
+    FEXP(t(31), false);
+
+    for (size_t i = 0; i < matrix.size(); ++i) {
+        for (size_t j = 0; j < matrix.front().size(); ++j) {
+            if (!t(matrix[i][j])) {
+                LOG(FATAL) << "not found:" << matrix[i][j];
+                exit(-1);
+            }
+        }
+    }
 }
 
 }
