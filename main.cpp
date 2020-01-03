@@ -543,6 +543,18 @@ void avl_tree() {}
 #include "idx21.hpp"
 #include "idx22.hpp"
 #include "idx23.hpp"
+#include "idx24.hpp"
+#include "idx25.hpp"
+#include "idx26.hpp"
+#include "idx27.hpp"
+#include "idx28.hpp"
+#include "idx32.hpp"
+#include "idx34.hpp"
+#include "idx35.hpp"
+#include "idx36.hpp"
+#include "idx37.hpp"
+#include "idx38.hpp"
+#include "idx41.hpp"
 
 using namespace LCIndex13;
 using namespace LCIndex14;
@@ -555,6 +567,18 @@ using namespace LCIndex20;
 using namespace LCIndex21;
 using namespace LCIndex22;
 using namespace LCIndex23;
+using namespace LCIndex24;
+using namespace LCIndex25;
+using namespace LCIndex26;
+using namespace LCIndex27;
+using namespace LCIndex28;
+using namespace LCIndex32;
+using namespace LCIndex34;
+using namespace LCIndex35;
+using namespace LCIndex36;
+using namespace LCIndex37;
+using namespace LCIndex38;
+using namespace LCIndex41;
 
 int main() {
 
@@ -565,7 +589,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_productExceptSelf();
+    test_fizzBuzz();
 
     // TODO... dijistra
     // TODO... nearest coordinates
