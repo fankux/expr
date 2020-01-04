@@ -548,6 +548,9 @@ void avl_tree() {}
 #include "idx26.hpp"
 #include "idx27.hpp"
 #include "idx28.hpp"
+#include "idx29.hpp"
+#include "idx30.hpp"
+#include "idx31.hpp"
 #include "idx32.hpp"
 #include "idx34.hpp"
 #include "idx35.hpp"
@@ -572,6 +575,9 @@ using namespace LCIndex25;
 using namespace LCIndex26;
 using namespace LCIndex27;
 using namespace LCIndex28;
+using namespace LCIndex29;
+using namespace LCIndex30;
+using namespace LCIndex31;
 using namespace LCIndex32;
 using namespace LCIndex34;
 using namespace LCIndex35;
@@ -589,7 +595,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_findDuplicate();
+    test_coinChange();
 
     // TODO... dijistra
     // TODO... nearest coordinates

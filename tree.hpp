@@ -56,21 +56,29 @@ T* create_tree(const std::vector<TreeNodeStub>& nums) {
             qq.push_back(root);
             continue;
         }
-        while (p == nullptr && !qq.empty()) {
+        if (left_or_right && p == nullptr && !qq.empty()) {
             p = qq.front();
-            left_or_right = true;
             qq.pop_front();
         }
-        if (p == nullptr) { // FIXME.. root free
+        if (p == nullptr && !num.null) { // FIXME.. root free
             return nullptr;
         }
         if (left_or_right) {
-            p->left = num.create_node<T>();
+            if (p != nullptr) {
+                p->left = num.create_node<T>();
+                qq.push_back(p->left);
+            } else {
+                qq.push_back(nullptr);
+            }
             left_or_right = false;
-            qq.push_back(p->left);
         } else {
-            p->right = num.create_node<T>();
-            qq.push_back(p->right);
+            if (p != nullptr) {
+                p->right = num.create_node<T>();
+                qq.push_back(p->right);
+            } else {
+                qq.push_back(nullptr);
+            }
+            left_or_right = true;
             p = nullptr;
         }
     }
