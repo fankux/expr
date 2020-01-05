@@ -595,7 +595,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_coinChange();
+    test_wiggleSort();
 
     // TODO... dijistra
     // TODO... nearest coordinates
