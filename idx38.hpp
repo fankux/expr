@@ -25,10 +25,80 @@ namespace LCIndex38 {
 
 
 /**
- ///////////// 384.
+ ///////////// 384. Shuffle an Array
+Shuffle a set of numbers without duplicates.
 
+Example:
+// Init an array with set 1, 2, and 3.
+int[] nums = {1,2,3};
+Solution solution = new Solution(nums);
+// Shuffle the array [1,2,3] and return its result.
+ Any permutation of [1,2,3] must equally likely to be returned.
+solution.shuffle();
+// Resets the array back to its original configuration [1,2,3].
+solution.reset();
+// Returns the random shuffling of array [1,2,3].
+solution.shuffle();
+
+ **
+ * Your Solution object will be instantiated and called as such:
+ * Solution* obj = new Solution(nums);
+ * vector<int> param_1 = obj->reset();
+ * vector<int> param_2 = obj->shuffle();
  */
+class ShuffleArray {
+public:
+    ShuffleArray(std::vector<int>& nums) {
+        _nums = nums;
+    }
 
+    /** Resets the array to its original configuration and return it. */
+    std::vector<int> reset() {
+        return _nums;
+    }
+
+    /** Returns a random shuffling of the array. */
+    std::vector<int> shuffle() {
+        std::vector<int> res;
+        auto index_slot_method = [&] {
+            std::vector<int> indics;
+            for (size_t i = 0; i < _nums.size(); ++i) {
+                indics.emplace_back(i);
+            }
+
+            res.reserve(_nums.size());
+            for (size_t i = 0; i < _nums.size(); ++i) {
+                int pos = rand() % indics.size();
+                int v = indics[pos];
+                indics[pos] = indics.back();
+                indics.pop_back();
+                res[i] = _nums[v];
+            }
+        };
+        auto knuth_method = [&] {
+            res = _nums;
+            for (size_t i = 0; i < res.size(); ++i) {
+                int t = i + rand() % (res.size() - i);
+                std::swap(res[i], res[t]);
+            }
+        };
+        knuth_method();
+        return res;
+    }
+
+private:
+    std::vector<int> _nums;
+};
+
+FTEST(test_ShuffleArray) {
+    std::vector<int> nums{1, 2, 3, 4, 5};
+    ShuffleArray shuffler(nums);
+    LOG(INFO) << nums << " shuffle: " << shuffler.shuffle();
+    LOG(INFO) << nums << " shuffle: " << shuffler.shuffle();
+    LOG(INFO) << nums << " shuffle: " << shuffler.shuffle();
+    LOG(INFO) << nums << " shuffle: " << shuffler.shuffle();
+    LOG(INFO) << nums << " reset: " << shuffler.reset();
+}
 
 /**
  ///////////// 385.

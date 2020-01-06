@@ -310,7 +310,7 @@ Follow up:
 What if the BST is modified (insert/delete operations) often and you need to
  find the kth smallest frequently? How would you optimize the kthSmallest routine?
  */
-int kthSmallest(TreeNode* root, int k) {
+int kthSmallestTree(TreeNode* root, int k) {
     int count = 0;
     auto morris_method = [&] {
         int res = -1;
@@ -361,10 +361,10 @@ int kthSmallest(TreeNode* root, int k) {
     return stack_method();
 }
 
-FTEST(test_kthSmallest) {
+FTEST(test_kthSmallestTree) {
     auto t = [&](const std::vector<TreeNodeStub>& nums, int k) {
         TreeNode* tree = create_tree(nums);
-        auto re = kthSmallest(tree, k);
+        auto re = kthSmallestTree(tree, k);
         LOG(INFO) << nums << " " << k << "th smallest: " << re;
         return re;
     };

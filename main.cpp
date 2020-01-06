@@ -552,6 +552,7 @@ void avl_tree() {}
 #include "idx30.hpp"
 #include "idx31.hpp"
 #include "idx32.hpp"
+#include "idx33.hpp"
 #include "idx34.hpp"
 #include "idx35.hpp"
 #include "idx36.hpp"
@@ -579,6 +580,7 @@ using namespace LCIndex29;
 using namespace LCIndex30;
 using namespace LCIndex31;
 using namespace LCIndex32;
+using namespace LCIndex33;
 using namespace LCIndex34;
 using namespace LCIndex35;
 using namespace LCIndex36;
@@ -595,7 +597,7 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_wiggleSort();
+    test_kthSmallestMatrix();
 
     // TODO... dijistra
     // TODO... nearest coordinates
