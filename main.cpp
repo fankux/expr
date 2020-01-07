@@ -1,5 +1,4 @@
 #include <iostream>
-#include <limits.h>
 #include <string.h>
 
 #include "util.hpp"
@@ -41,130 +40,6 @@ void test_reverse_stack() {
         std::cout << i << ",";
     }
     std::cout << std::endl;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void qsort(std::vector<int>& nums, int start, int end) {
-    if (nums.empty() || start >= end) {
-        return;
-    }
-
-    auto partition = [](std::vector<int>& nums, int left, int right) {
-        int pivot = nums[left];
-        while (left < right) {
-            while (left < right && pivot < nums[right]) {
-                --right;
-            }
-            nums[left] = nums[right];
-            while (left < right && nums[left] <= pivot) {
-                ++left;
-            }
-            nums[right] = nums[left];
-        }
-        nums[left] = pivot;
-        return left;
-    };
-
-    int m = partition(nums, start, end);
-    qsort(nums, start, m - 1);
-    qsort(nums, m + 1, end);
-}
-
-void sort(std::vector<int>& nums) {
-    qsort(nums, 0, nums.size() - 1);
-}
-
-void test_qsort() {
-    auto test_qsort_item = [](const std::vector<int>& nums) {
-        std::vector<int> nns = nums;
-        sort(nns);
-        LOG(INFO) << nums << " qsort: " << nns;
-    };
-
-    test_qsort_item({});
-    test_qsort_item({1});
-    test_qsort_item({1, 2});
-    test_qsort_item({1, 2, 3});
-    test_qsort_item({1, 2, 3, 4});
-    test_qsort_item({1, 1});
-    test_qsort_item({1, 1, 2});
-    test_qsort_item({1, 2, 2});
-    test_qsort_item({2, 1, 2});
-    test_qsort_item({2, 1});
-    test_qsort_item({2, 2, 1});
-    test_qsort_item({2, 1, 1});
-    test_qsort_item({1, 2, 1});
-    test_qsort_item({3, 2, 1});
-    test_qsort_item({4, 2, 1});
-    test_qsort_item({-1, -1, 0});
-    test_qsort_item({0, -1, -1});
-    test_qsort_item({1, 0, -1});
-    test_qsort_item({-1, 0, 1});
-    test_qsort_item({6, 2, 8, 1, 5, 7});
-    test_qsort_item({-6, -2, -8, -1, -5, -7});
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void min_heap_fixup(int a[], int i) {
-    int j;
-    int temp = a[i];
-    j = (i - 1) / 2;      //父结点
-    while (j >= 0 && i != 0) {
-        if (a[j] <= temp) {
-            break;
-        }
-
-        a[i] = a[j];     //把较大的子结点往下移动,替换它的子结点
-        i = j;
-        j = (i - 1) / 2;
-    }
-    a[i] = temp;
-}
-
-void min_heap_fixdown(int a[], int i, int n) {
-    int j, temp;
-
-    temp = a[i];
-    j = 2 * i + 1;
-    while (j < n) {
-        if (j + 1 < n && a[j + 1] < a[j]) { //在左右孩子中找最小的
-            j++;
-        }
-
-        if (a[j] >= temp) {
-            break;
-        }
-
-        a[i] = a[j];     //把较小的子结点往上移动,替换它的父结点
-        i = j;
-        j = 2 * i + 1;
-    }
-    a[i] = temp;
-}
-
-void min_heap_add(int a[], int n, int nNum) {
-    a[n] = nNum;
-    min_heap_fixup(a, n);
-}
-
-void min_heap_delete(int a[], int n) {
-    std::swap(a[0], a[n - 1]);
-    min_heap_fixdown(a, 0, n - 1);
-}
-
-void create_min_heap(int a[], int n) {
-    for (int i = n / 2 - 1; i >= 0; i--) {
-        min_heap_fixdown(a, i, n);
-    }
-}
-
-void min_heap_sort(int a[], int n) {
-    for (int i = n - 1; i >= 1; i--) {
-        std::swap(a[i], a[0]);
-        min_heap_fixdown(a, 0, i);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -490,11 +365,10 @@ void avl_tree() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "list.hpp"
 #include "sums.hpp"
 #include "tree.hpp"
-#include "strs.hpp"
 #include "heap.hpp"
+#include "sort.hpp"
 
 #include "idx0.hpp"
 #include "idx1.hpp"
@@ -578,12 +452,10 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_heap();
+    test_sort();
 
     // TODO... post traversal tree
-    // TODO... heap
     // TODO... segment tree
-    // TODO... merge sort
     // TODO... dijistra
     // TODO... nearest coordinates
     // TODO... Graph reverse

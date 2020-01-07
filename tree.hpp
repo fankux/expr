@@ -1,5 +1,6 @@
 #pragma once
 
+#include <math.h>
 #include <stack>
 #include <ostream>
 #include "util.hpp"
@@ -695,3 +696,24 @@ void trie_level_travel(TrieNode* trie) {
         ss.str("");
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+class SegmentTree {
+public:
+    void clear() {
+        _c.clear();
+    }
+
+    bool empty() const {
+        return _c.empty();
+    }
+
+    size_t size() const {
+        return _c.size();
+    }
+
+
+private:
+    std::deque<int> _c;
+};
