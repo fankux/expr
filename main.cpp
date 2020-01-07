@@ -167,31 +167,6 @@ void min_heap_sort(int a[], int n) {
     }
 }
 
-void test_heap() {
-    int nums[] = {2, 5, 1, 7, 8, 4, 3, 6};
-    int len = sizeof(nums) / sizeof(nums[0]);
-    create_min_heap(nums, len);
-    min_heap_sort(nums, len);
-    for (int num : nums) {
-        std::cout << num << ",";
-    }
-    std::cout << std::endl;
-
-    min_heap_add(nums, len, 9);
-    min_heap_sort(nums, len);
-    for (int num : nums) {
-        std::cout << num << ",";
-    }
-    std::cout << std::endl;
-
-    min_heap_delete(nums, len);
-    min_heap_sort(nums, len);
-    for (int num : nums) {
-        std::cout << num << ",";
-    }
-    std::cout << std::endl;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class SkipList {
@@ -519,6 +494,8 @@ void avl_tree() {}
 #include "sums.hpp"
 #include "tree.hpp"
 #include "strs.hpp"
+#include "heap.hpp"
+
 #include "idx0.hpp"
 #include "idx1.hpp"
 #include "idx2.hpp"
@@ -558,7 +535,9 @@ void avl_tree() {}
 #include "idx36.hpp"
 #include "idx37.hpp"
 #include "idx38.hpp"
+#include "idx39.hpp"
 #include "idx41.hpp"
+#include "idx45.hpp"
 
 using namespace LCIndex13;
 using namespace LCIndex14;
@@ -586,7 +565,9 @@ using namespace LCIndex35;
 using namespace LCIndex36;
 using namespace LCIndex37;
 using namespace LCIndex38;
+using namespace LCIndex39;
 using namespace LCIndex41;
+using namespace LCIndex45;
 
 int main() {
 
@@ -597,14 +578,16 @@ int main() {
 //    }
 
 //  ↑↓←→↗↘↖↙≠∞
-    test_kthSmallestMatrix();
+    test_heap();
 
+    // TODO... post traversal tree
+    // TODO... heap
+    // TODO... segment tree
+    // TODO... merge sort
     // TODO... dijistra
     // TODO... nearest coordinates
     // TODO... Graph reverse
-    // TODO... heap
     // TODO... LSM tree
-    // TODO... post traversal tree
 
     return 0;
 }

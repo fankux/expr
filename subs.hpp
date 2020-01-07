@@ -172,7 +172,7 @@ FTEST(test_lcs) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-ssize_t lower_bound(const std::vector<int>& nums, int target) {
+size_t lower_bound(const std::vector<int>& nums, int target) {
     size_t l = 0;
     size_t h = nums.size();
     while (l < h) {
@@ -186,7 +186,7 @@ ssize_t lower_bound(const std::vector<int>& nums, int target) {
     return l;
 }
 
-ssize_t upper_bound(const std::vector<int>& nums, int target) {
+size_t upper_bound(const std::vector<int>& nums, int target) {
     int l = 0;
     int h = nums.size();
     while (l < h) {

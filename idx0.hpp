@@ -478,12 +478,12 @@ bool isPalindrome(int x) {
 }
 
 FTEST(test_isPalindrome) {
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(0);
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(1);
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(10);
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(100);
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(12);
-//    LOG(INFO) << "isPalindrome: " << isPalindrome(121);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(0);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(1);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(10);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(100);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(12);
+    LOG(INFO) << "isPalindrome: " << isPalindrome(121);
     LOG(INFO) << "isPalindrome: " << isPalindrome(1000021);
     LOG(INFO) << "isPalindrome: " << isPalindrome(1200021);
     LOG(INFO) << "isPalindrome: " << isPalindrome(120021);
@@ -568,7 +568,7 @@ bool isMatch(std::string s, std::string p) {
 }
 
 FTEST(test_isMatch) {
-#define isMatcht(s, p, expect) do {                                \
+#define isMatcht(s, p, expect) do {                             \
         FEXP(isMatch(s, p), expect);                            \
         LOG(INFO) << s << "->" << p << ": " << expect;          \
     } while (0)

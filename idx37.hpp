@@ -105,19 +105,64 @@ return 13.
 
 Note:
 You may assume k is always valid, 1 ≤ k ≤ n^2.
+
+ THOUGHTS:
+    binary search, left border as left-top number, right border as right-bottom number,
+    count the number of which less than mid, shrinking to k that left border is the result.
+
+    n=3, find mid=1+(99-1)/2=50, i=n-1=2, j=0, cnt_le_mid=0
+
+   [ 1]  5   9               1 [ 5]  9               1  5   9          1  5  [ 9]
+   [10] 11  13              10 [11] 13              10 11  13         10 11  [13] ← i=1,j=2
+   [12] 13  99              12 [13] 99              12 13  99         12 13   99
+    ↑ i=2, j=0                  ↑ i=2, j=1        i=2, j=2 ↑        13<50, cnt+=i+1=2=
+ 12<50, cnt+=i+1=3, ++j   13<50, cnt+=i+1=3, ++j    99>50, --i
+
+      (if current less-equal mid, add count of vertical column which is i+1)
  */
 int kthSmallestMatrix(std::vector<std::vector<int>>& matrix, int k) {
     size_t n = matrix.size();
-    std::priority_queue<int> qq;
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            qq.emplace(matrix[i][j]);
-            if (qq.size() > k) {
-                qq.pop();
+    auto heap_method = [&] {
+        std::priority_queue<int> qq;
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                qq.emplace(matrix[i][j]);
+                if (qq.size() > k) {
+                    qq.pop();
+                }
             }
         }
-    }
-    return qq.top();
+        return qq.top();
+    };
+    auto bin_search_method = [&] {
+        auto less_equal = [&](int num) {
+            int cnt = 0;
+            int i = n - 1;
+            int j = 0;
+            while (i >= 0 && j < n) {
+                if (matrix[i][j] <= num) {
+                    cnt += i + 1;
+                    ++j;
+                } else {
+                    --i;
+                }
+            }
+            return cnt;
+        };
+        int l = matrix.front().front();
+        int r = matrix.back().back();
+        while (l < r) {
+            int mid = l + (r - l) / 2;
+            int cnt = less_equal(mid);
+            if (cnt < k) {
+                l = mid + 1;
+            } else {
+                r = mid;
+            }
+        }
+        return l;
+    };
+    return bin_search_method();
 }
 
 FTEST(test_kthSmallestMatrix) {
@@ -192,8 +237,7 @@ randomSet.getRandom();
 class RandomizedSet {
 public:
     /** Initialize your data structure here. */
-    RandomizedSet() {
-    }
+    RandomizedSet() = default;
 
     /** Inserts a value to the set. Returns true if the set did not already contain the specified element. */
     bool insert(int val) {
