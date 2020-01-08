@@ -7,6 +7,8 @@
 
 namespace LCIndex32 {
 
+typedef LCListNode ListNode;
+
 /**
  ///////////// 321.
 

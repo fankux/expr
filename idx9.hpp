@@ -5,6 +5,10 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex9 {
+
+typedef LCListNode ListNode;
+
 /**
  ///////////// 91. Decode Ways
 A message containing letters from A-Z is being encoded to numbers using the following mapping:
@@ -84,7 +88,7 @@ FTEST(test_numDecodings) {
     FEXP(t("1226"), 5);
     FEXP(t("1227"), 3);
     FEXP(t("1787897759966261825913315262377298132516969578441236833255596967132573482281598412163216914566534565"),
-            3);
+            5898240);
 }
 
 /**
@@ -711,5 +715,7 @@ FTEST(test_isSameTree) {
     FEXP(t({1, 2, 3}, {1, 2, 3}), true);
     FEXP(t({1, 2, 1}, {1, 1, 2}), false);
     FEXP(t({10, 5, 15}, {10, 5, nullptr, nullptr, 15}), false);
-    FEXP(isSameTree(create_tree({0,1,2,3,4,5}), create_tree({0, 1, 2, 3, 4, 5})), true);
+    FEXP(isSameTree(create_tree({0, 1, 2, 3, 4, 5}), create_tree({0, 1, 2, 3, 4, 5})), true);
+}
+
 }

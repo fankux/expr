@@ -259,7 +259,7 @@ public:
         FListNode<T>* q = p;
         for (size_t i = _len; i > 0; --i) {
             p = p->_next;
-            free(q);
+            delete q;
             q = p;
         }
         _len = 0;

@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex3 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -704,4 +706,6 @@ FTEST(test_combinationSum2) {
     t({2, 3, 5}, 8);
     t({10, 1, 2, 7, 6, 1, 5}, 8);
     t({2, 5, 2, 1, 2}, 5);
+}
+
 }

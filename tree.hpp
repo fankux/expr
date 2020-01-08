@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <assert.h>
 #include <stack>
 #include <ostream>
 #include "util.hpp"
@@ -123,7 +124,7 @@ std::vector<TreeNodeStub> output_tree(TreeNode* root) {
     return res;
 }
 
-std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n);
+std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* root);
 
 std::vector<TreeNodeStub> output_tree_inorder(TreeNode* root) {
     return inorder_morris_travel(root);
@@ -205,92 +206,107 @@ FTEST(test_tree_height) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void preorder_stack_travel(TreeNode* n) {
-    std::vector<TreeNode*> stack;
-    std::stringstream ss;
-    while (n != nullptr || !stack.empty()) {
-        if (n != nullptr) {
-            ss << n->val << " ";
-            stack.emplace_back(n);
-            n = n->left;
+std::vector<TreeNodeStub> preorder_recursive_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::function<void(TreeNode*)> r_func;
+    r_func = [&](TreeNode* n) {
+        if (n == nullptr) {
+            return;
+        }
+        res.emplace_back(n->val);
+        r_func(n->left);
+        r_func(n->right);
+    };
+    r_func(root);
+    return res;
+}
+
+std::vector<TreeNodeStub> inorder_recursive_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::function<void(TreeNode*)> r_func;
+    r_func = [&](TreeNode* n) {
+        if (n == nullptr) {
+            return;
+        }
+        r_func(n->left);
+        res.emplace_back(n->val);
+        r_func(n->right);
+    };
+    r_func(root);
+    return res;
+}
+
+std::vector<TreeNodeStub> postorder_recursive_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::function<void(TreeNode*)> r_func;
+    r_func = [&](TreeNode* n) {
+        if (n == nullptr) {
+            return;
+        }
+        r_func(n->left);
+        r_func(n->right);
+        res.emplace_back(n->val);
+    };
+    r_func(root);
+    return res;
+}
+
+std::vector<TreeNodeStub> preorder_stack_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::stack<TreeNode*> ss;
+    while (root != nullptr || !ss.empty()) {
+        if (root != nullptr) {
+            res.emplace_back(root->val);
+            ss.emplace(root);
+            root = root->left;
         } else {
-            n = stack.back();
-            stack.pop_back();
-            n = n->right;
+            root = ss.top();
+            ss.pop();
+            root = root->right;
         }
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
-void inorder_stack_travel(TreeNode* n) {
-    std::vector<TreeNode*> stack;
-    std::stringstream ss;
-    while (n != nullptr || !stack.empty()) {
-        if (n != nullptr) {
-            stack.emplace_back(n);
-            n = n->left;
+std::vector<TreeNodeStub> inorder_stack_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::stack<TreeNode*> ss;
+    while (root != nullptr || !ss.empty()) {
+        if (root != nullptr) {
+            ss.emplace(root);
+            root = root->left;
         } else {
-            n = stack.back();
-            stack.pop_back();
-            ss << n->val << " ";
-            n = n->right;
+            root = ss.top();
+            ss.pop();
+            res.emplace_back(root->val);
+            root = root->right;
         }
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
-void postorder_stack_travel(TreeNode* n) {
-    std::vector<TreeNode*> stack;
-    TreeNode* last = n;
-
-    std::stringstream ss;
-    while (n != nullptr || !stack.empty()) {
-        while (n != nullptr) {
-            stack.emplace_back(n);
-            n = n->left;
+std::vector<TreeNodeStub> postorder_stack_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::stack<TreeNode*> ss;
+    TreeNode* last = nullptr;
+    while (root != nullptr || !ss.empty()) {
+        while (root) {
+            ss.emplace(root);
+            root = root->left;
         }
-
-        n = stack.back();
-        if (n->right == nullptr || n->right == last) {
-            ss << n->val << " ";
-            stack.pop_back();
-            last = n;
-            n = nullptr;
-        } else {
-            n = n->right;
+        root = ss.top();
+        // we not pop here, because right child(if exist and not visited yet) must be visit first
+        if (root->right == nullptr || root->right == last) {
+            res.emplace_back(root->val);
+            last = root;
+            ss.pop();
+            // make stack do pop
+            root = nullptr;
+        } else { // right child not exist or not visit first
+            root = root->right;
         }
     }
-    LOG(INFO) << ss.str();
-}
-
-void preorder_recursive_travel(TreeNode* n) {
-    if (n == nullptr) {
-        return;
-    }
-
-    LOG(INFO) << n->val << " ";
-    preorder_recursive_travel(n->left);
-    preorder_recursive_travel(n->right);
-}
-
-void inorder_recursive_travel(TreeNode* n) {
-    if (n == nullptr) {
-        return;
-    }
-
-    inorder_recursive_travel(n->left);
-    LOG(INFO) << n->val << " ";
-    inorder_recursive_travel(n->right);
-}
-
-void postorder_recursive_travel(TreeNode* n) {
-    if (n == nullptr) {
-        return;
-    }
-
-    postorder_recursive_travel(n->left);
-    postorder_recursive_travel(n->right);
-    LOG(INFO) << n->val << " ";
+    return res;
 }
 
 /**
@@ -300,31 +316,30 @@ void postorder_recursive_travel(TreeNode* n) {
  *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。
  * 3. 重复以上1、2直到当前节点为空。
  */
-void preorder_morris_travel(TreeNode* n) {
-    TreeNode* pre = nullptr;
-    std::stringstream ss;
-    while (n != nullptr) {
-        if (n->left == nullptr) {
-            ss << n->val << " ";
-            n = n->right;
+std::vector<TreeNodeStub> preorder_morris_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    while (root != nullptr) {
+        if (root->left == nullptr) {
+            res.emplace_back(root->val);
+            root = root->right;
             continue;
         }
 
-        pre = n->left;
-        while (pre->right && pre->right != n) {
+        TreeNode* pre = root->left;
+        while (pre->right && pre->right != root) {
             pre = pre->right;
         }
 
         if (pre->right == nullptr) {
-            ss << n->val << " ";
-            pre->right = n;
-            n = n->left;
+            res.emplace_back(root->val);
+            pre->right = root;
+            root = root->left;
         } else { // if (pre->r == n)
             pre->right = nullptr;
-            n = n->right;
+            root = root->right;
         }
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
 /**
@@ -334,27 +349,27 @@ void preorder_morris_travel(TreeNode* n) {
  *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。输出当前节点。当前节点更新为当前节点的右孩子。
  * 3. 重复以上1、2直到当前节点为空。
  */
-std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n) {
+std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* root) {
     std::vector<TreeNodeStub> res;
-    while (n != nullptr) {
-        if (n->left == nullptr) {
-            res.emplace_back(n->val);
-            n = n->right;
+    while (root != nullptr) {
+        if (root->left == nullptr) {
+            res.emplace_back(root->val);
+            root = root->right;
             continue;
         }
 
-        TreeNode* pre = n->left;
-        while (pre->right && pre->right != n) {
+        TreeNode* pre = root->left;
+        while (pre->right && pre->right != root) {
             pre = pre->right;
         }
 
         if (pre->right == nullptr) {
-            pre->right = n;
-            n = n->left;
+            pre->right = root;
+            root = root->left;
         } else { // if (pre->r == n)
             pre->right = nullptr;
-            res.emplace_back(n->val);
-            n = n->right;
+            res.emplace_back(root->val);
+            root = root->right;
         }
     }
     return res;
@@ -368,190 +383,151 @@ std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* n) {
  *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空。倒序输出从当前节点的左孩子到该前驱节点这条路径上的所有节点。当前节点更新为当前节点的右孩子。
  * 3. 重复以上1、2直到当前节点为空。
  */
-void postorder_morris_travel(TreeNode* n) {
-    auto reverse_morris_node = [](TreeNode* from, TreeNode* to) {
-        if (from == to) {
-            return;
+std::vector<TreeNodeStub> postorder_morris_travel(TreeNode* root) {
+    auto reverse_nodes = [](TreeNode* p) {
+        TreeNode* pre = nullptr;
+        while (p != nullptr) {
+            TreeNode* n = p->right;
+            p->right = pre;
+            pre = p;
+            p = n;
         }
-        TreeNode* x = from;
-        TreeNode* y = from->right;
-        TreeNode* z;
-        while (true) {
-            z = y->right;
-            y->right = x;
-            x = y;
-            y = z;
-            if (x == to) {
-                break;
-            }
-        }
+        return pre;
     };
 
-    std::stringstream ss;
-
-    TreeNode temp(0);
-    temp.left = n;
-
-    TreeNode* pre = nullptr;
-    while (n != nullptr) {
-        if (n->left == nullptr) {
-            n = n->right;
+    std::vector<TreeNodeStub> res;
+    TreeNode dummy(0);
+    dummy.left = root;
+    root = &dummy;
+    while (root != nullptr) {
+        if (root->left == nullptr) {
+            root = root->right;     // left null, go to right through 'pre->right->root'
             continue;
         }
 
-        pre = n->left;
-        while (n->right != nullptr && pre->right != n) {
+        TreeNode* pre = root->left;
+        while (pre->right && pre->right != root) {
             pre = pre->right;
         }
 
-        if (pre->right == nullptr) {
-            pre->right = n;
-            n = n->left;
-        } else { // if (pre->r == n)
-
-            reverse_morris_node(n, pre);
-            TreeNode* p = pre;
+        if (pre->right == nullptr) { // left invisited
+            pre->right = root;
+            root = root->left;
+        } else { // pre->right == root, left visited
+            pre->right = nullptr;
+            // reverse pre~root nodes to ouput
+            TreeNode* p = reverse_nodes(root->left);
+            assert(p == pre);
             while (p) {
-                ss << p->val << " ";
+                res.emplace_back(p->val);
                 p = p->right;
             }
-            reverse_morris_node(pre, n);
+            reverse_nodes(pre);
 
-            pre->right = nullptr;
-            n = n->right;
+            root = root->right;
         }
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
-void levelorder_recursive_travel_handle(TreeNode* n, int level, std::stringstream& ss) {
-    if (n == nullptr || level < 1) {
-        return;
-    }
+std::vector<TreeNodeStub> levelorder_recursive_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::function<void(TreeNode*, int)> r_func;
+    r_func = [&](TreeNode* n, int level) {
+        if (n == nullptr || level < 1) {
+            return;
+        }
+        if (level == 1) {
+            res.emplace_back(n->val);
+            return;
+        }
+        r_func(n->left, level - 1);
+        r_func(n->right, level - 1);
+    };
 
-    if (level == 1) {
-        ss << n->val << " ";
-        return;
-    }
-    levelorder_recursive_travel_handle(n->left, level - 1, ss);
-    levelorder_recursive_travel_handle(n->right, level - 1, ss);
-}
-
-void levelorder_recursive_travel(TreeNode* n) {
-    std::stringstream ss;
-    int height = tree_height(n);
-
+    int height = tree_height(root);
     for (int i = 1; i <= height; ++i) {
-        levelorder_recursive_travel_handle(n, i, ss);
+        r_func(root, i);
     }
-    LOG(INFO) << ss.str();
+    return res;
 }
 
-void levelorder_stack_travel(TreeNode* n) {
-    if (n == nullptr) {
-        return;
-    }
-
-    std::stringstream ss;
-    std::deque<TreeNode*> q;
-    q.emplace_back(n);
-
+std::vector<TreeNodeStub> levelorder_travel_queue(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::deque<TreeNode*> q{root};
     while (!q.empty()) {
         for (size_t i = q.size(); i > 0; --i) {
             TreeNode* p = q.front();
             q.pop_front();
-
-            ss << p->val << " ";
-
-            if (p->left) {
-                q.emplace_back(p->left);
+            if (p == nullptr) {
+                continue;
             }
-            if (p->right) {
-                q.emplace_back(p->right);
-            }
+
+            res.emplace_back(p->val);
+            q.emplace_back(p->left);
+            q.emplace_back(p->right);
         }
     }
-
-    LOG(INFO) << ss.str();
+    return res;
 }
 
-void levelorder_zigzag_travel(TreeNode* n) {
-
-    if (n == nullptr) {
-        return;
-    }
-
-    std::stringstream ss;
-    std::deque<TreeNode*> q;
-    q.emplace_back(n);
-
+std::vector<TreeNodeStub> levelorder_zigzag_travel(TreeNode* root) {
+    std::vector<TreeNodeStub> res;
+    std::deque<TreeNode*> q{root};
     bool direction = true;
-
     while (!q.empty()) {
         for (size_t i = q.size(); i > 0; --i) {
-            TreeNode* p = nullptr;
-            if (direction) {
-                p = q.front();
-                q.pop_front();
-            } else {
-                p = q.back();
-                q.pop_back();
+            TreeNode* p = direction ? q.front() : q.back();
+            direction ? q.pop_front() : q.pop_back();
+            if (p == nullptr) {
+                continue;
             }
-            ss << p->val << " ";
-
+            res.emplace_back(p->val);
             if (direction) {
-                if (p->left) {
-                    q.emplace_back(p->left);
-                }
-                if (p->right) {
-                    q.emplace_back(p->right);
-                }
+                q.emplace_back(p->left);
+                q.emplace_back(p->right);
             } else {
-                if (p->right) {
-                    q.emplace_front(p->right);
-                }
-                if (p->left) {
-                    q.emplace_front(p->left);
-                }
+                q.emplace_front(p->right);
+                q.emplace_front(p->left);
             }
         }
         direction = !direction;
     }
-
-    LOG(INFO) << ss.str();
+    return res;
 }
 
 FTEST(test_binary_tree_travel) {
     TreeNode* root = create_tree({0, 1, 2, 3, 4, 5});
-    print_tree(root);
-
-    LOG(INFO) << "recursive:";
-    preorder_recursive_travel(root);
-    LOG(INFO);
-    inorder_recursive_travel(root);
-    LOG(INFO);
-    postorder_recursive_travel(root);
-    LOG(INFO);
-
-    LOG(INFO) << "stack:";
-    preorder_stack_travel(root);
-    inorder_stack_travel(root);
-    postorder_stack_travel(root);
-
-    LOG(INFO);
-    LOG(INFO) << "morris:";
-    preorder_morris_travel(root);
-    inorder_morris_travel(root);
-    postorder_stack_travel(root);
+    LOG(INFO) << "tree: \n" << print_tree(root);
 
     LOG(INFO);
     LOG(INFO) << "level:";
-    levelorder_stack_travel(root);
-    levelorder_recursive_travel(root);
+    LOG(INFO) << "queue:" << levelorder_travel_queue(root);
+    LOG(INFO) << "recursive:" << levelorder_recursive_travel(root);
 
     LOG(INFO);
-    LOG(INFO) << "level zigzag:";
-    levelorder_zigzag_travel(root);
+    LOG(INFO) << "recursive:";
+    LOG(INFO) << "pre:" << preorder_recursive_travel(root);
+    LOG(INFO) << "in:" << inorder_recursive_travel(root);
+    LOG(INFO) << "post:" << postorder_recursive_travel(root);
+
+    LOG(INFO);
+    LOG(INFO) << "stack:";
+    LOG(INFO) << "pre:" << preorder_stack_travel(root);
+    LOG(INFO) << "in:" << inorder_stack_travel(root);
+    LOG(INFO) << "post:" << postorder_stack_travel(root);
+
+    LOG(INFO);
+    LOG(INFO) << "morris:";
+    LOG(INFO) << "pre:" << preorder_morris_travel(root);
+    LOG(INFO) << "in:" << inorder_morris_travel(root);
+    LOG(INFO) << "post:" << postorder_morris_travel(root);
+
+    LOG(INFO);
+    LOG(INFO) << "level:";
+    LOG(INFO) << "queue:" << levelorder_travel_queue(root);
+    LOG(INFO) << "recursive:" << levelorder_recursive_travel(root);
+    LOG(INFO) << "zigzag:" << levelorder_zigzag_travel(root);
 }
 
 int next_node_of_inorder_travel(TreeNode* n) {
@@ -717,3 +693,14 @@ public:
 private:
     std::deque<int> _c;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void rb_tree() {}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+void b_tree() {}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void avl_tree() {}

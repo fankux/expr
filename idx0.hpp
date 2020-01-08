@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex0 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -623,4 +625,6 @@ FTEST(test_isMatch) {
     isMatcht("abbcd", "ab*bcd", true);
     isMatcht("abbcd", "ab*bbca", false);
     isMatcht("abbcd", "ab*bcd", true);
+}
+
 }

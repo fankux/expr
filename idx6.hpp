@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex6 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -657,13 +659,15 @@ FTEST(test_addBinary) {
  ///////////// 68. Text Justification
  Given an array of words and a width maxWidth, format the text such that each line has exactly
  maxWidth characters and is fully (left and right) justified.
- You should pack your words in a greedy approach; that is, pack as many words as you can in each line.
+ You should pack your words in a greedy approach; that is,
+ pack as many words as you can in each line.
  Pad extra spaces ' ' when necessary so that each line has exactly maxWidth characters.
  Extra spaces between words should be distributed as evenly as possible.
  If the number of spaces on a line do not divide evenly between words,
  the empty slots on the left will be assigned more spaces than the slots on the right.
+ For the last line of text,
+ it should be left justified and no extra space is inserted between words.
 
- For the last line of text, it should be left justified and no extra space is inserted between words.
  Note:
  A word is defined as a character sequence consisting of non-space characters only.
  Each word's length is guaranteed to be greater than 0 and not exceed maxWidth.
@@ -773,7 +777,8 @@ FTEST(test_fullJustify) {
  ///////////// 69. Sqrt(x)
  Implement int sqrt(int x).
  Compute and return the square root of x, where x is guaranteed to be a non-negative integer.
- Since the return type is an integer, the decimal digits are truncated and only the integer part of the result is returned.
+ Since the return type is an integer,
+ the decimal digits are truncated and only the integer part of the result is returned.
 
  Example 1:
  Input: 4
@@ -782,7 +787,8 @@ FTEST(test_fullJustify) {
  Example 2:
  Input: 8
  Output: 2
- Explanation: The square root of 8 is 2.82842..., and since the decimal part is truncated, 2 is returned.
+ Explanation: The square root of 8 is 2.82842..., and since the decimal part is truncated,
+ 2 is returned.
 
  THOUTGHTS:
     when binary search, the value is left or right index itself,
@@ -822,7 +828,7 @@ FTEST(test_mySqrt) {
     FEXP(t(7), 2);
     FEXP(t(8), 2);
     FEXP(t(9), 3);
-    FEXP(t(INT_MAX), std::sqrt(INT_MAX));
+//    FEXP(t(INT_MAX), std::sqrt(INT_MAX));
 }
 
 /**
@@ -884,4 +890,6 @@ FTEST(test_climbStairs) {
     t(3);
     t(10);
     t(44);
+}
+
 }

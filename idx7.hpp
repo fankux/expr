@@ -5,6 +5,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex7 {
+
 /**
  ///////////// 71. Simplify Path
 Given an absolute path for a file (Unix-style), simplify it. Or in other words,
@@ -778,7 +780,7 @@ FTEST(test_wordExistInMatrix) {
         return re;
     };
 
-    FEXP(t({}, ""), true);
+    FEXP(t({}, ""), false);
     FEXP(t({{}}, ""), true);
     FEXP(t({{}}, "A"), false);
     FEXP(t({{'A'}}, ""), true);
@@ -846,4 +848,6 @@ FTEST(test_removeDuplicatesII) {
     t({1, 1, 1, 2, 2, 3});
     t({1, 1, 1, 1, 2, 2, 2, 3});
     t({0, 0, 1, 1, 1, 1, 2, 3, 3});
+}
+
 }

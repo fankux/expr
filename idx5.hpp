@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex5 {
+
 /**
  ///////////// 51. N-Queens
  The n-queens puzzle is the problem of placing n queens on an n×n chessboard such
@@ -648,5 +650,7 @@ FTEST(test_getPermutation) {
     t(4, 1);
     t(4, 2);
     t(4, 9);
+
+}
 
 }

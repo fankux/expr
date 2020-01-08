@@ -7,6 +7,8 @@
 
 namespace LCIndex20 {
 
+typedef LCListNode ListNode;
+
 /**
  ///////////// 201. Bitwise AND of Numbers Range
 Given a range [m, n] where 0 <= m <= n <= 2147483647,

@@ -5,6 +5,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex2 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -534,8 +536,8 @@ int strStr(std::string haystack, std::string needle) {
         return len == 0 ? 0 : -1;
     }
     size_t vv[128];
-    for (size_t i = 0; i < 128; ++i) {
-        vv[i] = len + 1;
+    for (auto& v : vv) {
+        v = len + 1;
     }
     for (size_t i = 0; i < len; ++i) {
         vv[needle[i]] = len - i;
@@ -561,13 +563,13 @@ FTEST(test_strStr) {
         return idx;
     };
 
-//    FEXP(t("", "aa"), -1);
-//    FEXP(t("hello", ""), 0);
-//    FEXP(t("hello", "ll"), 2);
-//    FEXP(t("aaaaa", "bba"), -1);
-//    FEXP(t("aaaaa", "aaaaa"), 0);
-//    FEXP(t("aaa", "aaaa"), -1);
-    FEXP(t("mississippi", "a"), 0);
+    FEXP(t("", "aa"), -1);
+    FEXP(t("hello", ""), 0);
+    FEXP(t("hello", "ll"), 2);
+    FEXP(t("aaaaa", "bba"), -1);
+    FEXP(t("aaaaa", "aaaaa"), 0);
+    FEXP(t("aaa", "aaaa"), -1);
+    FEXP(t("mississippi", "a"), -1);
 }
 
 /**
@@ -756,4 +758,6 @@ FTEST(test_findSubstring) {
     t("barfoothefoobarman", {"foo", "bar"});
     t("wordgoodgoodgoodbestword", {"word", "good", "best", "good"});
     t("lingmindraboofooowingdingbarrwingmonkeypoundcake", {"fooo", "barr", "wing", "ding", "wing"});
+}
+
 }

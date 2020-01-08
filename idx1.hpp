@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex1 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -729,4 +731,6 @@ bool isValid(std::string s) {
         }
     }
     return ss.empty();
+}
+
 }

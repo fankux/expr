@@ -5,6 +5,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex10 {
+
 typedef LCListNode ListNode;
 
 /**
@@ -622,4 +624,6 @@ FTEST(test_isTreeBalanced) {
     FEXP(t({3, 9, 20, nullptr, nullptr, 15, 7}), true);
     FEXP(t({1, 2, 2, 3, 3, nullptr, nullptr, 4, 4}), false);
     FEXP(t({1, 2, 2, 3, nullptr, nullptr, 3, 4, nullptr, nullptr, 4}), false);
+}
+
 }

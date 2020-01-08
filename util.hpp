@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <ostream>
+#include <iostream>
 #include <sstream>
 #include <functional>
 #include <vector>
@@ -32,7 +32,7 @@ if (c != (expect)) {                                \
     LOG(FATAL) << "\nError Condition: "             \
               << (#cond) << "\n Real: " << c        \
               << "\n Expected: " << expect;         \
-    exit (-1);                                      \
+    throw std::exception();                         \
 }} while (0)
 
 class LogStream {

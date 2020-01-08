@@ -7,6 +7,8 @@
 
 namespace LCIndex15 {
 
+typedef LCListNode ListNode;
+
 /**
  ///////////// 151. Reverse Words in a String
 Given an input string, reverse the string word by word.

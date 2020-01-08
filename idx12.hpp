@@ -5,6 +5,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex12 {
+
 typedef LCListNode ListNode;
 typedef LCTreeNode Node;
 
@@ -560,4 +562,6 @@ FTEST(test_surroundedRegionSolve) {
     t({{}});
     t({{'X'}});
     t({{'X', 'X', 'X', 'X'}, {'X', 'O', 'O', 'X'}, {'X', 'X', 'O', 'X'}, {'X', 'O', 'X', 'X'}});
+}
+
 }

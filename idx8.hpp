@@ -5,6 +5,10 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex8 {
+
+typedef LCListNode ListNode;
+
 /**
  ///////////// 81. Search in Rotated Sorted Array II
 Suppose an array sorted in ascending order is rotated at some pivot unknown to you beforehand.
@@ -697,4 +701,6 @@ FTEST(test_subsetsWithDup) {
     t({5, 5, 5, 5});
     t({5, 5, 5, 5, 5});
     t({4, 4, 4, 1, 4});
+}
+
 }

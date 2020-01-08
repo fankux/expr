@@ -5,6 +5,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex11 {
+
 typedef LCListNode ListNode;
 typedef LCTreeNode Node;
 
@@ -702,4 +704,6 @@ int minimumTotal(std::vector<std::vector<int>>& triangle) {
         }
     }
     return dp.front();
+}
+
 }

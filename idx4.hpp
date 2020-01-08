@@ -4,6 +4,8 @@
 #include "subs.hpp"
 #include "strs.hpp"
 
+namespace LCIndex4 {
+
 /**
  ///////////// 41. First Missing Positive
  Given an unsorted integer array, find the smallest missing positive integer.
@@ -743,4 +745,6 @@ double myPow(double x, int n) {
         x *= x;
     }
     return n < 0 ? 1 / res : res;
+}
+
 }
