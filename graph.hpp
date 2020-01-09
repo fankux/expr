@@ -16,15 +16,13 @@ struct GraphEdge {
     }
 
     bool operator<(const GraphEdge& rhs) const {
-        return weight < rhs.weight;
+        return to < rhs.to;
     }
 };
 
 struct GraphVertex {
     int val;
-    std::multiset<GraphEdge> edges;  // <weight, next node>
-
-    GraphVertex() = default;
+    std::set<GraphEdge> edges;  // <next node, weight>
 
     explicit GraphVertex(int v) {
         val = v;
@@ -38,21 +36,25 @@ struct GraphVertex {
 class Graph {
 public:
     explicit Graph(int direction = true) {
-        _direction = direction;
+        _directed = direction;
     }
 
-    void add_edge(int from, int to, int weight) {
-        if (from < 0 || to < 0 || from >= _ns.size() || to >= _ns.size()) {
+    size_t size() const {
+        return _vs.size();
+    }
+
+    void add_edge(int weight, int from, int to) {
+        if (from < 0 || to < 0 || from >= _vs.size() || to >= _vs.size()) {
             return;
         }
-        _ns[from].edges.emplace(weight, &_ns[to]);
-        if (!_direction) {
-            _ns[to].edges.emplace(weight, &_ns[from]);
+        _vs[from].edges.emplace(weight, &_vs[to]);
+        if (!_directed) {
+            _vs[to].edges.emplace(weight, &_vs[from]);
         }
     }
 
     void add_vertex(int v) {
-        _ns.emplace_back(v);
+        _vs.emplace_back(v);
     }
 
     /**
@@ -61,37 +63,107 @@ public:
      */
     void add_vertex(int v, const std::vector<std::pair<int, int>>& ins,
             const std::vector<std::pair<int, int>>& outs) {
-        _ns.emplace_back(v);
+        _vs.emplace_back(v);
         for (auto& in : ins) {
-            if (in.second >= 0 && in.second < _ns.size() - 1) { // except new node
-                _ns[in.second].add_edge(in.first, &_ns.back());
-                if (!_direction) {
-                    _ns.back().add_edge(in.first, &_ns[in.second]);
+            if (in.second >= 0 && in.second < _vs.size() - 1) { // except new node
+                _vs[in.second].add_edge(in.first, &_vs.back());
+                if (!_directed) {
+                    _vs.back().add_edge(in.first, &_vs[in.second]);
                 }
             }
         }
         for (auto& out : outs) {
-            if (out.second >= 0 && out.second < _ns.size()) {
-                _ns.back().add_edge(out.first, &_ns[out.second]);
-                if (!_direction) {
-                    _ns[out.second].add_edge(out.first, &_ns.back());
+            if (out.second >= 0 && out.second < _vs.size()) {
+                _vs.back().add_edge(out.first, &_vs[out.second]);
+                if (!_directed) {
+                    _vs[out.second].add_edge(out.first, &_vs.back());
 
                 }
             }
         }
     }
 
-    std::vector<std::vector<int>> min_paths(int from) {
-        size_t len = _ns.size();
-        if (from < 0 || from >= len) {
+    void reverse() {
+        if (!_directed) {
+            return;
+        }
+
+        size_t len = _vs.size();
+        std::vector<bool> visited(len, false);
+        std::deque<GraphVertex*> qq{&_vs[0]};
+        visited[0] = true;
+        while (!qq.empty()) {
+            for (size_t i = qq.size(); i > 0; --i) {
+                GraphVertex* v = qq.front();
+                qq.pop_front();
+
+                for (auto iter = v->edges.begin(); iter != v->edges.end();) {
+                    if (visited[iter->to->val]) {
+                        ++iter;
+                        continue;
+                    }
+                    visited[iter->to->val] = true;
+
+                    qq.emplace_back(iter->to);
+                    iter->to->add_edge(iter->weight, v);
+                    iter = v->edges.erase(iter);
+                }
+            }
+        }
+    }
+
+    std::vector<int> dfs_traversal(int start) {
+        size_t len = _vs.size();
+        std::vector<bool> visited(len, false);
+        std::vector<int> res;
+        std::function<void(GraphVertex*)> r_func;
+        r_func = [&](GraphVertex* v) {
+            if (visited[v->val]) {
+                return;
+            }
+            visited[v->val] = true;
+            res.emplace_back(v->val);
+            for (auto& edge : v->edges) {
+                r_func(edge.to);
+            }
+        };
+        r_func(&_vs[start]);
+        return res;
+    }
+
+    std::vector<int> bfs_traversal(int start) {
+        size_t len = _vs.size();
+        std::vector<bool> visited(len, false);
+        std::vector<int> res;
+        std::deque<GraphVertex*> qq{&_vs[start]};
+        while (!qq.empty()) {
+            for (size_t i = qq.size(); i > 0; --i) {
+                GraphVertex* v = qq.front();
+                qq.pop_front();
+                if (visited[v->val]) {
+                    continue;
+                }
+                visited[v->val] = true;
+                res.emplace_back(v->val);
+                for (auto& edge : v->edges) {
+                    qq.emplace_back(edge.to);
+                }
+            }
+        }
+        return res;
+    }
+
+    std::vector<std::vector<int>> min_paths_dijkstra(int start) {
+        size_t len = _vs.size();
+        if (start < 0 || start >= len) {
             return {};
         }
-        std::map<GraphVertex*, int> cc; // <node index, dist from>
+        std::map<GraphVertex*, int> cc; // <node index, dist start>
         std::map<GraphVertex*, GraphVertex*> parent;
         for (size_t i = 0; i < len; ++i) {
-            cc.emplace(&_ns[i], i == from ? 0 : INT_MAX);
-            if (i == from) {
-                parent[&_ns[i]] = nullptr;
+            cc.emplace(&_vs[i], i == start ? 0 : INT_MAX);
+            if (i == start) {
+                parent[&_vs[i]] = nullptr;
             }
         }
 
@@ -119,41 +191,156 @@ public:
 
         std::vector<std::vector<int>> res;
         for (size_t i = 0; i < len; ++i) {
-            GraphVertex* p = &_ns[i];
+            GraphVertex* p = &_vs[i];
             std::vector<int> path;
             while (p != nullptr) {
                 auto entry = parent.find(p);
-                if (entry != parent.end()) {
-                    path.emplace_back(p->val);
-                    p = entry->second;
+                if (entry == parent.end()) {
+                    break;
                 }
+                path.emplace_back(p->val);
+                p = entry->second;
+            }
+            if (!path.empty()) {
+                path.insert(path.begin(), cc[&_vs[i]]);
             }
             res.emplace_back(path);
         }
         return res;
     }
 
+    /**
+        - From start point, search at most for (v-1) times.
+        - Only which edges relax happend that will going to next round search.
+          It's easy to use queue to do this
+        - Negative weight circle exist if search time over v-1 and there still relax happend,
+          and minimum path is meaningless.
+     */
+    std::vector<std::vector<int>> min_paths_bellman_ford_spfa(int start) {
+        size_t len = _vs.size();
+        if (start < 0 || start >= len) {
+            return {};
+        }
+        std::map<GraphVertex*, int> cc; // <node index, dist start>
+        std::map<GraphVertex*, GraphVertex*> parent;
+        GraphVertex* vertex = &_vs[start];
+        cc[vertex] = 0;
+        parent[vertex] = nullptr;
+
+        int idx = 0;
+        std::deque<GraphVertex*> qq{vertex};
+        while (!qq.empty()) {
+            if (idx++ > _vs.size() - 1) {
+                // negetive circle exist, loop time more than count(vertex) - 1
+                return {};
+            }
+            for (size_t i = qq.size(); i > 0; --i) {
+                vertex = qq.front();
+                qq.pop_front();
+                for (auto& edge : vertex->edges) {
+                    auto cc_entry = cc.find(edge.to);
+                    if (cc_entry == cc.end() || cc[vertex] + edge.weight < cc_entry->second) {
+                        cc[edge.to] = cc[vertex] + edge.weight;
+                        parent[edge.to] = vertex;
+
+                        if (!qq.empty() && cc[edge.to] < cc[qq.front()]) { // SLF
+                            qq.emplace_front(edge.to);
+                        } else {
+                            qq.emplace_back(edge.to);
+                        }
+                    }
+                }
+            }
+        }
+
+        std::vector<std::vector<int>> res;
+        for (size_t i = 0; i < len; ++i) {
+            GraphVertex* p = &_vs[i];
+            std::vector<int> path;
+            while (p != nullptr) {
+                auto entry = parent.find(p);
+                if (entry == parent.end()) {
+                    break;
+                }
+                path.emplace_back(p->val);
+                p = entry->second;
+            }
+            if (!path.empty()) {
+                path.insert(path.begin(), cc[&_vs[i]]);
+            }
+            res.emplace_back(path);
+        }
+        return res;
+    }
+
+    /**
+        If valus on diagonal of distance is negative,
+        then there is a negative weight circle in graph
+     */
+    std::vector<std::vector<std::vector<int>>> all_min_paths_floyd_warshall() {
+        size_t len = _vs.size();
+        std::vector<std::vector<int>> dist(len, std::vector<int>(len, INT_MAX));
+        std::vector<std::vector<int>> parents(len, std::vector<int>(len, -1));
+        for (size_t i = 0; i < len; ++i) {
+            for (size_t j = 0; j < len; ++j) {
+                if (i == j) {
+                    dist[i][j] = 0;
+                    continue;
+                }
+                GraphEdge edge(0, &_vs[j]);
+                auto entry = _vs[i].edges.find(edge);
+                if (entry != _vs[i].edges.end()) { // there is a edge
+                    dist[i][j] = entry->weight;
+                    parents[i][j] = i;
+                }
+            }
+        }
+
+        for (size_t k = 0; k < len; ++k) {
+            for (size_t i = 0; i < len; ++i) {
+                for (size_t j = 0; j < len; ++j) {
+                    if (dist[i][k] == INT_MAX || dist[k][j] == INT_MAX) {
+                        continue;
+                    }
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        parents[i][j] = parents[k][j];
+                    }
+                }
+            }
+        }
+
+        for (size_t i = 0; i < len; ++i) {
+            if (dist[i][i] < 0) {
+                return {};
+            }
+        }
+
+        std::vector<std::vector<std::vector<int>>> res;
+        for (int i = 0; i < len; ++i) {
+            // search i -> each j's paths
+            std::vector<std::vector<int>> paths;
+            for (int j = 0; j < len; ++j) {
+                // construct i -> j each node
+                std::vector<int> one_path;
+                for (int idx = j; idx != -1 && idx != i; idx = parents[i][idx]) {
+                    one_path.insert(one_path.begin(), idx);
+                }
+                one_path.insert(one_path.begin(), i);
+                paths.emplace_back(one_path);
+            }
+            res.emplace_back(paths);
+        }
+        return res;
+    }
+
 private:
-    bool _direction = true;
-    std::vector<GraphVertex> _ns;
+    bool _directed = true;
+    std::vector<GraphVertex> _vs;
 };
 
-// TODO... A->B min path
-// TODO... negtive weight
-// TODO... traversal
 // TODO... nearest coordinates
-// TODO... Graph reverse
 
-/**
-               2
-           B ----- C
-      5   /        | 3
-        /    9     |
-       A --------- D
-      2 \          \ 2
-         E -------- F
-              3
- */
 FTEST(test_graph) {
     int A = 0;
     int B = 1;
@@ -162,20 +349,167 @@ FTEST(test_graph) {
     int E = 4;
     int F = 5;
 
-    Graph graph(false);
-    graph.add_vertex(A);
-    graph.add_vertex(B);
-    graph.add_vertex(C);
-    graph.add_vertex(D);
-    graph.add_vertex(E);
-    graph.add_vertex(F);
-    graph.add_edge(A, B, 5);
-    graph.add_edge(A, D, 9);
-    graph.add_edge(A, E, 2);
-    graph.add_edge(B, C, 2);
-    graph.add_edge(E, F, 3);
-    graph.add_edge(C, D, 3);
-    graph.add_edge(F, D, 2);
+    auto dijkstra = [&](const std::vector<int>& vertexs,
+            const std::vector<std::tuple<int, int, int>>& pairs, int start) {
+        Graph graph(false);
+        for (auto& vertex : vertexs) {
+            graph.add_vertex(vertex);
+        }
+        for (auto& pair : pairs) {
+            graph.add_edge(std::get<0>(pair), std::get<1>(pair), std::get<2>(pair));
+        }
+        LOG(INFO) << "dfs start at " << start << ": " << graph.dfs_traversal(start);
+        LOG(INFO) << "bfs start at " << start << ": " << graph.bfs_traversal(start);
+        LOG(INFO) << "dijkstra start at " << start << ": " << graph.min_paths_dijkstra(start);
+    };
 
-    LOG(INFO) << graph.min_paths(A);
+    auto spfa = [&](const std::vector<int>& vertexs,
+            const std::vector<std::tuple<int, int, int>>& pairs, int start) {
+        Graph graph;
+        for (auto& vertex : vertexs) {
+            graph.add_vertex(vertex);
+        }
+        for (auto& pair : pairs) {
+            graph.add_edge(std::get<0>(pair), std::get<1>(pair), std::get<2>(pair));
+        }
+        LOG(INFO) << "dfs start at " << start << ": " << graph.dfs_traversal(start);
+        LOG(INFO) << "bfs start at " << start << ": " << graph.bfs_traversal(start);
+        const auto& re = graph.min_paths_bellman_ford_spfa(start);
+        if (re.empty()) {
+            LOG(INFO) << "spfa negetive circle detected";
+        } else {
+            LOG(INFO) << "spfa start at " << start << ": " << re;
+        }
+
+        const auto& all_re = graph.all_min_paths_floyd_warshall();
+        if (all_re.empty()) {
+            LOG(INFO) << "flyod negetive circle detected";
+        } else {
+            for (size_t i = 0; i < all_re.size(); ++i) {
+                LOG(INFO) << "flyod start at " << i << ": " << all_re[i];
+            }
+        }
+    };
+
+    auto reverse = [&](const std::vector<int>& vertexs,
+            const std::vector<std::tuple<int, int, int>>& pairs) {
+        Graph graph;
+        for (auto& vertex : vertexs) {
+            graph.add_vertex(vertex);
+        }
+        for (auto& pair : pairs) {
+            graph.add_edge(std::get<0>(pair), std::get<1>(pair), std::get<2>(pair));
+        }
+        LOG(INFO) << "reverse before " << graph.bfs_traversal(0);
+        graph.reverse();
+        LOG(INFO) << "reverse after " << graph.bfs_traversal(graph.size() - 1);
+    };
+
+    /**
+          1     2
+       A --→ B --→ C
+     */
+    dijkstra({A, B, C}, {{1, A, B}, {2, B, C}}, A);
+    spfa({A, B, C}, {{1, A, B}, {2, B, C}}, A);
+    reverse({A, B, C}, {{1, A, B}, {2, B, C}});
+
+    /**
+          1     2
+       A --→ B ←-- C
+     */
+    spfa({A, B, C}, {{1, A, B}, {2, C, B}}, A);
+    spfa({A, B, C}, {{1, A, B}, {2, C, B}}, B);
+    spfa({A, B, C}, {{1, A, B}, {2, C, B}}, C);
+    reverse({A, B, C}, {{1, A, B}, {2, C, B}});
+
+    /**
+               2
+           B ----→ C
+      5   ↗        | 3
+        /    9     ↓
+       A --------→ D
+      2 ↘          ↘ 2
+         E -------→ F
+              3
+    */
+    dijkstra({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, F, D}}, A);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, F, D}}, A);
+    reverse({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, F, D}});
+
+    /**
+               2
+           B ----→ C
+      5   ↗        | 3
+        /    9     ↓
+       A --------→ D
+      2 ↘          ↖ 2
+         E -------→ F
+              3
+    */
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, A);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, B);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, C);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, D);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, E);
+    spfa({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}}, F);
+    reverse({A, B, C, D, E, F}, {{5, A, B}, {9, A, D}, {2, A, E}, {2, B, C},
+            {3, E, F}, {3, C, D}, {2, D, F}});
+
+
+    /**
+
+          8  /---→ D ---┐
+           /       ↑   ↓ 2
+         A       1 └-- E
+       4 | \ 5        ↑
+         ↓  ↘       /
+         B → C ---/  4
+          -3
+     */
+    spfa({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}}, A);
+    spfa({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}}, B);
+    spfa({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}}, C);
+    spfa({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}}, D);
+    spfa({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}}, E);
+    reverse({A, B, C, D, E}, {{4, A, B}, {5, A, C}, {8, A, D}, {-3, B, C},
+            {4, C, E}, {1, E, D}, {2, D, E}});
+
+    /**
+          10    20
+       A --→ B --→ C
+       ↑     8     │
+       └───────────┘
+     */
+    dijkstra({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, A);
+    dijkstra({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, B);
+    dijkstra({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, C);
+    spfa({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, A);
+    spfa({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, B);
+    spfa({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}}, C);
+    reverse({A, B, C}, {{10, A, B}, {20, B, C}, {8, C, A}});
+
+    /**
+          3     4
+       A --→ B --→ C
+       ↑    -8     │
+       └───────────┘
+     */
+    spfa({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}}, A);
+    spfa({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}}, B);
+    spfa({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}}, C);
+    reverse({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}});
 }
