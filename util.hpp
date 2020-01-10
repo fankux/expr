@@ -278,3 +278,128 @@ FTEST(test_util) {
               << std::unordered_map<int, std::string>{{10, "10"}, {20, "20"}};
 
 }
+
+
+class LineReader {
+public:
+    // trim from start (in place)
+    static inline void ltrim(std::string& s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+                std::not1(std::ptr_fun<int, int>(std::isspace))));
+    }
+
+    // trim from end (in place)
+    static inline void rtrim(std::string& s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(),
+                std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    }
+
+    // trim from both ends (in place)
+    static inline void trim(std::string& s) {
+        ltrim(s);
+        rtrim(s);
+    }
+
+    // trim from start (copying)
+    static inline std::string ltrim_copy(std::string s) {
+        ltrim(s);
+        return s;
+    }
+
+    // trim from end (copying)
+    static inline std::string rtrim_copy(std::string s) {
+        rtrim(s);
+        return s;
+    }
+
+    // trim from both ends (copying)
+    static inline std::string trim_copy(std::string s) {
+        trim(s);
+        return s;
+    }
+
+    static int line_int() {
+        std::string line;
+        std::getline(std::cin, line);
+        ltrim(line);
+        try {
+            return std::stoi(line);
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    static uint32_t line_uint() {
+        std::string line;
+        std::getline(std::cin, line);
+        ltrim(line);
+        try {
+            return std::stoul(line);
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    static int64_t line_int64() {
+        std::string line;
+        std::getline(std::cin, line);
+        ltrim(line);
+        try {
+            return std::stoll(line);
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    static uint64_t line_uint64() {
+        std::string line;
+        std::getline(std::cin, line);
+        ltrim(line);
+        try {
+            return std::stoull(line);
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    static std::string line_str() {
+        std::string line;
+        std::getline(std::cin, line);
+        trim(line);
+        return line;
+    }
+
+    static void split(const std::string& str, std::vector<std::string>& cont,
+            const std::string& delims = " ") {
+        std::size_t current;
+        std::size_t previous = 0;
+        current = str.find_first_of(delims);
+        while (current != std::string::npos) {
+            std::string section = str.substr(previous, current - previous);
+            if (!section.empty()) {
+                cont.emplace_back(std::move(section));
+            }
+            previous = current + 1;
+            current = str.find_first_of(delims, previous);
+        }
+        cont.emplace_back(str.substr(previous, current - previous));
+    }
+
+    static std::vector<std::string> line_strs() {
+        std::string line;
+        std::getline(std::cin, line);
+        trim(line);
+        std::vector<std::string> res;
+        split(line, res);
+        return res;
+    }
+};
+
+FTEST(test_LineReader) {
+//    LOG(INFO) << "str:" << LineReader::line_str();
+//    LOG(INFO) << "int:" << LineReader::line_int();
+//    LOG(INFO) << "uint:" << LineReader::line_uint();
+//    LOG(INFO) << "int64:" << LineReader::line_int64();
+//    LOG(INFO) << "uint64:" << LineReader::line_uint64();
+    LOG(INFO) << "str array:" << LineReader::line_strs();
+}

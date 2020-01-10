@@ -45,6 +45,7 @@
 #include "idx38.hpp"
 #include "idx39.hpp"
 #include "idx41.hpp"
+#include "idx43.hpp"
 #include "idx45.hpp"
 
 using namespace LCIndex0;
@@ -82,6 +83,7 @@ using namespace LCIndex37;
 using namespace LCIndex38;
 using namespace LCIndex39;
 using namespace LCIndex41;
+using namespace LCIndex43;
 using namespace LCIndex45;
 
 int main() {
@@ -99,7 +101,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_graph();
+    test_LineReader();
 
     // TODO... segment tree
     // TODO... LSM tree

@@ -176,7 +176,30 @@ Google: 90% of our engineers use the software you wrote (Homebrew),
  but you can’t invert a binary tree on a whiteboard so f*** off.
  */
 TreeNode* invertTree(TreeNode* root) {
-    return nullptr;
+    if (root == nullptr) {
+        return root;
+    }
+    std::swap(root->left, root->right);
+    invertTree(root->left);
+    invertTree(root->right);
+    return root;
+}
+
+FTEST(test_invertTree) {
+    auto t = [&](const std::vector<TreeNodeStub>& nodes) {
+        TreeNode* tree = create_tree(nodes);
+        LOG(INFO) << "\n" << print_tree(tree);
+        auto re = invertTree(tree);
+        LOG(INFO) << "reverse:\n " << print_tree(tree);
+        return re;
+    };
+
+    t({1});
+    t({1, 2});
+    t({1, nullptr, 2});
+    t({1, 2, nullptr});
+    t({1, 2, 3});
+    t({4, 2, 7, 1, 3, 6, 9});
 }
 
 /**
