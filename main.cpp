@@ -86,7 +86,204 @@ using namespace LCIndex41;
 using namespace LCIndex43;
 using namespace LCIndex45;
 
+using namespace std;
+
+vector<int> roundPricesToMatchTarget(const vector<float>& prices, int target) {
+    size_t len = prices.size();
+    std::vector<std::pair<int, int>> collect(len);
+    for (std::size_t i = 0; i < len; ++i) {
+        collect.emplace_back(std::pair<int, int>{std::floor(prices[i]), std::ceil(prices[i])});
+    }
+
+    vector<int> res;
+
+    float min_diff = (float) target + 1;
+    vector<int> re;
+    std::function<void(int, int)> r_func;
+    r_func = [&](int sum, int start) {
+        if (start >= len) {
+            if (sum == 0) {
+                float diff = 0;
+                for (size_t k = 0; k < len; ++k) {
+                    diff += std::abs((float) re[k] - prices[k]);
+                }
+                if (diff < min_diff) {
+                    res = re;
+                    min_diff = diff;
+                }
+            }
+            return;
+        }
+        re.emplace_back(collect[start].first);
+        r_func(sum - re.back(), start + 1);
+        re.pop_back();
+
+        re.emplace_back(collect[start].second);
+        r_func(sum - re.back(), start + 1);
+        re.pop_back();
+    };
+    r_func(target, 0);
+    return res;
+}
+
+FTEST(test_roundPricesToMatchTarget) {
+    LOG(INFO) << roundPricesToMatchTarget({0.7, 2.8, 4.9}, 8);
+}
+
+int consecutiveNumber(int n) {
+    int res = 0;
+    for (int i = 1; n > 0; n -= i, ++i) {
+        res = (n % i == 0) ? i : res;
+    }
+    return res;
+}
+
+int maxStep(int n, int k) {
+    std::vector<int> state(n + 1, 0);
+    for (int i = 1; i <= n; ++i) {
+        state[i] = state[i - 1] + ((state[i - 1] + i == k) ? 0 : i);
+    }
+    return state.back();
+}
+
+string validate_xml(string xml) {
+    typedef enum {
+        START = 0,
+        TAG_START_LEFT,
+        TOKEN_START_LEFT,
+        TAG_END_LEFT,
+        TEXT,
+        TOKEN_START_RIGHT,
+        TAG_END_RIGHT,
+    } STATE;
+
+    std::set<char> tokens = {'<', '>', '/'};
+
+    STATE st = START;
+    std::stack<std::string> tq;
+
+    std::string tag;
+    size_t len = xml.size();
+    for (size_t i = 0; i < len; ++i) {
+        char c = xml[i];
+        if (st == START || st == TAG_END_LEFT || st == TAG_END_RIGHT || st == TEXT) {
+            if (isspace(c)) {
+                continue;
+            }
+            if (c == '<') {
+                st = TAG_START_LEFT;
+                continue;
+            }
+            if ((st == START || st == TEXT) && c == '/') {
+                continue;
+            }
+            if (tokens.count(c) != 0) {
+                return "parse error";
+            }
+            st = TEXT;
+            continue;
+        }
+        if (st == TAG_START_LEFT) {
+            if (c == '>') {
+                if (tag.empty()) {
+                    // no empty tag
+                    return "empty tag";
+                }
+                if (tq.empty() || tq.top() != tag) {
+                    tq.emplace(tag);
+                    tag.clear();
+                    st = TAG_END_LEFT;
+                } else if (!tq.empty() && tq.top() == tag) {
+                    // if current tag=tq.top(), then current is a close tag
+                    tq.pop();
+                    tag.clear();
+                    st = TAG_END_RIGHT;
+                } else {
+                    return "encountered closing tag without matching open tag for </" + tag + ">";
+                }
+                continue;
+            }
+            if (c == '/') { // current must be a close tag
+                st = TOKEN_START_RIGHT;
+                continue;
+            }
+            if (tokens.count(c) != 0) {
+                return "parse error";
+            }
+            tag += c;
+            continue;
+        }
+        assert(st == TOKEN_START_RIGHT);
+        if (st == TOKEN_START_RIGHT) {
+            if (c == '>') {
+                if (tag.empty()) {
+                    // no empty tag
+                    return "parse error";
+                }
+                if (tq.empty() || tag != tq.top()) {
+                    return "encountered closing tag without matching open tag for </" + tag + ">";
+                }
+                tq.pop();
+                tag.clear();
+                st = TAG_END_RIGHT;
+                continue;
+            }
+            tag += c;
+            continue;
+        }
+    }
+
+    if ((st == START || st == TAG_END_RIGHT || st == TEXT) && tq.empty()) {
+        return "valid";
+    }
+    if (st == TAG_END_RIGHT) {
+        return "encountered closing tag without matching open tag for </" + tq.top() + ">";
+    }
+    if ((st == TAG_END_LEFT || st == TEXT) && !tq.empty()) {
+        return "missing closing tag for <" + tq.top() + ">";
+    }
+    return "parse error";
+}
+
+FTEST(test_validate_xml) {
+    LOG(INFO) << validate_xml("/");
+    LOG(INFO) << validate_xml("/>");
+    LOG(INFO) << validate_xml(">");
+    LOG(INFO) << validate_xml("a>");
+    LOG(INFO) << validate_xml("a/>");
+    LOG(INFO) << validate_xml("<<a>sss");
+    LOG(INFO) << validate_xml("<a>sss");
+    LOG(INFO) << validate_xml("</a>");
+    LOG(INFO) << validate_xml("sss</a>");
+    LOG(INFO) << validate_xml("<a>sss</b>");
+    LOG(INFO) << validate_xml("<a></a>");
+    LOG(INFO) << validate_xml("<a>sss</a>");
+    LOG(INFO) << validate_xml("<a>ss/s</a>");
+    LOG(INFO) << validate_xml("<a>ss<s</a>");
+    LOG(INFO) << validate_xml("<a>ss>s</a>");
+    LOG(INFO) << validate_xml("<a>ss<>s</a>");
+
+    LOG(INFO) << validate_xml("<a><c></c></a>");
+    LOG(INFO) << validate_xml("<a>sss<c></c></a>");
+    LOG(INFO) << validate_xml("<a><c>sss</c></a>");
+    LOG(INFO) << validate_xml("<a><c></c>sss</a>");
+    LOG(INFO) << validate_xml("<a>sss<c>sss</c></a>");
+    LOG(INFO) << validate_xml("<a><c>sss</c>sss</a>");
+    LOG(INFO) << validate_xml("<a>sss<c></c>sss</a>");
+    LOG(INFO) << validate_xml("<a>sss<c>sss</c>sss</a>");
+
+    LOG(INFO) << validate_xml("<a>d/d<c></c></a>");
+    LOG(INFO) << validate_xml("<a><c>d/d</c></a>");
+    LOG(INFO) << validate_xml("<a><c></c>d/d</a>");
+    LOG(INFO) << validate_xml("<a>d/d<c>d/d</c></a>");
+    LOG(INFO) << validate_xml("<a><c>d/d</c>d/d</a>");
+    LOG(INFO) << validate_xml("<a>d/d<c></c>d/d</a>");
+    LOG(INFO) << validate_xml("<a>d/d<c>d/d</c>d/d</a>");
+}
+
 int main() {
+
+    test_validate_xml();
 
 //    for (auto& test : g_test_list) {
 //        LOG(INFO) << "==== start: " << test.first << " ====";
@@ -101,7 +298,10 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_LineReader();
+//    test_LineReader();
+
+
+
 
     // TODO... segment tree
     // TODO... LSM tree

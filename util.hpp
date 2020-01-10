@@ -396,10 +396,10 @@ public:
 };
 
 FTEST(test_LineReader) {
-//    LOG(INFO) << "str:" << LineReader::line_str();
-//    LOG(INFO) << "int:" << LineReader::line_int();
-//    LOG(INFO) << "uint:" << LineReader::line_uint();
-//    LOG(INFO) << "int64:" << LineReader::line_int64();
-//    LOG(INFO) << "uint64:" << LineReader::line_uint64();
+    LOG(INFO) << "str:" << LineReader::line_str();
+    LOG(INFO) << "int:" << LineReader::line_int();
+    LOG(INFO) << "uint:" << LineReader::line_uint();
+    LOG(INFO) << "int64:" << LineReader::line_int64();
+    LOG(INFO) << "uint64:" << LineReader::line_uint64();
     LOG(INFO) << "str array:" << LineReader::line_strs();
 }
