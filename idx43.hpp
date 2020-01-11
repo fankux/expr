@@ -65,8 +65,36 @@ Return 3. The paths that sum to 8 are:
 2.  5 -> 2 -> 1
 3. -3 -> 11
  */
-int pathSum(TreeNode* root, int sum) {
+int pathSumIII(TreeNode* root, int sum) {
+    std::map<int, int> nums;
+    nums[0] = 1;
+    std::function<int(TreeNode*, int)> r_func;
+    r_func = [&](TreeNode* p, int cur_sum) {
+        if (p == nullptr) {
+            return 0;
+        }
+        cur_sum += p->val;
+        int r = nums[cur_sum - sum];
+        ++nums[cur_sum];
+        r += r_func(p->left, cur_sum) + r_func(p->right, cur_sum);
+        --nums[cur_sum];
+        return r;
+    };
+    return r_func(root, 0);
+}
 
+FTEST(test_pathSumIII) {
+    auto t = [&](const std::vector<TreeNodeStub>& nodes, int sum) {
+        TreeNode* tree = create_tree(nodes);
+        auto re = pathSumIII(tree, sum);
+        LOG(INFO) << "sum " << sum << " count " << re << " of tree\n" << print_tree(tree);
+        return re;
+    };
+
+    FEXP(t({0, 1, 1}, 1), 4);
+    FEXP(t({1, 2, 1}, 2), 2);
+    FEXP(t({-2, nullptr, -5}, -5), 1);
+    FEXP(t({10, 5, -3, 3, 2, nullptr, 11, 3, -2, nullptr, 1}, 8), 3);
 }
 
 /**

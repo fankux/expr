@@ -283,8 +283,6 @@ FTEST(test_validate_xml) {
 
 int main() {
 
-    test_validate_xml();
-
 //    for (auto& test : g_test_list) {
 //        LOG(INFO) << "==== start: " << test.first << " ====";
 //        try {
@@ -298,13 +296,9 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-//    test_LineReader();
-
-
-
+    test_pathSumIII();
 
     // TODO... segment tree
     // TODO... LSM tree
-
     return 0;
 }

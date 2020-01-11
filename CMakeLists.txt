@@ -16,7 +16,7 @@ link_libraries(
 add_definitions(
         -fsanitize=address
         -fno-omit-frame-pointer
-        -g
+        -ggdb
 )
 
 add_executable(expr ${SRCS})
