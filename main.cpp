@@ -46,7 +46,11 @@
 #include "idx39.hpp"
 #include "idx41.hpp"
 #include "idx43.hpp"
+#include "idx44.hpp"
 #include "idx45.hpp"
+#include "idx54.hpp"
+#include "idx58.hpp"
+#include "idx61.hpp"
 
 using namespace LCIndex0;
 using namespace LCIndex1;
@@ -84,7 +88,11 @@ using namespace LCIndex38;
 using namespace LCIndex39;
 using namespace LCIndex41;
 using namespace LCIndex43;
+using namespace LCIndex44;
 using namespace LCIndex45;
+using namespace LCIndex54;
+using namespace LCIndex58;
+using namespace LCIndex61;
 
 using namespace std;
 
@@ -296,7 +304,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_pathSumIII();
+    test_findUnsortedSubarray();
 
     // TODO... segment tree
     // TODO... LSM tree
