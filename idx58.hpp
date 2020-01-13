@@ -25,6 +25,16 @@ Then length of the input array is in range [1, 10,000].
 The input array may contain duplicates, so ascending order here means <=.
 
  THOUGHTS:
+    p* = LENGTH - p - 1
+
+    2   6   4   8   10   9   15
+    p                        p*  max=2,  min=15
+        p                p*      max=6,  min=9
+            p       p*           max=6,  min=9 => max stay, start=p*, max stay, end=p
+              p(p*)              max=8,  min=8
+            p*      p            max=10, min=4
+        p*               p       max=10, min=4 => max stay, start=p*, max stay, end=p
+    P*                       p   max=15, min=2
 
  */
 int findUnsortedSubarray(std::vector<int>& nums) {

@@ -226,7 +226,7 @@ int largestRectangleArea(std::vector<int>& heights
         , std::pair<int, int>& idexs
 #endif
 ) {
-    heights.emplace_back(0);
+    heights.emplace_back(0); // for last number to calculate.
     int res = 0;
     std::stack<int> ss;
     for (int i = 0; i < heights.size();) {

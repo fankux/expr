@@ -100,10 +100,77 @@ FTEST(test_increasingTriplet) {
 
 
 /**
- ///////////// 337.
+ ///////////// 337. House Robber III
+The thief has found himself a new place for his thievery again.
+ There is only one entrance to this area, called the "root."
+ Besides the root, each house has one and only one parent house.
+ After a tour, the smart thief realized that "all houses in this place forms a binary tree".
+ It will automatically contact the police if two directly-linked houses were broken into
+ on the same night.
+Determine the maximum amount of money the thief can rob tonight without alerting the police.
 
+Example 1:
+Input: [3,2,3,null,3,null,1]
+     3
+    / \
+   2   3
+    \   \
+     3   1
+
+Output: 7
+Explanation: Maximum amount of money the thief can rob = 3 + 3 + 1 = 7.
+
+Example 2:
+Input: [3,4,5,1,3,null,1]
+     3
+    / \
+   4   5
+  / \   \
+ 1   3   1
+
+Output: 9
+Explanation: Maximum amount of money the thief can rob = 4 + 5 = 9.
  */
+int robIII(TreeNode* root) {
+    std::deque<TreeNode*> qq{root};
+    int pre = 0;
+    int res = 0;
+    while (!qq.empty()) {
+        int sum = 0;
+        for (size_t i = qq.size(); i > 0; --i) {
+            TreeNode* p = qq.front();
+            qq.pop_front();
+            if (p == nullptr) {
+                continue;
+            }
+            sum += p->val;
+            qq.push_back(p->left);
+            qq.push_back(p->right);
+        }
+        int t = res;
+        res = std::max(res, pre + sum);
+        pre = t;
+    }
+    return res;
+}
 
+FTEST(test_robIII) {
+    auto t = [&](const std::vector<TreeNodeStub>& nodes) {
+        TreeNode* tree = create_tree(nodes);
+        auto re = robIII(tree);
+        LOG(INFO) << " max profit : " << re << " of tree:\n" << print_tree(tree);
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({1}), 1);
+    FEXP(t({1, 2, 3}), 5);
+    FEXP(t({6, 2, 3}), 6);
+    FEXP(t({3, 2, 3, nullptr, 3, nullptr, 1}), 7);
+    FEXP(t({3, 4, 5, 1, 3, nullptr, 1}), 9);
+    FEXP(t({4, 1, nullptr, 2, nullptr, 3}), 7);
+    FEXP(t({4, nullptr, 1, nullptr, 2, nullptr, 3}), 7);
+}
 
 /**
  ///////////// 338.

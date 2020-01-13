@@ -22,7 +22,36 @@ Input:
 Output: 4
  */
 int maximalSquare(std::vector<std::vector<char>>& matrix) {
-    return 0;
+    if (matrix.empty() || matrix.front().empty()) {
+        return 0;
+    }
+    size_t n = matrix.size();
+    size_t m = matrix.front().size();
+    std::vector<int> state(m + 1, 0);
+    int pre = 0;
+    int res = 0;
+    for (size_t i = 1; i <= n; ++i) {
+        for (size_t j = 1; j <= m; ++j) {
+            int t = state[j];
+            state[j] = matrix[i - 1][j - 1] == '1' ?
+                    (std::min(std::min(state[j - 1], state[j]), pre)) + 1 : 0;
+            res = std::max(res, state[j]);
+            pre = t;
+        }
+    }
+    return res * res;
+}
+
+FTEST(test_maximalSquare) {
+    auto t = [&](const std::vector<std::vector<char>>& matrix) {
+        std::vector<std::vector<char>> nns = matrix;
+        auto re = maximalSquare(nns);
+        LOG(INFO) << matrix << " matrix square: " << re;
+        return re;
+    };
+
+    FEXP(t({{'1', '0', '1', '0', '0'}, {'1', '0', '1', '1', '1'},
+            {'1', '1', '1', '1', '1'}, {'1', '0', '0', '1', '0'}}), 4);
 }
 
 /**
