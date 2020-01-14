@@ -25,10 +25,129 @@ namespace LCIndex39 {
 
 
 /**
- ///////////// 394.
+ ///////////// 394. Decode String
+Given an encoded string, return its decoded string.
+The encoding rule is: k[encoded_string],
+ where the encoded_string inside the square brackets is being repeated exactly k times.
+ Note that k is guaranteed to be a positive integer.
+You may assume that the input string is always valid; No extra white spaces,
+ square brackets are well-formed, etc.
+Furthermore, you may assume that the original data does not contain any digits and that
+ digits are only for those repeat numbers, k. For example, there won't be input like 3a or 2[4].
 
+Examples:
+s = "3[a]2[bc]", return "aaabcbc".
+s = "3[a2[c]]", return "accaccacc".
+s = "2[abc]3[cd]ef", return "abcabccdcdcdef".
  */
+std::string decodeString(std::string s) {
+    std::string res;
 
+    enum {
+        TEXT = 0,
+        DIGITAL,
+        LEFT,
+    } st;
+
+    std::stack<int> ts;
+    std::stack<std::string> tss;
+    size_t digital_l = 0;
+    size_t digital_r = 0;
+    std::string str;
+
+    st = TEXT;
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+
+        if (st == TEXT) {
+            if (isdigit(c)) {
+                digital_l = i;
+
+                st = DIGITAL;
+            } else {
+                res += c;
+            }
+        } else if (st == DIGITAL) {
+            if (isdigit(c)) {
+                // still
+            } else if (c == '[') {
+                digital_r = i;
+                ts.emplace(std::stoi(s.substr(digital_l, digital_r - digital_l)));
+
+                st = LEFT;
+            }
+        } else if (st == LEFT) {
+            if (c == ']') {
+                if (ts.empty()) {
+                    // error
+                    return "";
+                }
+                std::string section;
+                if (!tss.empty()) {
+                    section = tss.top();
+                    tss.pop();
+                }
+                for (int j = 0; j < ts.top(); ++j) {
+                    section += str;
+                }
+                ts.pop();
+
+                if (!ts.empty()) {
+                    str = std::move(section);
+                } else {
+                    res += section;
+                    str.clear();
+                    st = TEXT;
+                }
+
+            } else if (isdigit(c)) {
+                tss.emplace(str);
+                str.clear();
+                digital_l = i;
+
+                st = DIGITAL;
+            } else {
+                str += c;
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_decodeString) {
+    auto t = [&](const std::string& s) {
+        auto re = decodeString(s);
+        LOG(INFO) << s << " decode: " << re;
+        return re;
+    };
+
+    FEXP(t(""), "");
+    FEXP(t("a"), "a");
+    FEXP(t("ab"), "ab");
+    FEXP(t("abc"), "abc");
+    FEXP(t("1[]"), "");
+    FEXP(t("2[]"), "");
+    FEXP(t("3[]"), "");
+    FEXP(t("1[ ]"), " ");
+    FEXP(t("2[ ]"), "  ");
+    FEXP(t("3[ ]"), "   ");
+    FEXP(t("1[a]"), "a");
+    FEXP(t("2[a]"), "aa");
+    FEXP(t("3[a]"), "aaa");
+    FEXP(t("1[ab]"), "ab");
+    FEXP(t("2[ab]"), "abab");
+    FEXP(t("3[ab]"), "ababab");
+    FEXP(t("1[abc]"), "abc");
+    FEXP(t("2[abc]"), "abcabc");
+    FEXP(t("3[abc]"), "abcabcabc");
+    FEXP(t("3[a]2[bc]"), "aaabcbc");
+    FEXP(t("3[2[c]]"), "cccccc");
+    FEXP(t("3[2[1[cb]]]"), "cbcbcbcbcbcb");
+    FEXP(t("3[a2[c]]"), "accaccacc");
+    FEXP(t("3[2[c]a]"), "ccaccacca");
+    FEXP(t("3[a2[c]b]"), "accbaccbaccb");
+    FEXP(t("2[abc]3[cd]ef"), "abcabccdcdcdef");
+}
 
 /**
  ///////////// 395. Longest Substring with At Least K Repeating Characters

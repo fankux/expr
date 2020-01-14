@@ -132,26 +132,22 @@ Output: 9
 Explanation: Maximum amount of money the thief can rob = 4 + 5 = 9.
  */
 int robIII(TreeNode* root) {
-    std::deque<TreeNode*> qq{root};
-    int pre = 0;
-    int res = 0;
-    while (!qq.empty()) {
-        int sum = 0;
-        for (size_t i = qq.size(); i > 0; --i) {
-            TreeNode* p = qq.front();
-            qq.pop_front();
-            if (p == nullptr) {
-                continue;
-            }
-            sum += p->val;
-            qq.push_back(p->left);
-            qq.push_back(p->right);
+    std::function<int(TreeNode*, int&, int&)> rfunc;
+    rfunc = [&rfunc](TreeNode* p, int& l, int& r) {
+        if (p == nullptr) {
+            return 0;
         }
-        int t = res;
-        res = std::max(res, pre + sum);
-        pre = t;
-    }
-    return res;
+        int ll = 0;
+        int lr = 0;
+        int rl = 0;
+        int rr = 0;
+        l = rfunc(p->left, ll, lr);
+        r = rfunc(p->right, rl, rr);
+        return std::max(p->val + ll + lr + rl + rr, l + r);
+    };
+    int l = 0;
+    int r = 0;
+    return rfunc(root, l, r);
 }
 
 FTEST(test_robIII) {
@@ -173,10 +169,59 @@ FTEST(test_robIII) {
 }
 
 /**
- ///////////// 338.
+ ///////////// 338. Counting Bits
+Given a non negative integer number num.
+ For every numbers i in the range 0 ≤ i ≤ num calculate the number of 1's
+ in their binary representation and return them as an array.
 
+Example 1:
+Input: 2
+Output: [0,1,1]
+
+Example 2:
+Input: 5
+Output: [0,1,1,2,1,2]
+
+Follow up:
+It is very easy to come up with a solution with run time O(n*sizeof(integer)).
+ But can you do it in linear time O(n) /possibly in a single pass?
+Space complexity should be O(n).
+Can you do it like a boss? Do it without using any builtin function like
+ __builtin_popcount in c++ or in any other language.
  */
+std::vector<int> countBits(int num) {
+    std::vector<int> res(num + 1, 0);
+    uint32_t p = 1;
+    for (int i = 1; i <= num;) {
+        for (uint32_t j = 0; j < p && i <= num; ++j) {
+            res[p + j] = res[j] + 1;
+            ++i;
+        }
+        p = p << 1;
+    }
+    return res;
+}
 
+FTEST(test_countBits) {
+    auto t = [&](int num) {
+        auto re = countBits(num);
+        LOG(INFO) << " 0~" << num << " bits count : " << re;
+        return re;
+    };
+
+    t(0);
+    t(1);
+    t(2);
+    t(3);
+    t(4);
+    t(5);
+    t(6);
+    t(7);
+    t(8);
+    t(9);
+    t(10);
+    t(50);
+}
 
 /**
  ///////////// 339.

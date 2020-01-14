@@ -44,6 +44,7 @@
 #include "idx37.hpp"
 #include "idx38.hpp"
 #include "idx39.hpp"
+#include "idx40.hpp"
 #include "idx41.hpp"
 #include "idx43.hpp"
 #include "idx44.hpp"
@@ -86,6 +87,7 @@ using namespace LCIndex36;
 using namespace LCIndex37;
 using namespace LCIndex38;
 using namespace LCIndex39;
+using namespace LCIndex40;
 using namespace LCIndex41;
 using namespace LCIndex43;
 using namespace LCIndex44;
@@ -304,8 +306,9 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_robIII();
+    test_canPartition();
 
+    // TODO... knapsack
     // TODO... Manacher's palindrome
     // TODO... LSM tree
     // TODO... bloom filter
