@@ -158,77 +158,54 @@ int maxStep(int n, int k) {
 
 string validate_xml(string xml) {
     typedef enum {
-        START = 0,
+        TEXT = 0,
         TAG_START_LEFT,
         TOKEN_START_LEFT,
         TAG_END_LEFT,
-        TEXT,
         TOKEN_START_RIGHT,
         TAG_END_RIGHT,
     } STATE;
 
     std::set<char> tokens = {'<', '>', '/'};
 
-    STATE st = START;
+    STATE st = TEXT;
     std::stack<std::string> tq;
 
     std::string tag;
     size_t len = xml.size();
     for (size_t i = 0; i < len; ++i) {
         char c = xml[i];
-        if (st == START || st == TAG_END_LEFT || st == TAG_END_RIGHT || st == TEXT) {
-            if (isspace(c)) {
-                continue;
-            }
+        if (st == TEXT || st == TAG_END_LEFT || st == TAG_END_RIGHT) {
             if (c == '<') {
                 st = TAG_START_LEFT;
-                continue;
-            }
-            if ((st == START || st == TEXT) && c == '/') {
-                continue;
-            }
-            if (tokens.count(c) != 0) {
+            } else if (st == TEXT && c == '/') {
+                // skip
+            } else if (tokens.count(c) != 0) {
                 return "parse error";
+            } else {
+                st = TEXT;
             }
-            st = TEXT;
-            continue;
-        }
-        if (st == TAG_START_LEFT) {
+        } else if (st == TAG_START_LEFT) {
             if (c == '>') {
                 if (tag.empty()) {
                     // no empty tag
-                    return "empty tag";
+                    return "empty open tag";
                 }
-                if (tq.empty() || tq.top() != tag) {
-                    tq.emplace(tag);
-                    tag.clear();
-                    st = TAG_END_LEFT;
-                } else if (!tq.empty() && tq.top() == tag) {
-                    // if current tag=tq.top(), then current is a close tag
-                    tq.pop();
-                    tag.clear();
-                    st = TAG_END_RIGHT;
-                } else {
-                    return "encountered closing tag without matching open tag for </" + tag + ">";
-                }
-                continue;
-            }
-            if (c == '/') { // current must be a close tag
+                tq.emplace(tag);
+                tag.clear();
+                st = TAG_END_LEFT;
+            } else if (c == '/') { // current must be a close tag
                 st = TOKEN_START_RIGHT;
-                continue;
-            }
-            if (tokens.count(c) != 0) {
+            } else if (tokens.count(c) != 0) {
                 return "parse error";
+            } else {
+                tag += c;
             }
-            tag += c;
-            continue;
-        }
-        assert(st == TOKEN_START_RIGHT);
-        if (st == TOKEN_START_RIGHT) {
+        } else if (st == TOKEN_START_RIGHT) {
             if (c == '>') {
                 if (tag.empty()) {
                     // no empty tag
-                    return "parse error";
+                    return "empty closing tag";
                 }
                 if (tq.empty() || tag != tq.top()) {
                     return "encountered closing tag without matching open tag for </" + tag + ">";
@@ -236,59 +213,65 @@ string validate_xml(string xml) {
                 tq.pop();
                 tag.clear();
                 st = TAG_END_RIGHT;
-                continue;
+            } else {
+                tag += c;
             }
-            tag += c;
-            continue;
         }
     }
 
-    if ((st == START || st == TAG_END_RIGHT || st == TEXT) && tq.empty()) {
+    if ((st == TEXT || st == TAG_END_RIGHT) && tq.empty()) {
         return "valid";
+    }
+    if ((st == TEXT || st == TAG_END_LEFT) && !tq.empty()) {
+        return "missing closing tag for <" + tq.top() + ">";
     }
     if (st == TAG_END_RIGHT) {
         return "encountered closing tag without matching open tag for </" + tq.top() + ">";
-    }
-    if ((st == TAG_END_LEFT || st == TEXT) && !tq.empty()) {
-        return "missing closing tag for <" + tq.top() + ">";
     }
     return "parse error";
 }
 
 FTEST(test_validate_xml) {
-    LOG(INFO) << validate_xml("/");
-    LOG(INFO) << validate_xml("/>");
-    LOG(INFO) << validate_xml(">");
-    LOG(INFO) << validate_xml("a>");
-    LOG(INFO) << validate_xml("a/>");
-    LOG(INFO) << validate_xml("<<a>sss");
-    LOG(INFO) << validate_xml("<a>sss");
-    LOG(INFO) << validate_xml("</a>");
-    LOG(INFO) << validate_xml("sss</a>");
-    LOG(INFO) << validate_xml("<a>sss</b>");
-    LOG(INFO) << validate_xml("<a></a>");
-    LOG(INFO) << validate_xml("<a>sss</a>");
-    LOG(INFO) << validate_xml("<a>ss/s</a>");
-    LOG(INFO) << validate_xml("<a>ss<s</a>");
-    LOG(INFO) << validate_xml("<a>ss>s</a>");
-    LOG(INFO) << validate_xml("<a>ss<>s</a>");
+    auto t = [&](const std::string& s) {
+        auto re = validate_xml(s);
+        LOG(INFO) << s << ": " << re;
+        return re;
+    };
 
-    LOG(INFO) << validate_xml("<a><c></c></a>");
-    LOG(INFO) << validate_xml("<a>sss<c></c></a>");
-    LOG(INFO) << validate_xml("<a><c>sss</c></a>");
-    LOG(INFO) << validate_xml("<a><c></c>sss</a>");
-    LOG(INFO) << validate_xml("<a>sss<c>sss</c></a>");
-    LOG(INFO) << validate_xml("<a><c>sss</c>sss</a>");
-    LOG(INFO) << validate_xml("<a>sss<c></c>sss</a>");
-    LOG(INFO) << validate_xml("<a>sss<c>sss</c>sss</a>");
+    FEXP(t("/"), "valid");
+    FEXP(t("/>"), "parse error");
+    FEXP(t(">"), "parse error");
+    FEXP(t("a>"), "parse error");
+    FEXP(t("a/>"), "parse error");
+    FEXP(t("<<a>sss"), "parse error");
+    FEXP(t("<a>sss"), "missing closing tag for <a>");
+    FEXP(t("</a>"), "encountered closing tag without matching open tag for </a>");
+    FEXP(t("sss</a>"), "encountered closing tag without matching open tag for </a>");
+    FEXP(t("<a>sss</b>"), "encountered closing tag without matching open tag for </b>");
+    FEXP(t("<a></a>"), "valid");
+    FEXP(t("<a>sss</a>"), "valid");
+    FEXP(t("<a>ss/s</a>"), "valid");
+    FEXP(t("<a>ss<s</a>"), "parse error");
+    FEXP(t("<a>ss>s</a>"), "parse error");
+    FEXP(t("<a>ss<>s</a>"), "empty open tag");
+    FEXP(t("<a>ss</>s</a>"), "empty closing tag");
+    FEXP(t("<a><c></c></a>"), "valid");
+    FEXP(t("<a>sss<c></c></a>"), "valid");
+    FEXP(t("<a><c>sss</c></a>"), "valid");
+    FEXP(t("<a><c></c>sss</a>"), "valid");
+    FEXP(t("<a>sss<c>sss</c></a>"), "valid");
+    FEXP(t("<a><c>sss</c>sss</a>"), "valid");
+    FEXP(t("<a>sss<c></c>sss</a>"), "valid");
+    FEXP(t("<a>sss<c>sss</c>sss</a>"), "valid");
+    FEXP(t("<a>d/d<c></c></a>"), "valid");
+    FEXP(t("<a><c>d/d</c></a>"), "valid");
+    FEXP(t("<a><c></c>d/d</a>"), "valid");
+    FEXP(t("<a>d/d<c>d/d</c></a>"), "valid");
+    FEXP(t("<a><c>d/d</c>d/d</a>"), "valid");
+    FEXP(t("<a>d/d<c></c>d/d</a>"), "valid");
+    FEXP(t("<a>d/d<c>d/d</c>d/d</a>"), "valid");
+    FEXP(t("<a>d/d<c><c>d/d</c></c>d/d</a>"), "valid");
 
-    LOG(INFO) << validate_xml("<a>d/d<c></c></a>");
-    LOG(INFO) << validate_xml("<a><c>d/d</c></a>");
-    LOG(INFO) << validate_xml("<a><c></c>d/d</a>");
-    LOG(INFO) << validate_xml("<a>d/d<c>d/d</c></a>");
-    LOG(INFO) << validate_xml("<a><c>d/d</c>d/d</a>");
-    LOG(INFO) << validate_xml("<a>d/d<c></c>d/d</a>");
-    LOG(INFO) << validate_xml("<a>d/d<c>d/d</c>d/d</a>");
 }
 
 int main() {
