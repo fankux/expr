@@ -124,9 +124,72 @@ Explanation:
 The substring with start index = 0 is "ab", which is an anagram of "ab".
 The substring with start index = 1 is "ba", which is an anagram of "ab".
 The substring with start index = 2 is "ab", which is an anagram of "ab".
+
+THOUGHTS:
+    sliding window
+    right border move, if(mm[c]-- >= 1) --cnt:
+        If chars' count in window larger than input or char not concern,
+        cnt dosen't change, and mm[c] will be negative after this line.
+
+    left border move, if(mm[c]++ >= 0) ++cnt:
+        Contrary as follow.
+
+   c   b   a   e   b   a   b   a   c   d  | a b c[cnt]
+  s,i                                       1 1 1[3] → 1 1 0[2]
+   s   i                                    1 0 0[1]
+   s → s   i                                0 0 0[0] → 0 0 1[1], add subs(i-start+1) to result
+                                                                 move left boder from now.
+       s → s   i                            0 0 1[1] → 0 1 1[2], e not concern
+           s → s   i                        0 0 1[1] → 1 0 1[2]
+               s → s   i                    0 0 1[1] → 0 0 1[1]
+                   s → s   i                0 -1 1[1] → 0 0 1[1]
+                       s → s   i            -1 0 1[1] → 0 0 1[1]
+                           s → s   i        0 0 0[0] → 0 1 0[1], add subs(i-start+1) to result
+                               s → s   i    0 1 0[0] → 1 1 0[2]
  */
 std::vector<int> findAnagrams(std::string s, std::string p) {
+    int mm[26] = {0};
+    for (auto& c : p) {
+        ++mm[c - 'a'];
+    }
+    std::vector<int> res;
+    size_t count = p.size();
+    size_t start = 0;
+    size_t i = 0;
+    while (i < s.size()) {
+        if (mm[s[i++] - 'a']-- >= 1) {
+            --count;
+        }
+        if (count == 0) {
+            res.emplace_back(start);
+        }
+        if (i - start == p.size() && mm[s[start++] - 'a']++ >= 0) {
+            ++count;
+        }
+    }
+    return res;
+}
 
+FTEST(test_findAnagrams) {
+    auto t = [&](const std::string s, const std::string p) {
+        auto re = findAnagrams(s, p);
+        LOG(INFO) << s << " anagram: " << p << " count: " << re;
+        return re;
+    };
+
+    t("", "");
+    t("", "a");
+    t("a", "");
+    t("a", "a");
+    t("aa", "a");
+    t("aa", "aa");
+    t("aa", "ab");
+    t("aba", "ab");
+    t("aab", "ab");
+    t("baa", "aa");
+    t("abab", "ab");
+    t("cbaebabacd", "abc");
+    t("cbaebaabcd", "abc");
 }
 
 /**

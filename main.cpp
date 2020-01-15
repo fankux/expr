@@ -289,7 +289,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_canPartition();
+    test_findAnagrams();
 
     // TODO... knapsack
     // TODO... Manacher's palindrome
