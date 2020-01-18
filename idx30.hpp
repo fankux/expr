@@ -8,9 +8,136 @@
 namespace LCIndex30 {
 
 /**
- ///////////// 301.
+ ///////////// 301. Remove Invalid Parentheses
+Remove the minimum number of invalid parentheses in order to make the input string valid.
+ Return all possible results.
+Note: The input string may contain letters other than the parentheses ( and ).
 
+Example 1:
+Input: "()())()"
+Output: ["()()()", "(())()"]
+
+Example 2:
+Input: "(a)())()"
+Output: ["(a)()()", "(a())()"]
+
+Example 3:
+Input: ")("
+Output: [""]
+
+THOUGHTS(pair reverse method):
+    - First, try to search pair '(' match ')', remove ')' that number execees '(', like ()),
+      this round is recursive to remove patterns like: ())).
+      here we have done number of ')' more than number of '('
+    - Then reverse search pair as ')' match '(', and reverse search string also.
+      Do same action as step 1, we could remove all '(' that number of '(' more than number of ')'
  */
+std::vector<std::string> removeInvalidParentheses(std::string s) {
+    std::vector<std::string> res;
+    auto dfs_check_method = [&] {
+        auto check = [](const std::string& s) {
+            int cnt = 0;
+            for (char c : s) {
+                if (c == '(') {
+                    ++cnt;
+                } else if (c == ')' && (--cnt) < 0) {
+                    return false;
+                }
+            }
+            return cnt == 0;
+        };
+        std::function<void(std::string, int, int, int)> rfunc;
+        rfunc = [&](std::string s, int start, int count1, int count2) {
+            if (count1 == 0 && count2 == 0 && check(s)) {
+                res.emplace_back(std::move(s));
+                return;
+            }
+
+            for (size_t i = start; i < s.size(); ++i) {
+                if (i > start && s[i] == s[i - 1]) {
+                    continue;
+                }
+                if (count1 > 0 && s[i] == '(') {
+                    rfunc(s.substr(0, i) + s.substr(i + 1), i, count1 - 1, count2);
+                } else if (count2 > 0 && s[i] == ')') {
+                    rfunc(s.substr(0, i) + s.substr(i + 1), i, count1, count2 - 1);
+                }
+            }
+        };
+        int count1 = 0;
+        int count2 = 0;
+        for (char c : s) {
+            count1 += c == '(';
+            if (count1 == 0) {
+                count2 += c == ')';
+            } else {    // count1 > 0
+                count1 -= c == ')';
+            }
+        }
+        rfunc(s, 0, count1, count2);
+    };
+    auto pair_reverse_method = [&] {
+        std::function<void(std::string, size_t, size_t, const std::pair<char, char>&)> rfunc;
+        rfunc = [&](std::string s, size_t li, size_t lj, const std::pair<char, char>& pair) {
+            int count = 0;
+            for (size_t i = li; i < s.size(); ++i) {
+                if (s[i] == pair.first) {
+                    ++count;
+                } else if (s[i] == pair.second) {
+                    --count;
+                }
+                if (count >= 0) {
+                    continue;
+                }
+                for (size_t j = lj; j <= i; ++j) {
+                    if (s[j] == pair.second && (j == lj || s[j] != s[j - 1])) {
+                        rfunc(s.substr(0, j) + s.substr(j + 1), i, j, pair);
+                    }
+                }
+                return;
+            }
+            s = std::string(s.rbegin(), s.rend());
+            if (pair.first == '(') {
+                rfunc(s, 0, 0, {')', '('});
+            } else { // now pair is )(, we have done a round
+                res.emplace_back(s);
+            }
+        };
+        rfunc(s, 0, 0, {'(', ')'});
+    };
+    pair_reverse_method();
+    return res;
+}
+
+FTEST(test_removeInvalidParentheses) {
+    auto t = [](const std::string& s) {
+        auto re = removeInvalidParentheses(s);
+        LOG(INFO) << s << " remove invalid parentheses: " << re;
+    };
+
+    t("");
+    t("a");
+    t("a(");
+    t("a)");
+    t("a)(");
+    t("a)((");
+    t("a)(((");
+    t("a))(");
+    t("a)))(");
+    t("a()");
+    t("a(()");
+    t("a((()");
+    t("a())");
+    t("a()))");
+    t("a()(");
+    t("a()((");
+    t("a()(((");
+    t(")a()");
+    t("))a()");
+    t(")))a()");
+    t("()())()");
+    t("(a)())()");
+}
 
 /**
  ///////////// 302.
