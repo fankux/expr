@@ -676,22 +676,133 @@ void trie_level_travel(TrieNode* trie) {
 
 class SegmentTree {
 public:
-    void clear() {
+    explicit SegmentTree(const std::vector<int>& nums) {
+        _size = nums.size();
+        int len = _size <= 1 ? _size : (next_power_of_2(_size) << 1) - 1; // find precise size
+        _c.resize(len, INT_MAX);
+        _lazy.resize(len);
+        build(nums, 0, nums.size(), 0);
+    }
+
+    inline void clear() {
         _c.clear();
     }
 
-    bool empty() const {
+    inline bool empty() const {
         return _c.empty();
     }
 
-    size_t size() const {
-        return _c.size();
+    inline size_t size() const {
+        return _size;
     }
 
+    inline int min(size_t start, size_t end) {
+        return search(0, _c.size(), start, end, 0);
+    }
+
+    std::string print_tree(int ws_col = 70) {
+        std::vector<std::string> node_levels;
+        std::function<void(size_t, size_t, size_t, int, int)> rfunc;
+        rfunc = [&](size_t l, size_t r, size_t idx, int level, int ws) {
+            if (idx >= _c.size()) {
+                return;
+            }
+
+            if (level >= node_levels.size()) {
+                node_levels.resize(level + 1);
+            }
+
+            if (_c[idx] == INT_MAX) {
+                node_levels[level] += std::string(ws <= 0 ? 1 : ws, ' ');
+            } else {
+                std::string label = std::to_string(_c[idx]) +
+                        '[' + std::to_string(l) + ',' + std::to_string(r - 1) + ']';
+                int space_size = ws - label.size();
+                space_size = space_size <= 0 ? 1 : space_size / 2;
+                node_levels[level] +=
+                        std::string(space_size, ' ') + label + std::string(space_size, ' ');
+            }
+            size_t mid = l + (r - l) / 2;
+            ws >>= 1;
+            rfunc(l, mid, (idx << 1) + 1, level + 1, ws);
+            rfunc(mid, r, (idx << 1) + 2, level + 1, ws);
+        };
+        rfunc(0, _size, 0, 0, ws_col);
+
+        std::stringstream ss;
+        for (auto& node_level: node_levels) {
+            for (auto& node : node_level) {
+                ss << node;
+            }
+            ss << '\n';
+        }
+        return ss.str();
+    }
 
 private:
-    std::deque<int> _c;
+    int build(const std::vector<int>& nums, size_t l, size_t r, size_t idx) {
+        if (l + 1 >= r) {
+            _c[idx] = nums[l];
+        } else {
+            size_t mid = l + (r - l) / 2;
+            _c[idx] = std::min(build(nums, l, mid, (idx << 1) + 1),
+                    build(nums, mid, r, (idx << 1) + 2));
+        }
+        return _c[idx];
+    }
+
+    int search(size_t l, size_t r, size_t sl, size_t sr, size_t idx) {
+        if (sr <= l || r <= sl) { // no overlap
+            return INT_MAX;
+        }
+        if (sl <= l && r <= sr) { // total overlap
+            return _c[idx];
+        }
+        // l < sl || sr < r, partial overlap
+        size_t mid = l + (r - l) / 2;
+        return std::min(search(l, mid, sl, sr, (idx << 1) + 1),
+                search(mid, r, sl, sr, (idx << 1) + 2));
+    }
+
+    // num > 1
+    static inline uint64_t next_power_of_2(uint64_t num) {
+#if defined(__GNUC__)
+        return 1 << (64 - __builtin_clz(num - 1));
+#else
+        --num;
+        num |= num >> 1;
+        num |= num >> 2;
+        num |= num >> 4;
+        num |= num >> 8;
+        num |= num >> 16;
+        num |= num >> 32;
+        return ++num;
+#endif
+    }
+
+private:
+    size_t _size = 0;
+    std::vector<int> _c;
+    std::vector<int> _lazy;
 };
+
+FTEST(test_SegmentTree) {
+    auto t = [](const std::vector<int> nums) {
+        SegmentTree st(nums);
+        LOG(INFO) << nums << "segment tree:\n" << st.print_tree();
+        return st;
+    };
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 2, 3, 4});
+    t({1, 2, 3, 4, 5});
+    t({1, 2, 3, 4, 5, 6});
+    t({1, 2, 3, 4, 5, 6, 7});
+    t({1, 2, 3, 4, 5, 6, 7, 8});
+//    t({1, 2, 3, 4, 5, 6, 7, 8, 9});
+//    t({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
