@@ -181,8 +181,9 @@ std::string print_tree(TreeNode* n, int ws_col = 50) {
 }
 
 std::string print_tree(LCTreeNode* n, int ws_col = 50) {
-    return print_tree<LCTreeNode>(n, [](LCTreeNode* p) { return p && p->next ? '>' : ' '; },
-            ws_col);
+    return print_tree<LCTreeNode>(n, [](LCTreeNode* p) {
+        return p && p->next ? '>' : ' ';
+    }, ws_col);
 }
 
 FTEST(test_print_tree) {
@@ -311,7 +312,8 @@ std::vector<TreeNodeStub> postorder_stack_travel(TreeNode* root) {
 /**
  * 1. 如果当前节点的左孩子为空，则输出当前节点并将其右孩子作为当前节点。
  * 2. 如果当前节点的左孩子不为空，在当前节点的左子树中找到当前节点在中序遍历下的前驱节点。
- *      a) 如果前驱节点的右孩子为空，将它的右孩子设置为当前节点。当前节点更新为当前节点的左孩子。输出当前节点。当前节点更新为当前节点的右孩子。
+ *      a) 如果前驱节点的右孩子为空，将它的右孩子设置为当前节点。当前节点更新为当前节点的左孩子。
+ *         输出当前节点。当前节点更新为当前节点的右孩子。
  *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。
  * 3. 重复以上1、2直到当前节点为空。
  */
@@ -345,7 +347,8 @@ std::vector<TreeNodeStub> preorder_morris_travel(TreeNode* root) {
  * 1. 如果当前节点的左孩子为空，则输出当前节点并将其右孩子作为当前节点。
  * 2. 如果当前节点的左孩子不为空，在当前节点的左子树中找到当前节点在中序遍历下的前驱节点。
  *      a) 如果前驱节点的右孩子为空，将它的右孩子设置为当前节点。当前节点更新为当前节点的左孩子。
- *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。输出当前节点。当前节点更新为当前节点的右孩子。
+ *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空（恢复树的形状）。输出当前节点。
+ *         当前节点更新为当前节点的右孩子。
  * 3. 重复以上1、2直到当前节点为空。
  */
 std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* root) {
@@ -379,7 +382,8 @@ std::vector<TreeNodeStub> inorder_morris_travel(TreeNode* root) {
  * 1. 如果当前节点的左孩子为空，则将其右孩子作为当前节点。
  * 2. 如果当前节点的左孩子不为空，在当前节点的左子树中找到当前节点在中序遍历下的前驱节点。
  *      a) 如果前驱节点的右孩子为空，将它的右孩子设置为当前节点。当前节点更新为当前节点的左孩子。
- *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空。倒序输出从当前节点的左孩子到该前驱节点这条路径上的所有节点。当前节点更新为当前节点的右孩子。
+ *      b) 如果前驱节点的右孩子为当前节点，将它的右孩子重新设为空。
+ *         倒序输出从当前节点的左孩子到该前驱节点这条路径上的所有节点。当前节点更新为当前节点的右孩子。
  * 3. 重复以上1、2直到当前节点为空。
  */
 std::vector<TreeNodeStub> postorder_morris_travel(TreeNode* root) {
@@ -697,7 +701,27 @@ public:
     }
 
     inline int min(size_t start, size_t end) {
-        return search(0, _c.size(), start, end, 0);
+        return search(0, _size, start, end, 0);
+    }
+
+    void update(size_t pos, int val) {
+        if (pos >= _size) {
+            return;
+        }
+
+//        std::function<void(size_t, size_t, size_t, size_t, int)> rfunc;
+//        rfunc = [&](size_t l, size_t r, size_t sl, size_t sr, int val) {
+//            if (sr <= l || r <= sl) { // no overlap
+//                return INT_MAX;
+//            }
+//            if (sl <= l && r <= sr) { // total overlap
+//                return _c[idx];
+//            }
+//            // l < sl || sr < r, partial overlap
+//            size_t mid = l + (r - l) / 2;
+//            return std::min(search(l, mid, sl, sr, (idx << 1) + 1),
+//                    search(mid, r, sl, sr, (idx << 1) + 2));
+//        };
     }
 
     std::string print_tree(int ws_col = 70) {
@@ -716,7 +740,8 @@ public:
                 node_levels[level] += std::string(ws <= 0 ? 1 : ws, ' ');
             } else {
                 std::string label = std::to_string(_c[idx]) +
-                        '[' + std::to_string(l) + ',' + std::to_string(r - 1) + ']';
+                        '[' + std::to_string(idx) + ':' + std::to_string(l) + ',' +
+                        std::to_string(r - 1) + ']';
                 int space_size = ws - label.size();
                 space_size = space_size <= 0 ? 1 : space_size / 2;
                 node_levels[level] +=
@@ -767,7 +792,7 @@ private:
     // num > 1
     static inline uint64_t next_power_of_2(uint64_t num) {
 #if defined(__GNUC__)
-        return 1 << (64 - __builtin_clz(num - 1));
+        return 1 << (sizeof(int) * 8 - __builtin_clz(num - 1));
 #else
         --num;
         num |= num >> 1;
@@ -787,21 +812,25 @@ private:
 };
 
 FTEST(test_SegmentTree) {
-    auto t = [](const std::vector<int> nums) {
+    auto t = [](const std::vector<int>& nums) {
         SegmentTree st(nums);
-        LOG(INFO) << nums << "segment tree:\n" << st.print_tree();
+        LOG(INFO) << nums << " segment tree(" << st.size() << "):\n" << st.print_tree();
+        for (int i = 1; i <= st.size(); ++i) {
+            for (int j = 0; j < st.size(); j += i) {
+                LOG(INFO) << "min of [" << j << "," << (i + j) << "):"
+                          << st.min(j, i + j);
+            }
+        }
         return st;
     };
     t({1});
     t({1, 2});
-    t({1, 2, 3});
-    t({1, 2, 3, 4});
-    t({1, 2, 3, 4, 5});
-    t({1, 2, 3, 4, 5, 6});
-    t({1, 2, 3, 4, 5, 6, 7});
-    t({1, 2, 3, 4, 5, 6, 7, 8});
-//    t({1, 2, 3, 4, 5, 6, 7, 8, 9});
-//    t({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+    t({3, 1, 2});
+    t({4, 3, 1, 2});
+    t({4, 3, 1, 5, 2});
+    t({4, 6, 3, 1, 5, 2});
+    t({4, 6, 3, 1, 5, 2, 7});
+    t({4, 6, 3, 1, 5, 2, 8, 7});
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

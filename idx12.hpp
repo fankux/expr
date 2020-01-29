@@ -140,9 +140,69 @@ Example 3:
 Input: [7,6,4,3,1]
 Output: 0
 Explanation: In this case, no transaction is done, i.e. max profit = 0.
+
+THOUGTHS:
+  dp[i][j] means max profit of i(th) transaction at j(th) day.
+
+                 / dp[i][j-1]                                                   j(th) no transaction
+  dp[i][j] = max
+                 \ dp[i-1][m] + max(prices[j] - prices[m])[m from 0 to j-1]     j(th) day sell,
+                 there must was a buy action at m(th) day,
+                 find the minimium m got the maxmium  prices[j] - prices[m]
+
+        notice that we can hold the m day by holding max_diff, like i=2,j=3, looking progress:
+        dp[1][0] = {dp[1][0] - prices[0]} + prices[3]
+        dp[1][1] = {dp[1][1] - prices[1]} + prices[3]
+        dp[1][2] = {dp[1][2] - prices[2]} + prices[3]
+                   └──────────┬─────────┘
+                            maxdiff
+
+                 / dp[i][j-1]               j(th) no transaction
+  dp[i][j] = max
+                 \ prices[j] + maxdiff      j(th) day sell
+                   maxdiff = max(maxdiff, dp[i-1][j] - prices[j])
+
 */
 int maxProfitIII(std::vector<int>& prices) {
-    return 0;
+    size_t len = prices.size();
+    if (len < 2) {
+        return 0;
+    }
+    std::vector<std::vector<int>> state(3, std::vector<int>(len, 0));
+    for (size_t i = 1; i < 3; ++i) {
+        int maxdiff = -prices[0]; // make prices[1] + maxdiff = prices[1] - prices[0]
+        for (size_t j = 1; j < len; ++j) {
+            state[i][j] = std::max(state[i][j - 1], prices[j] + maxdiff);
+            int delta = state[i - 1][j] - prices[j];
+            if (maxdiff < delta) {
+                maxdiff = delta;
+            }
+        }
+    }
+    return state.back().back();
+}
+
+FTEST(test_maxProfitIII) {
+    auto t = [](const std::vector<int>& prices) {
+        std::vector<int> nns = prices;
+        auto re = maxProfitIII(nns);
+        LOG(INFO) << prices << " max 2 transaction profit: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({0}), 0);
+    FEXP(t({1}), 0);
+    FEXP(t({2, 1}), 0);
+    FEXP(t({4, 3, 1}), 0);
+    FEXP(t({6, 4, 3, 1}), 0);
+    FEXP(t({7, 6, 4, 3, 1}), 0);
+    FEXP(t({1, 2}), 1);
+    FEXP(t({1, 2, 3}), 2);
+    FEXP(t({1, 2, 4}), 3);
+    FEXP(t({1, 2, 3, 4}), 3);
+    FEXP(t({1, 2, 3, 4}), 3);
+    FEXP(t({1, 2, 3, 4, 5}), 4);
 }
 
 /**

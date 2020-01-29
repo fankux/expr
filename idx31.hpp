@@ -37,8 +37,8 @@ THOUGHTS:
     dp[i][j] means from i to j, max coins.
 
     dp[i][j] = std::max(dp[i][j], nums[i-1] * nums[k]* nums[j+1] + dp[i][k-1]+dp[k+1][j]
-    Here k is the last bolloon to be brusted in range i to j,
-    now all the bolloons in range i to j is brokens, nums[i-1] is left and nums[j+1] is right
+    Here k is the last balloon to be brusted in range i to j,
+    now all the balloons in range i to j is brokens, nums[i-1] is left and nums[j+1] is right
 
     Note that we must iterate range from small to large
  */
