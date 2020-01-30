@@ -579,7 +579,8 @@ FTEST(test_longestConsecutive) {
 
 /**
  ///////////// 129. Sum Root to Leaf Numbers
-Given a binary tree containing digits from 0-9 only, each root-to-leaf path could represent a number.
+Given a binary tree containing digits from 0-9 only,
+ each root-to-leaf path could represent a number.
 An example is the root-to-leaf path 1->2->3 which represents the number 123.
 Find the total sum of all root-to-leaf numbers.
 Note: A leaf is a node with no children.
@@ -609,8 +610,44 @@ The root-to-leaf path 4->9->1 represents the number 491.
 The root-to-leaf path 4->0 represents the number 40.
 Therefore, sum = 495 + 491 + 40 = 1026.
 */
-int sumNumbers(TreeNode* root) {
-    return 0;
+int treeSumNumbers(TreeNode* root) {
+    std::function<int(TreeNode*, int)> rfunc;
+    rfunc = [&rfunc](TreeNode* p, int n) {
+        if (p == nullptr) {
+            return 0;
+        }
+        int sum = n * 10 + p->val;
+        if (p->left == nullptr && p->right == nullptr) {
+            return sum;
+        }
+        int l = 0;
+        int r = 0;
+        if (p->left) {
+            l = rfunc(p->left, sum);
+        }
+        if (p->right) {
+            r = rfunc(p->right, sum);
+        }
+        return l + r;
+    };
+    return rfunc(root, 0);
+}
+
+FTEST(test_treeSumNumbers) {
+    auto t = [](const std::vector<TreeNodeStub>& nodes) {
+        TreeNode* tree = create_tree(nodes);
+        auto re = treeSumNumbers(tree);
+        LOG(INFO) << nodes << " sum " << re << " of tree: \n" << print_tree(tree);
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({0}), 0);
+    FEXP(t({1}), 1);
+    FEXP(t({1, nullptr, 2}), 12);
+    FEXP(t({1, 3}), 13);
+    FEXP(t({1, 2, 3}), 25);
+    FEXP(t({4, 9, 0, 5, 1}), 1026);
 }
 
 /**

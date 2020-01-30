@@ -16,8 +16,8 @@
 //#include "idx9.hpp"
 //#include "idx10.hpp"
 //#include "idx11.hpp"
-#include "idx12.hpp"
-//#include "idx13.hpp"
+//#include "idx12.hpp"
+#include "idx13.hpp"
 //#include "idx14.hpp"
 //#include "idx15.hpp"
 //#include "idx16.hpp"
@@ -66,8 +66,8 @@
 //using namespace LCIndex4;
 //using namespace LCIndex5;
 //using namespace LCIndex6;
-using namespace LCIndex12;
-//using namespace LCIndex13;
+//using namespace LCIndex12;
+using namespace LCIndex13;
 //using namespace LCIndex14;
 //using namespace LCIndex15;
 //using namespace LCIndex16;
@@ -308,12 +308,11 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_findLadders();
+    test_palindromePartitionMinCut();
 
     // TODO... knapsack
     // TODO... Manacher's palindrome
     // TODO... LSM tree
     // TODO... bloom filter
-    // TODO... segment tree
     return 0;
 }

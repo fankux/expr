@@ -81,7 +81,40 @@ Output: 1
 Explanation: The palindrome partitioning ["aa","b"] could be produced using 1 cut.
 */
 int palindromePartitionMinCut(std::string s) {
-    return 0;
+    size_t len = s.size();
+    std::vector<int> min_state(len);
+    std::vector<std::vector<bool>> state(len, std::vector<bool>(len, false));
+    for (int i = 0; i < len; ++i) {
+        min_state[i] = i;
+        for (int j = 0; j <= i; ++j) {
+            if (i == j) {
+                state[j][i] = true;
+            } else if (i == j + 1) {
+                state[j][i] = s[i] == s[j];
+            } else { // j > i + 1
+                state[j][i] = state[j + 1][i - 1] && s[i] == s[j];
+            }
+            if (state[j][i]) {
+                min_state[i] = j == 0 ? 0 : std::min(min_state[i], min_state[j - 1] + 1);
+            }
+        }
+    }
+    return len == 0 ? 0 : min_state[len - 1];
+}
+
+FTEST(test_palindromePartitionMinCut) {
+    auto t = [](const std::string& s) {
+        auto re = palindromePartitionMinCut(s);
+        LOG(INFO) << s << " palindrome substrs: " << re;
+        return re;
+    };
+
+    FEXP(t(""), 0);
+    FEXP(t("a"), 0);
+    FEXP(t("ab"), 1);
+    FEXP(t("aba"), 0);
+    FEXP(t("aab"), 1);
+    FEXP(t("ababababababababababababcbabababababababababababa"), 0);
 }
 
 /**
