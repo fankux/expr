@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <queue>
 #include "list.hpp"
 #include "subs.hpp"
 #include "strs.hpp"
@@ -366,7 +367,68 @@ Explanation: The endWord "cog" is not in wordList, therefore no possible transfo
 */
 std::vector<std::vector<std::string>> findLadders(std::string beginWord, std::string endWord,
         std::vector<std::string>& wordList) {
-    return {};
+    size_t len = beginWord.size();
+    std::vector<std::map<char, std::vector<std::string*>>> ranges(len); // idx, <char, [words]>
+    for (auto& w : wordList) {
+        for (size_t i = 0; i < len; ++i) {
+            ranges[i][w[i]].emplace_back(&w);
+        }
+    }
+
+    std::unordered_set<std::string> used;
+    std::vector<std::vector<std::string>> res;
+    std::queue<std::vector<std::string>> qq{{{beginWord}}};
+    std::unordered_set<std::string> words(wordList.begin(), wordList.end());
+    while (!qq.empty()) {
+        for (size_t l = qq.size(); l > 0; --l) {    // each layer for BFS
+            std::vector<std::string>& path = qq.front();
+            std::string w = path.back();
+            for (size_t i = 0; i < len; ++i) {      // each char for current word
+                for (auto& entry : ranges[i]) {
+                    char c = w[i];
+                    w[i] = entry.first;             // replace a char
+                    if (words.count(w) != 0) {
+                        used.emplace(w);
+                        std::vector<std::string> npath(path);
+                        npath.emplace_back(w);
+                        if (w == endWord) {         // got an answer
+                            res.emplace_back(npath);
+                        } else {
+                            qq.push(npath);
+                        }
+                    }
+                    w[i] = c;                       // recover char to original
+                }
+            }
+            qq.pop();
+        }
+        for (auto& u : used) {                      // clear current level used words
+            words.erase(u);
+        }
+        used.clear();
+        if (!res.empty()) {                         // BFS, once found is the minimium result
+            break;
+        }
+    }
+    return res;
+}
+
+FTEST(test_findLadders) {
+    auto t = [](const std::string beginWord, const std::string& endWord,
+            const std::vector<std::string>& wordList) {
+        std::vector<std::string> nns = wordList;
+        auto re = findLadders(beginWord, endWord, nns);
+        LOG(INFO) << beginWord << " to " << endWord << " ladder length: " << re;
+        return re;
+    };
+
+    t("", "", {});
+    t("a", "c", {"d"});
+    t("a", "c", {"c"});
+    t("a", "c", {"b", "c"});
+    t("ad", "bc", {"ac", "bc"});
+    t("hit", "cog", {"hot", "dot", "dog", "lot", "log", "cog"});
+    t("hit", "cog", {"hot", "dot", "dog", "lot", "log"});
 }
 
 /**
