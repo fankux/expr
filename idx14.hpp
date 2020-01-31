@@ -160,6 +160,78 @@ Example 2:
 Given 1->2->3->4->5, reorder it to 1->5->2->4->3.
  */
 void reorderList(ListNode* head) {
+    auto stack_method = [&] {
+        ListNode* p = head;
+        std::stack<ListNode*> st;
+        while (p) {
+            st.emplace(p);
+            p = p->next;
+        }
+        p = head;
+        while (p && p->next) {
+            ListNode* n = p->next;
+            if (!st.empty() && st.top() != n) {
+                ListNode* t = st.top();
+                st.pop();
+                if (!st.empty()) {
+                    st.top()->next = nullptr;
+                }
+                t->next = n;
+                p->next = t;
+            }
+            p = n;
+        }
+    };
+    auto iter_method = [&] {
+        if (head == nullptr) {
+            return;
+        }
+        ListNode* f = head;
+        ListNode* s = head;
+        while (f && f->next) {
+            s = s->next;
+            f = f->next->next;
+        }
+        // break to two list;
+        f = s->next;
+        s->next = nullptr;
+
+        // reverse second list
+        ListNode* p = nullptr;
+        while (f) {
+            s = f->next;
+            f->next = p;
+            p = f;
+            f = s;
+        }
+
+        // inter connect two list
+        s = head;
+        while (s && p) {
+            f = p->next;
+            p->next = s->next;
+            s->next = p;
+            s = p->next;
+            p = f;
+        }
+    };
+    iter_method();
+}
+
+FTEST(test_reorderList) {
+    auto t = [](const std::vector<int>& nums) {
+        ListNode* list = list_convert_leetcode(create_list(nums));
+        reorderList(list);
+        LOG(INFO) << nums << " reorder list: " << print_list(list);
+    };
+
+    t({});
+    t({1});
+    t({1, 2});
+    t({1, 2, 3});
+    t({1, 2, 3, 4});
+    t({1, 2, 3, 4, 5});
+    t({1, 2, 3, 4, 5, 6});
 }
 
 /**
@@ -178,7 +250,52 @@ Output: [1,2,3]
 Follow up: Recursive solution is trivial, could you do it iteratively?
  */
 std::vector<int> preorderTraversal(TreeNode* root) {
-    return {};
+    std::vector<int> res;
+    auto stack_method = [&] {
+        std::stack<TreeNode*> st;
+        while (root || !st.empty()) {
+            if (root) {
+                res.emplace_back(root->val);
+                st.emplace(root);
+                root = root->left;
+            } else {
+                root = st.top();
+                st.pop();
+                root = root->right;
+            }
+        }
+    };
+    auto morris_method = [&] {
+        while (root) {
+            if (root->left == nullptr) {
+                res.emplace_back(root->val);
+                root = root->right;
+                continue;
+            }
+            TreeNode* pre = root->left;
+            while (pre->right && pre->right != root) {
+                pre = pre->right;
+            }
+            if (pre->right == nullptr) {
+                res.emplace_back(root->val);
+                pre->right = root;
+                root = root->left;
+            } else {    // pre->right == root
+                pre->right = nullptr;
+                root = root->right;
+            }
+        }
+    };
+    morris_method();
+    return res;
+}
+
+FTEST(test_preorderTraversal) {
+    TreeNode* root = create_tree({0, 1, 2, 3, 4, 5});
+    LOG(INFO) << "tree: \n" << print_tree(root);
+    LOG(INFO);
+    LOG(INFO) << "stack:";
+    LOG(INFO) << "pre:" << preorderTraversal(root);
 }
 
 /**
@@ -197,7 +314,33 @@ Output: [3,2,1]
 Follow up: Recursive solution is trivial, could you do it iteratively?
  */
 std::vector<int> postorderTraversal(TreeNode* root) {
-    return {};
+    std::stack<TreeNode*> st;
+    std::vector<int> res;
+    TreeNode* pre = nullptr;
+    while (root || !st.empty()) {
+        while (root) {
+            st.emplace(root);
+            root = root->left;
+        }
+        root = st.top();
+        if (root->right == nullptr || root->right == pre) {
+            res.emplace_back(root->val);
+            pre = root;
+            st.pop();
+            root = nullptr;
+        } else {
+            root = root->right;
+        }
+    }
+    return res;
+}
+
+FTEST(test_postorderTraversal) {
+    TreeNode* root = create_tree({0, 1, 2, 3, 4, 5});
+    LOG(INFO) << "tree: \n" << print_tree(root);
+    LOG(INFO);
+    LOG(INFO) << "stack:";
+    LOG(INFO) << "post:" << postorderTraversal(root);
 }
 
 /**
@@ -335,7 +478,65 @@ Input: -1->5->3->4->0
 Output: -1->0->3->4->5
  */
 ListNode* insertionSortList(ListNode* head) {
-    return nullptr;
+    ListNode dummy(INT_MIN);
+    dummy.next = head;
+
+    ListNode* p = head;
+    ListNode* pre = &dummy;
+    while (p) {
+        ListNode* n = p->next;
+
+        ListNode* d = &dummy;
+        while (d->next && d->next != p && p->val >= d->next->val) {
+            d = d->next;
+        }
+        if (d->next == p) { // no insert happend
+            pre = p;
+        } else {
+            pre->next = n;      // detach p
+            p->next = d->next;  // insert p
+            d->next = p;
+        }
+
+        p = n;
+    }
+    return dummy.next;
+}
+
+FTEST(test_insertionSortList) {
+    auto t = [](const std::vector<int>& nums) {
+        ListNode* list = list_convert_leetcode(create_list(nums));
+        auto re = insertionSortList(list);
+        LOG(INFO) << nums << " list sort: " << print_list(re);
+        return re;
+    };
+
+    t({});
+    t({0});
+    t({1});
+    t({0, 0});
+    t({1, 0});
+    t({0, 1});
+    t({1, 1});
+    t({0, 0, 0});
+    t({0, 1, 1});
+    t({1, 0, 0});
+    t({0, 1, 0});
+    t({0, 0, 1});
+    t({0, 1, 1});
+    t({1, 2, 2});
+    t({1, 0, 1});
+    t({1, 0, 2});
+    t({1, 1, 0});
+    t({1, 1, 1});
+    t({1, 2, 3});
+    t({1, 3, 2});
+    t({2, 1, 3});
+    t({2, 3, 1});
+    t({3, 1, 2});
+    t({3, 2, 1});
+    t({4, 2, 1, 3});
+    t({-1, 5, 3, 4, 0});
 }
 
 /**

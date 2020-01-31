@@ -7,9 +7,6 @@
 
 namespace LCIndex13 {
 
-typedef LCListNode ListNode;
-typedef GraphVertex Node;
-
 /**
  ///////////// 131. Palindrome Partitioning
 Given a string s, partition s such that every substring of the partition is a palindrome.
@@ -119,31 +116,153 @@ FTEST(test_palindromePartitionMinCut) {
 
 /**
  ///////////// 133. Clone Graph
-Given a reference of a node in a connected undirected graph,
- return a deep copy (clone) of the graph. Each node in the graph
- contains a val (int) and a list (List[Node]) of its neighbors.
+Given a reference of a node in a connected undirected graph.
+Return a deep copy (clone) of the graph.
+Each node in the graph contains a val (int) and a list (List[Node]) of its neighbors.
+```
+class Node {
+    public int val;
+    public List<Node> neighbors;
+}
+```
+Test case format:
+For simplicity sake, each node's value is the same as the node's index (1-indexed).
+ For example, the first node with val = 1, the second node with val = 2, and so on.
+ The graph is represented in the test case using an adjacency list.
+Adjacency list is a collection of unordered lists used to represent a finite graph.
+ Each list describes the set of neighbors of a node in the graph.
+The given node will always be the first node with val = 1.
+ You must return the copy of the given node as a reference to the cloned graph.
 
-Example:
-TODO.. graph
+Example 1:
 
-Input:
-{"$id":"1","neighbors":[{"$id":"2","neighbors":[{"$ref":"1"},{"$id":"3","neighbors":[{"$ref":"2"},
- {"$id":"4","neighbors":[{"$ref":"3"},{"$ref":"1"}],"val":4}],"val":3}],"val":2},{"$ref":"4"}],"val":1}
+                                    (1)────────────────────────(2)
+                                     │                          │
+                                 ↗   │  you can't return the    │
+                               /     │     same graph           │
+                             X       │                          │
+                           /        (3)────────────────────────(4)
 
-Explanation:
-Node 1's value is 1, and it has two neighbors: Node 2 and 4.
-Node 2's value is 2, and it has two neighbors: Node 1 and 3.
-Node 3's value is 3, and it has two neighbors: Node 2 and 4.
-Node 4's value is 4, and it has two neighbors: Node 1 and 3.
+  (1)────────────────────────(2)    [1]────────────────────────[2]
+   │                          │      │  This looks like a       │
+   │      Original Graph      │ ==>  │  clone.The nodes are     │
+   │                          │      │  NEW. Graph looks the    │
+   │                          │      │  same.                   │
+  (3)────────────────────────(4)    [3]────────────────────────[4]
+                           \
+                            X       [1]────────────────────────[3]
+                             \       │                          │
+                              ↘      │  The nodes are cloned.   │
+                                     │  But graph is messed up. │
+                                     │                          │
+                                    [4]────────────────────────[2]
 
-Note:
-The number of nodes will be between 1 and 100.
-The undirected graph is a simple graph, which means no repeated edges and no self-loops in the graph.
-Since the graph is undirected, if node p has node q as neighbor, then node q must have node p as neighbor too.
-You must return the copy of the given node as a reference to the cloned graph.
+Input: adjList = [[2,4],[1,3],[2,4],[1,3]]
+Output: [[2,4],[1,3],[2,4],[1,3]]
+Explanation: There are 4 nodes in the graph.
+1st node (val = 1)'s neighbors are 2nd node (val = 2) and 4th node (val = 4).
+2nd node (val = 2)'s neighbors are 1st node (val = 1) and 3rd node (val = 3).
+3rd node (val = 3)'s neighbors are 2nd node (val = 2) and 4th node (val = 4).
+4th node (val = 4)'s neighbors are 1st node (val = 1) and 3rd node (val = 3).
+
+Example 2:
+
+     (1)
+
+Input: adjList = [[]]
+Output: [[]]
+Explanation: Note that the input contains one empty list.
+ The graph consists of only one node with val = 1 and it does not have any neighbors.
+
+Example 3:
+
+Input: adjList = []
+Output: []
+Explanation: This an empty graph, it does not have any nodes.
+
+Example 4:
+
+     (1) -----> (2)
+
+Input: adjList = [[2],[1]]
+Output: [[2],[1]]
+
+Constraints:
+ - 1 <= Node.val <= 100
+ - Node.val is unique for each node.
+ - Number of Nodes will not exceed 100.
+ - There is no repeated edges and no self-loops in the graph.
+ - The Graph is connected and all nodes can be visited starting from the given node.
 */
+class Node {
+public:
+    int val;
+    std::vector<Node*> neighbors;
+
+    Node() {
+        val = 0;
+        neighbors = std::vector<Node*>();
+    }
+
+    explicit Node(int _val) {
+        val = _val;
+        neighbors = std::vector<Node*>();
+    }
+
+    Node(int _val, std::vector<Node*> _neighbors) {
+        val = _val;
+        neighbors = _neighbors;
+    }
+};
+
 Node* cloneGraph(Node* node) {
-    return nullptr;
+    std::unordered_map<Node*, Node*> mm;
+    std::set<Node*> visited{node};
+    std::deque<Node*> qq{node};
+    Node* res = nullptr;
+
+    while (!qq.empty()) {
+        Node* n = qq.front();
+        qq.pop_front();
+        if (n == nullptr) {
+            continue;
+        }
+
+        auto entry = mm.find(n);
+        if (entry == mm.end()) {
+            mm[n] = new Node(n->val);
+            entry = mm.find(n);
+        }
+
+        for (Node* neighbor : n->neighbors) {
+            if (visited.count(neighbor) == 0) {
+                qq.emplace_back(neighbor);
+                visited.insert(neighbor);
+            }
+            if (mm.count(neighbor) == 0) {
+                mm[neighbor] = new Node(neighbor->val);
+            }
+            entry->second->neighbors.emplace_back(mm[neighbor]);
+        }
+
+        if (n == node) {
+            res = entry->second;
+        }
+    }
+    return res;
+}
+
+FTEST(test_cloneGraph) {
+    Node n1(1);
+    Node n2(2);
+    Node n3(3);
+    Node n4(4);
+    n1.neighbors = {&n2, &n4};
+    n2.neighbors = {&n1, &n3};
+    n3.neighbors = {&n2, &n4};
+    n4.neighbors = {&n1, &n3};
+
+    Node* nn = cloneGraph(&n1);
 }
 
 /**
@@ -224,24 +343,107 @@ FTEST(test_canCompleteCircuit) {
  ///////////// 135. Candy
 There are N children standing in a line. Each child is assigned a rating value.
 You are giving candies to these children subjected to the following requirements:
-
-Each child must have at least one candy.
-Children with a higher rating get more candies than their neighbors.
+ - Each child must have at least one candy.
+ - Children with a higher rating get more candies than their neighbors.
 What is the minimum candies you must give?
 
 Example 1:
 Input: [1,0,2]
 Output: 5
-Explanation: You can allocate to the first, second and third child with 2, 1, 2 candies respectively.
+Explanation: You can allocate to the first, second and third child with 2,1,2 candies respectively.
 
 Example 2:
 Input: [1,2,2]
 Output: 4
-Explanation: You can allocate to the first, second and third child with 1, 2, 1 candies respectively.
+Explanation: You can allocate to the first, second and third child with 1,2,1 candies respectively.
              The third child gets 1 candy because it satisfies the above two conditions.
 */
 int candy(std::vector<int>& ratings) {
-    return 0;
+    size_t len = ratings.size();
+    auto two_iter_method = [&] {
+        std::vector<int> nums(len, 1);
+        for (size_t i = 0; i < len; ++i) {
+            if (i > 0 && ratings[i] > ratings[i - 1] && nums[i] <= nums[i - 1]) {
+                nums[i] = nums[i - 1] + 1;
+            }
+        }
+        for (int i = len - 1; i >= 0; --i) {
+            if (i < len - 1 && ratings[i] > ratings[i + 1] && nums[i] <= nums[i + 1]) {
+                nums[i] = nums[i + 1] + 1;
+            }
+        }
+        int res = 0;
+        for (int num : nums) {
+            res += num;
+        }
+        return res;
+    };
+    auto one_iter_method = [&] {
+        if (ratings.empty()) {
+            return 0;
+        }
+        int res = 1;
+        int pre = 1;
+        int count = 0;
+        for (size_t i = 1; i < len; ++i) {
+            if (ratings[i] >= ratings[i - 1]) {
+                if (count > 0) {
+                    res += count * (count + 1) / 2;
+                    if (pre <= count) {
+                        res += count - pre + 1;
+                    }
+                    count = 0;
+                    pre = 1;
+                }
+                pre = ratings[i] == ratings[i - 1] ? 1 : pre + 1;
+                res += pre;
+            } else {
+                ++count;
+            }
+        }
+        if (count > 0) {
+            res += count * (count + 1) / 2;
+            if (pre <= count) {
+                res += count - pre + 1;
+            }
+        }
+        return res;
+    };
+    return one_iter_method();
+}
+
+FTEST(test_candy) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = candy(nns);
+        LOG(INFO) << nums << " candy cost: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({0}), 1);
+    FEXP(t({1}), 1);
+    FEXP(t({0, 0}), 2);
+    FEXP(t({1, 0}), 3);
+    FEXP(t({0, 1}), 3);
+    FEXP(t({1, 1}), 2);
+    FEXP(t({0, 0, 0}), 3);
+    FEXP(t({0, 1, 1}), 4);
+    FEXP(t({1, 0, 0}), 4);
+    FEXP(t({0, 1, 0}), 4);
+    FEXP(t({0, 0, 1}), 4);
+    FEXP(t({0, 1, 1}), 4);
+    FEXP(t({1, 2, 2}), 4);
+    FEXP(t({1, 0, 1}), 5);
+    FEXP(t({1, 0, 2}), 5);
+    FEXP(t({1, 1, 0}), 4);
+    FEXP(t({1, 1, 1}), 3);
+    FEXP(t({1, 2, 3}), 6);
+    FEXP(t({1, 3, 2}), 4);
+    FEXP(t({2, 1, 3}), 5);
+    FEXP(t({2, 3, 1}), 4);
+    FEXP(t({3, 1, 2}), 5);
+    FEXP(t({3, 2, 1}), 6);
 }
 
 /**
@@ -300,7 +502,32 @@ Input: [0,1,0,1,0,1,99]
 Output: 99
 */
 int singleNumberII(std::vector<int>& nums) {
-    return 0;
+    int res = 0;
+    int count_1 = 0;
+    uint32_t mask = 1;
+    for (int i = 0; i < 32; ++i) {
+        count_1 = 0;
+        for (int num : nums) {
+            count_1 += (num & mask) != 0 ? 1 : 0;
+        }
+        res |= (count_1 % 3 != 0) ? mask : 0;
+        mask <<= 1;
+    }
+    return res;
+}
+
+FTEST(test_singleNumberII) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = singleNumberII(nns);
+        LOG(INFO) << nums << " single number: " << re;
+        return re;
+    };
+
+    FEXP(t({0, 0, 0, 1}), 1);
+    FEXP(t({1, 0, 1, 1}), 0);
+    FEXP(t({2, 2, 3, 2}), 3);
+    FEXP(t({0, 1, 0, 1, 0, 1, 99}), 99);
 }
 
 /**

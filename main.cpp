@@ -17,8 +17,8 @@
 //#include "idx10.hpp"
 //#include "idx11.hpp"
 //#include "idx12.hpp"
-#include "idx13.hpp"
-//#include "idx14.hpp"
+//#include "idx13.hpp"
+#include "idx14.hpp"
 //#include "idx15.hpp"
 //#include "idx16.hpp"
 //#include "idx17.hpp"
@@ -67,8 +67,8 @@
 //using namespace LCIndex5;
 //using namespace LCIndex6;
 //using namespace LCIndex12;
-using namespace LCIndex13;
-//using namespace LCIndex14;
+//using namespace LCIndex13;
+using namespace LCIndex14;
 //using namespace LCIndex15;
 //using namespace LCIndex16;
 //using namespace LCIndex17;
@@ -308,7 +308,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_palindromePartitionMinCut();
+    test_insertionSortList();
 
     // TODO... knapsack
     // TODO... Manacher's palindrome
