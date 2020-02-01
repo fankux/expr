@@ -680,11 +680,25 @@ void trie_level_travel(TrieNode* trie) {
 
 class SegmentTree {
 public:
-    explicit SegmentTree(const std::vector<int>& nums) {
+    explicit SegmentTree(const std::vector<int>& nums, bool lazy = true) {
         _size = nums.size();
         int len = _size <= 1 ? _size : (next_power_of_2(_size) << 1) - 1; // find precise size
         _c.resize(len, INT_MAX);
-        _lazy.resize(len);
+        if ((_lazy_flag = lazy)) {
+            _lazy.resize(len);
+        }
+
+        std::function<int(const std::vector<int>&, size_t, size_t, size_t)> build;
+        build = [&](const std::vector<int>& nums, size_t l, size_t r, size_t idx) {
+            if (l + 1 >= r) {
+                _c[idx] = nums[l];
+            } else {
+                size_t mid = l + (r - l) / 2;
+                _c[idx] = std::min(build(nums, l, mid, (idx << 1) + 1),
+                        build(nums, mid, r, (idx << 1) + 2));
+            }
+            return _c[idx];
+        };
         build(nums, 0, nums.size(), 0);
     }
 
@@ -701,30 +715,115 @@ public:
     }
 
     inline int min(size_t start, size_t end) {
-        return search(0, _size, start, end, 0);
+        std::function<int(size_t, size_t, size_t, size_t, size_t)> rfunc;
+        rfunc = [&](size_t l, size_t r, size_t sl, size_t sr, size_t idx) {
+            if (sr <= l || r <= sl) { // no overlap
+                return INT_MAX;
+            }
+
+            if (_lazy_flag && _lazy[idx] != 0) {
+                _c[idx] += _lazy[idx];
+                if (l + 1 < r) { // not leaf
+                    _lazy[(idx << 1) + 1] += _lazy[idx];
+                    _lazy[(idx << 1) + 2] += _lazy[idx];
+                }
+                _lazy[idx] = 0;
+            }
+
+            if (sl <= l && r <= sr) { // total overlap
+                return _c[idx];
+            }
+            // l < sl || sr < r, partial overlap
+            size_t mid = l + (r - l) / 2;
+            return std::min(rfunc(l, mid, sl, sr, (idx << 1) + 1),
+                    rfunc(mid, r, sl, sr, (idx << 1) + 2));
+        };
+        return rfunc(0, _size, start, end, 0);
     }
 
     void update(size_t pos, int val) {
-        if (pos >= _size) {
-            return;
-        }
+        std::function<void(size_t, size_t, size_t)> rfunc;
+        rfunc = [&](size_t l, size_t r, size_t idx) {
+            if (pos < l || r <= pos) { // out of range
+                return;
+            }
 
-//        std::function<void(size_t, size_t, size_t, size_t, int)> rfunc;
-//        rfunc = [&](size_t l, size_t r, size_t sl, size_t sr, int val) {
-//            if (sr <= l || r <= sl) { // no overlap
-//                return INT_MAX;
-//            }
-//            if (sl <= l && r <= sr) { // total overlap
-//                return _c[idx];
-//            }
-//            // l < sl || sr < r, partial overlap
-//            size_t mid = l + (r - l) / 2;
-//            return std::min(search(l, mid, sl, sr, (idx << 1) + 1),
-//                    search(mid, r, sl, sr, (idx << 1) + 2));
-//        };
+            /**
+              Actually we don't need to do lazy propagation here,
+              because updating value by a explicit index must
+              traverse to a exactly leaf node.
+
+               - we do lazy propagation here good for other methods
+
+             */
+            if (_lazy_flag && _lazy[idx] != 0) {
+                _c[idx] += _lazy[idx];
+                if (l + 1 < r) { // not leaf
+                    _lazy[(idx << 1) + 1] += _lazy[idx];
+                    _lazy[(idx << 1) + 2] += _lazy[idx];
+                }
+                _lazy[idx] = 0;
+            }
+
+            if (l + 1 == r) { // got index
+                assert(l == pos);
+                _c[idx] = val;
+                return;
+            }
+            // l < sl || sr < r, partial overlap
+            size_t mid = l + (r - l) / 2;
+            rfunc(l, mid, (idx << 1) + 1);
+            rfunc(mid, r, (idx << 1) + 2);
+            _c[idx] = std::min(_c[(idx << 1) + 1], _c[(idx << 1) + 2]);
+        };
+        rfunc(0, _size, 0);
+    }
+
+    void update(size_t start, size_t end, int delta) {
+        std::function<void(size_t, size_t, size_t)> rfunc;
+        rfunc = [&](size_t l, size_t r, size_t idx) {
+            if (l >= r) {
+                return;
+            }
+
+            if (_lazy_flag && _lazy[idx] != 0) {
+                _c[idx] += _lazy[idx];
+                if (l + 1 < r) { // not leave
+                    _lazy[(idx << 1) + 1] += _lazy[idx];
+                    _lazy[(idx << 1) + 2] += _lazy[idx];
+                }
+                _lazy[idx] = 0;
+            }
+
+            if (r <= start || end <= l) { // no overlap
+                return;
+            }
+
+            if (_lazy_flag && start <= l && r <= end) { // total overlap
+                _c[idx] += delta;
+                if (l + 1 < r) { // not leave
+                    _lazy[(idx << 1) + 1] += delta;
+                    _lazy[(idx << 1) + 2] += delta;
+                }
+                return;
+            }
+
+            if (!_lazy_flag && l + 1 == r) { // got a leave node
+                _c[idx] += delta;
+                return;
+            }
+
+            // l < sl || sr < r, partial overlap
+            size_t mid = l + (r - l) / 2;
+            rfunc(l, mid, (idx << 1) + 1);
+            rfunc(mid, r, (idx << 1) + 2);
+            _c[idx] = std::min(_c[(idx << 1) + 1], _c[(idx << 1) + 2]);
+        };
+        rfunc(0, _size, 0);
     }
 
     std::string print_tree(int ws_col = 70) {
+        // TODO... support lazy propagation.
         std::vector<std::string> node_levels;
         std::function<void(size_t, size_t, size_t, int, int)> rfunc;
         rfunc = [&](size_t l, size_t r, size_t idx, int level, int ws) {
@@ -765,29 +864,6 @@ public:
     }
 
 private:
-    int build(const std::vector<int>& nums, size_t l, size_t r, size_t idx) {
-        if (l + 1 >= r) {
-            _c[idx] = nums[l];
-        } else {
-            size_t mid = l + (r - l) / 2;
-            _c[idx] = std::min(build(nums, l, mid, (idx << 1) + 1),
-                    build(nums, mid, r, (idx << 1) + 2));
-        }
-        return _c[idx];
-    }
-
-    int search(size_t l, size_t r, size_t sl, size_t sr, size_t idx) {
-        if (sr <= l || r <= sl) { // no overlap
-            return INT_MAX;
-        }
-        if (sl <= l && r <= sr) { // total overlap
-            return _c[idx];
-        }
-        // l < sl || sr < r, partial overlap
-        size_t mid = l + (r - l) / 2;
-        return std::min(search(l, mid, sl, sr, (idx << 1) + 1),
-                search(mid, r, sl, sr, (idx << 1) + 2));
-    }
 
     // num > 1
     static inline uint64_t next_power_of_2(uint64_t num) {
@@ -808,6 +884,7 @@ private:
 private:
     size_t _size = 0;
     std::vector<int> _c;
+    bool _lazy_flag = true;
     std::vector<int> _lazy;
 };
 
@@ -831,6 +908,28 @@ FTEST(test_SegmentTree) {
     t({4, 6, 3, 1, 5, 2});
     t({4, 6, 3, 1, 5, 2, 7});
     t({4, 6, 3, 1, 5, 2, 8, 7});
+
+    auto t_update = [](const std::vector<int>& nums) {
+        SegmentTree st(nums);
+        st.update(nums.size() - 1, 99);
+        st.update(0, nums.size(), 1);
+        LOG(INFO) << nums << " segment tree(" << st.size() << "):\n" << st.print_tree();
+        for (int i = 1; i <= st.size(); ++i) {
+            for (int j = 0; j < st.size(); j += i) {
+                LOG(INFO) << "min of [" << j << "," << (i + j) << "):"
+                          << st.min(j, i + j);
+            }
+        }
+        return st;
+    };
+    t_update({1});
+    t_update({1, 2});
+    t_update({3, 1, 2});
+    t_update({4, 3, 1, 2});
+    t_update({4, 3, 1, 5, 2});
+    t_update({4, 6, 3, 1, 5, 2});
+    t_update({4, 6, 3, 1, 5, 2, 7});
+    t_update({4, 6, 3, 1, 5, 2, 8, 7});
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -839,7 +938,3 @@ void rb_tree() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void b_tree() {}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void avl_tree() {}
