@@ -189,3 +189,48 @@ FTEST(test_reverse_stack) {
     reverse_stack(s2);
     LOG(INFO) << s << " reverse: " << s2;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+
+ THOUGHTS:
+    dp[i][j] means the max result of i items and weight j.
+
+                   / dp[i-1][j]                         not pick item[i]
+    dp[i][j] = max
+                   \ dp[i-1][j-weights[i]]+prices[i]    pick item[i], weight decrese weight[i]
+ */
+int knapsack01(const std::vector<int>& prices, const std::vector<int>& weights, int total) {
+    size_t len = prices.size();
+    std::vector<std::vector<int>> dp(len + 1, std::vector<int>(total + 1, 0));
+
+    for (size_t i = 0; i <= len; ++i) {
+        for (int w = 0; w <= total; ++w) {
+            if (i == 0 || w == 0) {
+                dp[i][w] = 0;
+            } else if (w >= weights[i - 1]) {
+                dp[i][w] = std::max(dp[i - 1][w], dp[i - 1][w - weights[i - 1]] + prices[i - 1]);
+            } else {
+                dp[i][w] = dp[i - 1][w];
+            }
+        }
+    }
+
+    return len == 0 || total == 0 ? 0 : dp.back().back();
+}
+
+FTEST(test_knapsack01) {
+    auto t = [](const std::vector<int>& prices, const std::vector<int>& weights, int total) {
+        auto re = knapsack01(prices, weights, total);
+        LOG(INFO) << prices << ", " << weights << " max " << total << ": " << re;
+        return re;
+    };
+
+    FEXP(t({}, {}, 0), 0);
+    FEXP(t({2}, {2}, 0), 0);
+    FEXP(t({2}, {2}, 1), 0);
+    FEXP(t({2}, {2}, 2), 2);
+    FEXP(t({1, 4, 5, 7}, {1, 3, 4, 5}, 7), 9);
+}
+
+// TODO... all(limit) knapsack

@@ -3,6 +3,7 @@
 #include "heap.hpp"
 #include "sort.hpp"
 #include "skiplist.hpp"
+#include "subs.hpp"
 
 //#include "idx0.hpp"
 //#include "idx1.hpp"
@@ -308,9 +309,8 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_SegmentTree();
+    test_knapsack01();
 
-    // TODO... knapsack
     // TODO... Manacher's palindrome
     // TODO... LSM tree
     return 0;

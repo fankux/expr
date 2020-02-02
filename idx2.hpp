@@ -753,8 +753,8 @@ FTEST(test_findSubstring) {
         return idx;
     };
 
-//    t("", {"foo", "bar"});
-//    t("barfoothefoobarman", {});
+    t("", {"foo", "bar"});
+    t("barfoothefoobarman", {});
     t("barfoothefoobarman", {"foo", "bar"});
     t("wordgoodgoodgoodbestword", {"word", "good", "best", "good"});
     t("lingmindraboofooowingdingbarrwingmonkeypoundcake", {"fooo", "barr", "wing", "ding", "wing"});

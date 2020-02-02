@@ -45,7 +45,7 @@ Explanation:
 1^2 + 0^2 + 0^2 = 1
 
  THOUGHTS:
-    not happy number MUST exist 4. and square action would be recurring.
+    Not happy number MUST exist 4. and square action would be recurring.
 
  */
 bool isHappyNumber(int n) {

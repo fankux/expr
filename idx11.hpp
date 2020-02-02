@@ -259,17 +259,17 @@ The flattened tree should look like:
           6
 THOUGHTS:
  rotate right at first node
-    1          1         1
-   / \          \         \
-  2   5          2         2
- / \   \  ->   /  \    ->   \
-3   4   6     3    5         3
-               \    \         \
-                4    6         4
-                                \
-                                 5
-                                  \
-                                   6
+    1          1           1
+   / \          \           \
+  2   5          2           2
+ / \   \  ->   /  \     ->    \
+3   4   6     3    4           3
+                    \           \
+                     5           4
+                      \           \
+                       6           5
+                                    \
+                                     6
 */
 void flattenBinaryTree(TreeNode* root) {
     while (root) {

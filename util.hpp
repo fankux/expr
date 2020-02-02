@@ -393,6 +393,15 @@ public:
         split(line, res);
         return res;
     }
+
+    static std::vector<int> line_ints() {
+        std::vector<std::string> strs = line_strs();
+        std::vector<int> res(strs.size());
+        for (size_t i = 0; i < strs.size(); ++i) {
+            res[i] = std::stoi(strs[i]);
+        }
+        return res;
+    }
 };
 
 FTEST(test_LineReader) {
