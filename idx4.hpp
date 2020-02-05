@@ -30,8 +30,8 @@ namespace LCIndex4 {
     1. try to make each number to the place it should be(num == i+1), we do:
         - if num <=0 or num > input length, ignore
         - if num != num[num - 1], swap them, try it untill loop end
-        (not that we can not do sort that could exceed O(n) time,
-        by swapping each number which no at the right position with the one where it should be,
+        (note that we can not do sort that could exceed O(n) time,
+        by swapping each number which not at the right position with the one where it should be,
         finally we could get a roughly sorted nums, and once a num to the right postion,
         no more swap action happend to it anymore. it's still O(n) time)
     2. travse nums, if num != i+1, the i+1 is the result, else length+1 is the result
@@ -40,7 +40,8 @@ namespace LCIndex4 {
     3  4  -1  1
    -1  4   3  1     i=0 (3 swap -1, -1<0, loop end)
    -1  1   3  4     i=1 (4 swap 1)
-   1  -1   3  4     i=1 (1 placed to right position, this will always happend if 1 exist. -1<0, loop end)
+   1  -1   3  4     i=1 (1 placed to right position, this will always happend if 1 exist.
+                         -1<0, loop end)
    1  -1   3  4     i=2 (3 already placed at right position, loop end)
    1  -1   3  4     i=3 (4 already placed at right position, loop end)
    -------------------------
@@ -49,18 +50,18 @@ namespace LCIndex4 {
    -1 != 2, result is 2
 */
 int firstMissingPositive(std::vector<int>& nums) {
-    size_t n = nums.size();
-    for (size_t i = 0; i < n; ++i) {
-        while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] != nums[i]) {
+    size_t len = nums.size();
+    for (size_t i = 0; i < len; ++i) {
+        while (nums[i] > 0 && nums[i] <= len && nums[nums[i] - 1] != nums[i]) {
             std::swap(nums[i], nums[nums[i] - 1]);
         }
     }
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < len; ++i) {
         if (nums[i] != i + 1) {
             return i + 1;
         }
     }
-    return n + 1;
+    return len + 1;
 }
 
 FTEST(test_firstMissingPositive) {
@@ -118,11 +119,14 @@ FTEST(test_firstMissingPositive) {
  0  3  2  1  0  3   stack: [3,2,1]
                     - 3>top(0), we start to calc rectangle are,
                         pop 0 as bottom, now stack top(1, idx:3) is the left border:
-                        area=(idx(3) - left - 1) * (min(height[stack.top], height[idx]) - height[bottom])
+                        area=(idx(3) - left - 1) * (min(height[stack.top], height[idx]) -
+                                                                                   height[bottom])
  0  3  2  1  0  3   stack: [3,2]
-                    - continue, 3>top(1), pop 1 as bottom, calc reactangle area between idx:2 and idx:5
+                    - continue, 3>top(1), pop 1 as bottom, calc reactangle area between idx:2
+                                                                                    and idx:5
  0  3  2  1  0  3   stack: [3]
-                    - continue, 3>top(2), pop 2 as bottom, calc reactangle area between idx:1 and idx:5
+                    - continue, 3>top(2), pop 2 as bottom, calc reactangle area between idx:1
+                                                                                    and idx:5
 
   3 |  ____        ____       3 |  ____        ____       3 |  ____        ____
     |  |  |========|  |         |  |  |========|  |         |  |  |xxxxxxxx|  |
@@ -176,12 +180,12 @@ int trap(std::vector<int>& height) {
         std::stack<int> ss;
         for (int i = 0; i < len; ++i) {
             while (!ss.empty() && height[i] > height[ss.top()]) {
-                int prev_height = height[ss.top()];
+                int bottom = height[ss.top()];
                 ss.pop();
                 if (!ss.empty()) { // must not empty, otherwise no water could be traped
                     int left = ss.top();
                     // add rectangle area
-                    res += (i - left - 1) * (std::min(height[i], height[left]) - prev_height);
+                    res += (i - left - 1) * (std::min(height[i], height[left]) - bottom);
                 }
             }
             ss.push(i);
@@ -228,22 +232,26 @@ FTEST(test_trap) {
 
 /**
  ///////////// 43. Multiply Strings
- Given two non-negative integers num1 and num2 represented as strings,
+Given two non-negative integers num1 and num2 represented as strings,
  return the product of num1 and num2, also represented as a string.
 
- Example 1:
+Example 1:
  Input: num1 = "2", num2 = "3"
  Output: "6"
 
- Example 2:
+Example 2:
  Input: num1 = "123", num2 = "456"
  Output: "56088"
 
- Note:
+Note:
  1. The length of both num1 and num2 is < 110.
  2. Both num1 and num2 contain only digits 0-9.
  3. Both num1 and num2 do not contain any leading zero, except the number 0 itself.
  4. You must not use any built-in BigInteger library or convert the inputs to integer directly.
+
+THOUGHTS:
+    The max lenght of c=a*b is len(a)+len(b),
+    using common mutiply method to fillup result array(len(c)) from right to left and notice carry.
  */
 std::string multiply(std::string num1, std::string num2) {
     int l1 = num1.size();
@@ -324,7 +332,8 @@ FTEST(test_multiply) {
  s = "adceb"
  p = "*a*b"
  Output: true
- Explanation: The first '*' matches the empty sequence, while the second '*' matches the substring "dce".
+ Explanation: The first '*' matches the empty sequence,
+    while the second '*' matches the substring "dce".
 
  Example 5:
  Input:
@@ -341,6 +350,7 @@ FTEST(test_multiply) {
             see LEFT-TOP
         elif p[j]=='*':
             see LEFT-or-TOP
+            means ignore current char in string or make '*' to current char in pattern.
 
    | \ |' '| a | * | c | ? | b |
    |' '| T | F → F | F | F | F |
@@ -398,7 +408,8 @@ FTEST(test_isWildcardMatch) {
 
 /**
  ///////////// 45. Jump Game II
- Given an array of non-negative integers, you are initially positioned at the first index of the array.
+ Given an array of non-negative integers,
+    you are initially positioned at the first index of the array.
  Each element in the array represents your maximum jump length at that position.
  Your goal is to reach the last index in the minimum number of jumps.
 
@@ -529,7 +540,8 @@ FTEST(test_permute) {
 
 /**
  ///////////// 47. Permutations II
- Given a collection of numbers that might contain duplicates, return all possible unique permutations.
+ Given a collection of numbers that might contain duplicates,
+    return all possible unique permutations.
 
  Example:
  Input: [1,1,2]
@@ -619,13 +631,13 @@ FTEST(test_permuteUnique) {
 
 /**
  ///////////// 48. Rotate Image
- You are given an n x n 2D matrix representing an image. Rotate the image by 90 degrees (clockwise).
+You are given an n x n 2D matrix representing an image. Rotate the image by 90 degrees (clockwise).
 
- Note:
- You have to rotate the image in-place, which means you have to modify the input 2D matrix directly.
+Note:
+You have to rotate the image in-place, which means you have to modify the input 2D matrix directly.
  DO NOT allocate another 2D matrix and do the rotation.
 
- Example 1:
+Example 1:
  Given input matrix =
  [
    [1,2,3],
@@ -640,7 +652,7 @@ FTEST(test_permuteUnique) {
    [9,6,3]
  ]
 
- Example 2:
+Example 2:
  Given input matrix =
  [
    [ 5, 1, 9,11],

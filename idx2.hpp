@@ -204,8 +204,7 @@ FTEST(test_mergeKLists) {
 
  Example:
  Given 1->2->3->4, you should return the list as 2->1->4->3.
-       ^  ^
-       |  |
+       ↑  ↑
        p  r
 */
 ListNode* swapPairs(ListNode* head) {
@@ -302,9 +301,9 @@ FTEST(test_reverseKGroup) {
         print_list(reverseKGroup(l1, k));
     };
 
-//    t({}, 0);
-//    t({}, 1);
-//    t({}, 2);
+    t({}, 0);
+    t({}, 1);
+    t({}, 2);
     t({1}, 0);
     t({1}, 1);
     t({1}, 2);
@@ -464,11 +463,11 @@ FTEST(test_removeElement) {
         LOG(INFO) << "remove element " << v << " in: " << nums << ", result: " << ss.str();
     };
 
-//    t({}, 0);
-//    t({1}, 1);
-//    t({1}, 2);
-//    t({1, 1}, 1);
-//    t({1, 1}, 2);
+    t({}, 0);
+    t({1}, 1);
+    t({1}, 2);
+    t({1, 1}, 1);
+    t({1, 1}, 2);
     t({1, 2}, 1);
     t({1, 2}, 2);
     t({1, 2}, 3);
@@ -503,30 +502,31 @@ FTEST(test_removeElement) {
  Return the index of the first occurrence of needle in haystack,
  or -1 if needle is not part of haystack.
 
- Example 1:
+Example 1:
  Input: haystack = "hello", needle = "ll"
  Output: 2
 
- Example 2:
+Example 2:
  Input: haystack = "aaaaa", needle = "bba"
  Output: -1
 
- Clarification:
+Clarification:
  What should we return when needle is an empty string?
  This is a great question to ask during an interview.
  For the purpose of this problem, we will return 0 when needle is an empty string.
  This is consistent to C's strstr() and Java's indexOf().
+
+THOUGHTS:
+ Sunday algorithm:
+      0 1 2 3 4 5 6 7 8 9 10
+      a b c d b c b c b e b c e
+      b c e                         pos=0
+              b c e                 pos=4, skip=4 (not exist)
+                  b c e             pos=6, skip=2, idx=1
+                    b c e           pos=7, skip=1, idx=2
+                          b c e     pos=10, skip=3, idx=0
  */
 int strStr(std::string haystack, std::string needle) {
-
-    /**
-      abcdbcbcbebce
-      bce               pos=0
-          bce           pos=4, skip=4 (not exist)
-            bce         pos=6, skip=2, idx=1
-             bce        pos=7, skip=1, idx=2
-                bce     pos=10, skip=3, idx=0
-     */
     size_t slen = haystack.size();
     size_t len = needle.size();
     if (slen < len) {
@@ -733,7 +733,7 @@ std::vector<int> findSubstring(std::string s, std::vector<std::string>& words) {
         for (; k < words.size(); ++k) {
             auto&& word = s.substr(i + k * word_len, word_len);
             auto entry = wordcs.find(word);
-            if (entry == wordcs.end() || entry->second <= ws[word]) {
+            if (entry == wordcs.end() || entry->second <= ws[word]) { // not found or count exceed
                 break;
             }
             ++ws[word];

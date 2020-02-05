@@ -16,6 +16,18 @@ typedef LCListNode ListNode;
  such that the container contains the most water.
 
  Note: You may not slant the container and n is at least 2.
+
+ 8        ┌─┐                      ┌─┐
+ 7        │ │                      │ │       ┌─┐
+ 6        │ │  ┌─┐                 │ │       │ │
+ 5        │ │  │ │       ┌─┐       │ │       │ │
+ 4        │ │  │ │       │ │  ┌─┐  │ │       │ │
+ 3        │ │  │ │       │ │  │ │  │ │  ┌─┐  │ │
+ 2        │ │  │ │  ┌─┐  │ │  │ │  │ │  │ │  │ │
+ 1   ┌─┐  │ │  │ │  │ │  │ │  │ │  │ │  │ │  │ │
+ 0 ──┴─┴──┴─┴──┴─┴──┴─┴──┴─┴──┴─┴──┴─┴──┴─┴──┴─┴──
+      0    1    2    3    4    5    6    7    8
+
  The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case,
  the max area of water (blue section) the container can contain is 49.
 
@@ -213,6 +225,9 @@ FTEST(test_intToRoman) {
  Input: "MCMXCIV"
  Output: 1994
  Explanation: M = 1000, CM = 900, XC = 90 and IV = 4.
+
+ THOUGHTS:
+    if char less than char right behind it, means pattern like IV, IX happends.
  */
 int romanToInt(std::string s) {
     int mm[128];

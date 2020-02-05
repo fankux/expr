@@ -43,7 +43,7 @@ int numDecodings(std::string s) {
         }
         int res = 0;
         if (start + 1 < s.size()) {
-            int code = std::strtoul(s.substr(start, 2).c_str(), nullptr, 10);
+            int code = std::strtol(s.substr(start, 2).c_str(), nullptr, 10);
             if (code > 0 && code <= 26) {
                 res += recursive_func(start + 2);
             }
@@ -189,8 +189,8 @@ std::vector<std::string> restoreIpAddresses(std::string s) {
     int len = s.size();
     std::vector<std::string> res;
     std::vector<int> re;
-    std::function<void(int, int)> r_func;
-    r_func = [&](int idx, int section) {
+    std::function<void(int, int)> rfunc;
+    rfunc = [&](int idx, int section) {
         if (idx >= len || section >= 4) {
             if (idx >= len && section >= 4) {
                 res.emplace_back();
@@ -210,12 +210,12 @@ std::vector<std::string> restoreIpAddresses(std::string s) {
             uint32_t code_n = strtoul(s.substr(idx, i + 1).c_str(), nullptr, 10);
             if ((code_n <= 255 && code_n > 0 && s[idx] != '0') || (code_n == 0 && i == 0)) {
                 re.emplace_back(code_n);
-                r_func(idx + i + 1, section + 1);
+                rfunc(idx + i + 1, section + 1);
                 re.pop_back();
             }
         }
     };
-    r_func(0, 0);
+    rfunc(0, 0);
     return res;
 }
 

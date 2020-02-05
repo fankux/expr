@@ -209,7 +209,7 @@ enention -> exention (replace 'n' with 'x')
 exention -> exection (replace 'n' with 'c')
 exection -> execution (insert 'u')
 
- THOUGHTS:
+THOUGHTS:
  see VERBOSE dp state transfer
 */
 int minDistance(std::string word1, std::string word2) {
@@ -408,8 +408,8 @@ matrix = [
 target = 13
 Output: false
 
- THOUGHTS:
-
+THOUGHTS:
+    binary search with coordinate conversion.
 */
 bool searchMatrix(std::vector<std::vector<int>>& matrix, int target) {
     if (matrix.empty() || matrix.front().empty()) {
@@ -534,7 +534,7 @@ std::string minWindow(std::string s, std::string t) {
                 min_len = r - l + 1;
                 min_left = l;
             }
-            if (++mm[s[l]] > 0) { // only when vaild char hapend, count modified breaking while loop
+            if (++mm[s[l]] > 0) {// only when vaild char occured, count modified breaking while loop
                 --count;
             }
             ++l;
@@ -663,30 +663,39 @@ Output:
   [1,2],
   []
 ]
+
+THOUGTHS:
+    for each member in result collection, put current index to it and add it to collection.
+    example: 1 2 3
+    init:   []
+    add 1:  [], [1]
+    add 2:  [], [1], [2], [1,2]
+    add 3:  [], [1], [2], [1,2], [3], [1,3], [2,3], [1,2,3]
+
 */
 std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
     std::sort(nums.begin(), nums.end());
     std::vector<std::vector<int>> res;
-    std::vector<int> re;
-    std::function<void(int, int)> r_func;
-    r_func = [&](int start, int level) {
-        if (re.size() >= level) {
-            res.emplace_back(re);
-            return;
-        }
-        for (size_t i = start; i < nums.size(); ++i) {
-            re.emplace_back(nums[i]);
-            r_func(i + 1, level);
-            re.pop_back();
-        }
-    };
-    auto recursive = [&] {
+    auto recursive_method = [&] {
+        std::vector<int> re;
+        std::function<void(int, int)> rfunc;
+        rfunc = [&](int start, int level) {
+            if (re.size() >= level) {
+                res.emplace_back(re);
+                return;
+            }
+            for (size_t i = start; i < nums.size(); ++i) {
+                re.emplace_back(nums[i]);
+                rfunc(i + 1, level);
+                re.pop_back();
+            }
+        };
         for (size_t i = 0; i <= nums.size(); ++i) {
-            r_func(0, i);
+            rfunc(0, i);
         }
         return res;
     };
-    auto iter = [&] {
+    auto iter_method = [&] {
         res.emplace_back();
         for (int& num : nums) {
             int len = res.size();
@@ -697,7 +706,7 @@ std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
         }
         return res;
     };
-    return iter();
+    return iter_method();
 }
 
 FTEST(test_subsets) {

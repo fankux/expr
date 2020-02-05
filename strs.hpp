@@ -269,22 +269,22 @@ FTEST(test_substr) {
     substr_funcs.emplace_back(substr_sunday);
 
     for (auto& substr : substr_funcs) {
-//        std::cout << substr("", "") << std::endl;
-//        std::cout << substr("", "1") << std::endl;
-//        std::cout << substr("1", "") << std::endl;
-//        std::cout << substr("1", "1") << std::endl;
-//        std::cout << substr("1", "2") << std::endl;
-//        std::cout << substr("12", "") << std::endl;
-//        std::cout << substr("12", "1") << std::endl;
-//        std::cout << substr("12", "2") << std::endl;
-//        std::cout << substr("12", "12") << std::endl;
-//        std::cout << substr("12", "123") << std::endl;
-//        std::cout << substr("123", "") << std::endl;
-//        std::cout << substr("123", "1") << std::endl;
-//        std::cout << substr("123", "2") << std::endl;
-//        std::cout << substr("123", "12") << std::endl;
-//        std::cout << substr("123", "123") << std::endl;
-//        std::cout << substr("11233", "123") << std::endl;
+        std::cout << substr("", "") << std::endl;
+        std::cout << substr("", "1") << std::endl;
+        std::cout << substr("1", "") << std::endl;
+        std::cout << substr("1", "1") << std::endl;
+        std::cout << substr("1", "2") << std::endl;
+        std::cout << substr("12", "") << std::endl;
+        std::cout << substr("12", "1") << std::endl;
+        std::cout << substr("12", "2") << std::endl;
+        std::cout << substr("12", "12") << std::endl;
+        std::cout << substr("12", "123") << std::endl;
+        std::cout << substr("123", "") << std::endl;
+        std::cout << substr("123", "1") << std::endl;
+        std::cout << substr("123", "2") << std::endl;
+        std::cout << substr("123", "12") << std::endl;
+        std::cout << substr("123", "123") << std::endl;
+        std::cout << substr("11233", "123") << std::endl;
         std::cout << substr("abbcabababbc", "bcababab") << std::endl;
     }
 }

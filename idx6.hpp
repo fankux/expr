@@ -88,10 +88,10 @@ FTEST(test_rotateRight) {
 
 /**
  ///////////// 62. Unique Paths
- A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram below).
+A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram below).
  The robot can only move either down or right at any point in time. The robot is trying to
   reach the bottom-right corner of the grid (marked 'Finish' in the diagram below).
- How many possible unique paths are there?
+How many possible unique paths are there?
  ___________________________________________
  |Robot|     |     |     |     |     |     |
  |Start|     |     |     |     |     |     |
@@ -102,21 +102,29 @@ FTEST(test_rotateRight) {
  |     |     |     |     |     |     |     |
  |     |     |     |     |     |     | Fin |
  -------------------------------------------
- Above is a 7 x 3 grid. How many possible unique paths are there?
+Above is a 7 x 3 grid. How many possible unique paths are there?
  Note: m and n will be at most 100.
 
- Example 1:
+Example 1:
  Input: m = 3, n = 2
  Output: 3
- Explanation:
+Explanation:
  From the top-left corner, there are a total of 3 ways to reach the bottom-right corner:
  1. Right -> Right -> Down
  2. Right -> Down -> Right
  3. Down -> Right -> Right
 
- Example 2:
+Example 2:
  Input: m = 7, n = 3
  Output: 28
+
+THOUGHTS:
+ max way to come over pos i,j
+ dp[i][j] = dp[i-1][j] + dp[i][j-1]
+ optimize to one dimension:
+    for each row:
+        dp[j] += dp[j-1]
+
 */
 int uniquePaths(int m, int n) {
     std::vector<int> dp(m, 1);
@@ -215,19 +223,26 @@ FTEST(test_uniquePathsWithObstacles) {
 
 /**
  ///////////// 64. Minimum Path Sum
- Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right
+Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right
  which minimizes the sum of all numbers along its path.
  Note: You can only move either down or right at any point in time.
 
- Example:
+Example:
  Input:
  [
    [1,3,1],
    [1,5,1],
    [4,2,1]
  ]
- Output: 7
+Output: 7
  Explanation: Because the path 1→3→1→1→1 minimizes the sum.
+
+THOUGHTS:
+ minimium value come over to pos i,j
+ dp[i][j] = min(dp[i-1][j], dp[i][j-1]) + grid[i][j]
+  optimize to one dimension:
+    for each row:
+        dp[j] = min(dp[j], dp[j-1])
 */
 int minPathSum(std::vector<std::vector<int>>& grid
 #ifdef VERBOSE
@@ -743,7 +758,7 @@ std::vector<std::string> fullJustify(std::vector<std::string>& words, int maxWid
             sections.emplace_back(word);
         }
     }
-    if (!sections.empty()) {
+    if (!sections.empty()) { // last batch
         std::string line;
         for (const auto& section : sections) {
             line += section;

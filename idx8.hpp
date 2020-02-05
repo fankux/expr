@@ -296,6 +296,9 @@ Input:
   ["1","0","0","1","0"]
 ]
 Output: 6
+
+THOUGHTS:
+    treat as largestRectangleArea that bottom could be added each row.
 */
 int maximalRectangle(std::vector<std::vector<char>>& matrix) {
     int res = 0;
@@ -468,6 +471,14 @@ Output: true
 Example 2:
 Input: s1 = "abcde", s2 = "caebd"
 Output: false
+
+THOUGHTS:
+ When A is scrambled string of B, there must be a index i split a as A1, A2
+    and split B as B1, B2, also:
+        A1 is scrambled of B1 and A2 is scrambled of B2
+            or
+        A1 is scrambled of B2 and A2 is scrambled of B1
+
 */
 bool isScramble(std::string s1, std::string s2) {
     auto recursive_func = [&]() {
@@ -614,6 +625,16 @@ Explanation: We define the gray code sequence to begin with 0.
              Therefore, for n = 0 the gray code sequence is [0].
 
  THOUGHTS:
+ grap code mirror arrange, one bit different betwen adjcent code:
+ 0  　　 000
+ 1  　　 001
+ 2   　　011
+ 3   　　010
+ 4   　　110
+ 5   　　111
+ 6   　　101
+ 7   　　100
+
  FOR EXAMPLE: n=3, for each code in current res list,
     BITOR with "1 left move N bit", then put it to res.
   INIT  : 000

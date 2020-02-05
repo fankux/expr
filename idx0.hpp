@@ -108,24 +108,30 @@ FTEST(test_addTwoNumbers) {
 ////////// 3
  Given a string, find the length of the longest substring without repeating characters.
 
- Example 1:
-
+Example 1:
  Input: "abcabcbb"
  Output: 3
  Explanation: The answer is "abc", with the length of 3.
 
- Example 2:
-
+Example 2:
  Input: "bbbbb"
  Output: 1
  Explanation: The answer is "b", with the length of 1.
 
- Example 3:
-
+Example 3:
  Input: "pwwkew"
  Output: 3
  Explanation: The answer is "wke", with the length of 3.
              Note that the answer must be a substring, "pwke" is a subsequence and not a substring.
+
+THOUGHTS:
+             0   1   2   3   4   5   6   7
+        -1   a   b   c   a   b   c   b   b
+         l   i                             s[a]=-1,                  res=1
+         l       i                         s[a]=0, s[b]=-1,          res=2
+         l           i                     s[a]=0, s[b]=1, s[c]=-1,  res=3
+             l           i                 s[a]=0, s[b]=1, s[c]=2,   res=3(i-l=2)
+
  */
 int lengthOfLongestSubstring(std::string s) {
     std::vector<int> m(128, -1);
@@ -494,53 +500,89 @@ FTEST(test_isPalindrome) {
 
 /**
 ////////// 10
- Given an input string (s) and a pattern (p), implement regular expression matching
+Given an input string (s) and a pattern (p), implement regular expression matching
  with support for '.' and '*'.
 
  '.' Matches any single character.
  '*' Matches zero or more of the preceding element.
  The matching should cover the entire input string (not partial).
 
- Note:
+Note:
  s could be empty and contains only lowercase letters a-z.
  p could be empty and contains only lowercase letters a-z, and characters like . or *.
 
- Example 1:
+Example 1:
  Input:
  s = "aa"
  p = "a"
  Output: false
  Explanation: "a" does not match the entire string "aa".
 
- Example 2:
+Example 2:
  Input:
  s = "aa"
  p = "a*"
  Output: true
  Explanation: '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes "aa".
 
- Example 3:
+Example 3:
  Input:
  s = "ab"
  p = ".*"
  Output: true
  Explanation: ".*" means "zero or more (*) of any character (.)".
 
- Example 4:
+Example 4:
  Input:
  s = "aab"
  p = "c*a*b"
  Output: true
  Explanation: c can be repeated 0 times, a can be repeated 1 time. Therefore, it matches "aab".
 
- Example 5:
+Example 5:
  Input:
  s = "mississippi"
  p = "mis*is*p*."
  Output: false
- */
 
-// TODO... backtracking method
+THOUGHTS:
+    str:      pattern:
+    x  a  a  b  ==  x  a  *  .
+    0  1  2  3      0  1  2  3
+    rule:
+    1. '*' delete 'a' in pattern before itself, see if xaa=x
+    2. '*' in pattern replace to 'a', xaa==xaa. while str[2]=pattern[1],
+       means we can check xa=xa by delete char 'a' both str and pattern forms a backtrace action.
+       This works when char right before * is equal to what at same index in str.
+    3. '.' could be any
+
+    i: index in str; j: index in pattern
+
+              /  dp[i-1][j-1] (str[i]=pattern[j])
+            /    dp[i-1][j-1] (pattern[j]='.', rule 3)
+    dp[i][j]
+            \  / dp[i][j-2]  (pattern[j] = '*', rule 1)
+             \  OR
+               \ dp[i-1][j]  (pattern[j] = '*' && (str[i]=pattern[j-1] or pattern[j-1]='.'), rule 2)
+
+    ↑↓←→↗↘↖↙
+   | \ |' '| x | a |   *   | b | . | c |
+   |' '| T | F | F | F(-2) | F | F | F |
+   |-------↘-------------------↘-------|
+   | x | F | T | F | T(-2) | F | F | F |
+   |-----------↘-------↓-------↘-------|
+   | a | F | F | T |   T   | F | F | F |
+   |-----------↘-------↓-------↘-------|
+   | a | F | F | F |   T   | F | F | F |
+   |-----------------------↘---↘-------|
+   | b | F | F | F | F(-2) | T | F | F |
+   |---------------------------↘-------|
+   | y | F | F | F | F(-2) | F | T | F |
+   |---------------------------↘---↘---|
+   | c | F | F | F | F(-2) | F | F | T |
+   |-----------------------------------|
+
+ */
 bool isMatch(std::string s, std::string p) {
     size_t slen = s.size();
     size_t plen = p.size();

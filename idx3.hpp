@@ -29,15 +29,16 @@ typedef LCListNode ListNode;
  1　　2　　7　　4　　3　　1
      |   { desc order } section
     IDX
- RULE 1. section that DESC order means the last group, next arrangement must be ordered ASC.
- RULE 2. to do so, switch two member between the memeber just before section(IDX) and
-    centain one in sections. but which one? we always switch in ASC order one by one,
+ RULE 1. Section that DESC order means the last group, next arrangement must be ordered ASC.
+ RULE 2. To do so, switch two member between the member just before section(IDX) and
+    centain one in sections. But which one? We always switch in ASC order one by one,
     so the centain member in section must be the first one that larger-equal than IDX.
   1　　3　　7　　4　　2　　1
       |   { desc order } section
       |           |
       ---switch----
- then reverse section to meet rule 1.
+ Then reverse section to meet rule 1. Result: 1 3 1 2 4 7
+
  specially, two corner case:
     1  2        3
        |   {desc order}
@@ -45,7 +46,7 @@ typedef LCListNode ListNode;
        |-swtich-|
 
            3      2     1
-   NO-IDX  { desc order }
+   IDX=-1  { desc order }
 */
 void nextPermutation(std::vector<int>& nums) {
     int i = nums.size() - 2;
@@ -99,7 +100,6 @@ FTEST(test_nextPermutation) {
                 *      []      len: 5-0+1=6, stack empty,current idx as left border
     s              |   []      stack empty, start idx move right.
 
- THOUGHTS(stack):
     TODO... DP method
 */
 int longestValidParentheses(std::string s) {
@@ -573,7 +573,7 @@ std::string countAndSay(int n) {
 }
 
 FTEST(test_countAndSay) {
-//    LOG(INFO) << 4 << ":" << countAndSay(4);
+    LOG(INFO) << 4 << ":" << countAndSay(4);
     for (int i = 1; i <= 10; ++i) {
         LOG(INFO) << i << ":" << countAndSay(i);
     }
@@ -607,24 +607,23 @@ FTEST(test_countAndSay) {
  ]
 */
 std::vector<std::vector<int>> combinationSum(std::vector<int>& candidates, int target) {
-    std::function<void(std::vector<std::vector<int>>&, std::vector<int>&, int, int)> r;
-    r = [&candidates, &r](std::vector<std::vector<int>>& res, std::vector<int>& re, int start,
-            int target) {
-        if (target <= 0) {
-            if (target == 0) {
+    std::vector<int> re;
+    std::vector<std::vector<int>> res;
+    std::function<void(int, int)> r;
+    r = [&](int start, int t) {
+        if (t <= 0) {
+            if (t == 0) {
                 res.emplace_back(re);
             }
             return;
         }
         for (size_t i = start; i < candidates.size(); ++i) {
             re.emplace_back(candidates[i]);
-            r(res, re, i, target - candidates[i]);
+            r(i, t - candidates[i]);
             re.pop_back();
         }
     };
-    std::vector<std::vector<int>> res;
-    std::vector<int> re;
-    r(res, re, 0, target);
+    r(0, target);
     return res;
 }
 
@@ -668,13 +667,14 @@ FTEST(test_combinationSum) {
    [5]
  ]
 */
-std::vector<std::vector<int>> combinationSum2(std::vector<int>& candidates, int target) {
+std::vector<std::vector<int>> combinationSumII(std::vector<int>& candidates, int target) {
     std::sort(candidates.begin(), candidates.end());
-    std::function<void(std::vector<std::vector<int>>&, std::vector<int>&, int, int)> r;
-    r = [&candidates, &r](std::vector<std::vector<int>>& res, std::vector<int>& re, int start,
-            int target) {
-        if (target <= 0) {
-            if (target == 0) {
+    std::vector<std::vector<int>> res;
+    std::vector<int> re;
+    std::function<void(int, int)> r;
+    r = [&](int start, int t) {
+        if (t <= 0) {
+            if (t == 0) {
                 res.emplace_back(re);
             }
             return;
@@ -684,20 +684,18 @@ std::vector<std::vector<int>> combinationSum2(std::vector<int>& candidates, int 
                 continue;
             }
             re.emplace_back(candidates[i]);
-            r(res, re, i + 1, target - candidates[i]);
+            r(i + 1, t - candidates[i]);
             re.pop_back();
         }
     };
-    std::vector<std::vector<int>> res;
-    std::vector<int> re;
-    r(res, re, 0, target);
+    r(0, target);
     return res;
 }
 
-FTEST(test_combinationSum2) {
+FTEST(test_combinationSumII) {
     auto t = [](const std::vector<int>& candidates, int target) {
         std::vector<int> nns = candidates;
-        auto n = combinationSum2(nns, target);
+        auto n = combinationSumII(nns, target);
         LOG(INFO) << candidates << " find " << target << ": " << n;
         return n;
     };

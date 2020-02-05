@@ -8,15 +8,15 @@ namespace LCIndex5 {
 
 /**
  ///////////// 51. N-Queens
- The n-queens puzzle is the problem of placing n queens on an n×n chessboard such
+The n-queens puzzle is the problem of placing n queens on an n×n chessboard such
  that no two queens attack each other.
 
- Given an integer n, return all distinct solutions to the n-queens puzzle.
+Given an integer n, return all distinct solutions to the n-queens puzzle.
 
- Each solution contains a distinct board configuration of the n-queens' placement, where 'Q'
+Each solution contains a distinct board configuration of the n-queens' placement, where 'Q'
  and '.' both indicate a queen and an empty space respectively.
 
- Example:
+Example:
  Input: 4
  Output: [
   [".Q..",  // Solution 1
@@ -37,7 +37,7 @@ namespace LCIndex5 {
  ]
  Explanation: There exist two distinct solutions to the 4-queens puzzle as shown above.
 
- THOUGHTS:
+THOUGHTS:
     if two point locate at same diagonal, abs(x-x') = abs(y-y')
 */
 std::vector<std::vector<std::string>> solveNQueens(int n) {
@@ -88,12 +88,12 @@ FTEST(test_solveNQueens) {
 
 /**
  ///////////// 52. N-Queens II
- The n-queens puzzle is the problem of placing n queens on an n×n chessboard such
+The n-queens puzzle is the problem of placing n queens on an n×n chessboard such
  that no two queens attack each other.
 
- Given an integer n, return the number of distinct solutions to the n-queens puzzle.
+Given an integer n, return the number of distinct solutions to the n-queens puzzle.
 
- Example:
+Example:
  Input: 4
  Output: 2
  Explanation: There are two distinct solutions to the 4-queens puzzle as shown below.
@@ -108,6 +108,9 @@ FTEST(test_solveNQueens) {
    "...Q",
    ".Q.."]
  ]
+
+THOUGHTS:
+    if two point locate at same diagonal, abs(x-x') = abs(y-y')
 */
 int totalNQueens(int n) {
     int res = 0;
@@ -324,7 +327,8 @@ FTEST(test_spiralOrder) {
 
 /**
  ///////////// 55. Jump Game
- Given an array of non-negative integers, you are initially positioned at the first index of the array.
+ Given an array of non-negative integers,
+ you are initially positioned at the first index of the array.
  Each element in the array represents your maximum jump length at that position.
  Determine if you are able to reach the last index.
 
@@ -378,20 +382,35 @@ FTEST(test_canJump) {
 
 /**
  ///////////// 56. Merge Intervals
- Given a collection of intervals, merge all overlapping intervals.
+Given a collection of intervals, merge all overlapping intervals.
 
- Example 1:
+Example 1:
  Input: [[1,3],[2,6],[8,10],[15,18]]
  Output: [[1,6],[8,10],[15,18]]
  Explanation: Since intervals [1,3] and [2,6] overlaps, merge them into [1,6].
 
- Example 2:
+Example 2:
  Input: [[1,4],[4,5]]
  Output: [[1,5]]
  Explanation: Intervals [1,4] and [4,5] are considered overlapping.
 
- NOTE: input types have been changed on April 15, 2019. Please reset to default code definition
+NOTE: input types have been changed on April 15, 2019. Please reset to default code definition
  to get new method signature.
+
+THOUGTHS:
+  after sort, a.left <= b.left, right right border has two conditions:
+     cond1                cond2
+  a: ┌     ┐           ┌            ┐
+  b:    ┌        ┐        ┌      ┐
+     1  2  3  4  5  6  7  8  9  10 11
+
+  cond1: partial overlap (a.right < b.right)
+    left=a.left, right=b.right
+  cond2: total overlap ( a.right > b.right)
+    left=a.left, right=a.right
+  merge two condition:
+    left=a.left, right=max(a.right, b.right)
+
 */
 std::vector<std::vector<int>> merge(std::vector<std::vector<int>>& intervals) {
     std::vector<std::vector<int>> res;
@@ -400,7 +419,7 @@ std::vector<std::vector<int>> merge(std::vector<std::vector<int>>& intervals) {
     }
     std::sort(intervals.begin(), intervals.end());
     int l = intervals.front().front();
-    int r = intervals.front().back();
+    int r = intervals.front().back();       // last right border
     for (size_t i = 1; i < intervals.size(); ++i) {
         if (intervals[i].front() > r) {
             res.emplace_back(std::vector<int>{l, r});
@@ -522,9 +541,10 @@ int lengthOfLastWord(std::string s) {
 
 /**
  ///////////// 59. Spiral Matrix II
- Given a positive integer n, generate a square matrix filled with elements from 1 to n2 in spiral order.
+Given a positive integer n,
+ generate a square matrix filled with elements from 1 to n2 in spiral order.
 
- Example:
+Example:
  Input: 3
  Output:
  [
@@ -589,9 +609,8 @@ FTEST(test_generateMatrix) {
 
 /**
  ///////////// 60. Permutation Sequence
- The set [1,2,3,...,n] contains a total of n! unique permutations.
+The set [1,2,3,...,n] contains a total of n! unique permutations.
  By listing and labeling all of the permutations in order, we get the following sequence for n = 3:
-
  "123"
  "132"
  "213"
@@ -600,17 +619,39 @@ FTEST(test_generateMatrix) {
  "321"
  Given n and k, return the kth permutation sequence.
 
- Note:
+Note:
  Given n will be between 1 and 9 inclusive.
  Given k will be between 1 and n! inclusive.
 
- Example 1:
+Example 1:
  Input: n = 3, k = 3
  Output: "213"
 
- Example 2:
+Example 2:
  Input: n = 4, k = 9
  Output: "2314"
+
+THOUGHTS:
+ n=3, k=4(start from 0)
+ Count of permutations is factorial=n!, we could group then by numerical order.
+     1 2 3
+     1 3 2
+
+     2 1 3
+     2 3 1
+
+     3 1 2
+     3 2 1
+
+     idx=0, count of each group is factory=factory/n
+     res[idx]=nums[k/factory]
+     res[0]=nums[4/(6/3)]=nums[2]='3', we picked 3rd group:
+     3 1 2
+     3 2 1
+
+     idx=1(++idx), k=0(k%=factorial), factorial=1(factorial / (i - 1)?1),
+     res[1]=nums[0/1]=nums[0]='1', we picked:
+     3 1 2
 */
 std::string getPermutation(int n, int k) {
     std::string nums = "123456789";
