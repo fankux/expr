@@ -71,7 +71,7 @@ Explanation: 13 = 4 + 9.
 
  THOUGHTS:
     A number could treat as a plain number plus a square number, so state change formula:
-        dp[i + j * j] = Math.min(dp[i] + 1, dp[i + j * j])
+        dp[i + j * j] = min(dp[i] + 1, dp[i + j * j])
 
  */
 int numSquares(int n) {

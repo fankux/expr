@@ -81,8 +81,8 @@ Explanation: 5! = 120, one trailing zero.
 
  THOUGHTS:
  find the count of number 5 when factoring, like:
- !10 = 1*2*3*4*5*6*7*8*9*10 = 1*3*4*6*7*8*9* (2*5) * (2*5)
- each 2*5 generate a zero.
+ 10! = 1*2*3*4*5*6*7*8*9*10 = 1*3*4*6*7*8*9* (2*5) * (2*5)
+ each 2*5 generate a zero. once 5 exist, there must be 2 exist, so just find 5.
  */
 int trailingZeroes(int n) {
     int res = 0;

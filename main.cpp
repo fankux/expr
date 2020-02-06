@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_minDistance();
+    test_increasingTriplet();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree

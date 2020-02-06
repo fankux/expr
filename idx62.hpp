@@ -37,7 +37,7 @@ THOUGHTS(slot method):
  A B C A B D A B _
 
  real length affected by chars which different from A but with same count with A, that B
- or there are more different chars which result is it's lenght, like:
+ or there are more different chars which result is the length of itself, like:
   A A A B B B C D E F  n=2
 
  [A B C] [A B D] [A B E] F

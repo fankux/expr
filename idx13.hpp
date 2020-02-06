@@ -309,6 +309,11 @@ Travel to station 0. Your tank = 4 - 3 + 2 = 3
 Travel to station 1. Your tank = 3 - 3 + 3 = 3
 You cannot travel back to station 2, as it requires 4 unit of gas but you only have 3.
 Therefore, you can't travel around the circuit once no matter where you start.
+
+THOUGHTS:
+  RULE_1: total gas must >= total cost
+  RULE_1: SUM is the cost from START to current pos, once SUM less than 0 means no gas station
+          from the START could be a valid one.
 */
 int canCompleteCircuit(std::vector<int>& gas, std::vector<int>& cost) {
     int total = 0;
@@ -357,11 +362,23 @@ Input: [1,2,2]
 Output: 4
 Explanation: You can allocate to the first, second and third child with 1,2,1 candies respectively.
              The third child gets 1 candy because it satisfies the above two conditions.
+
+THOUGHTS(iter method):
+  1  2  5  4  3  2  1
+  1  2  3  p              at p, 4 less than previous 5,
+       pre                we find how much number forms a decreasing arithmetic sequence
+
+  1  2  5  4  3  2  1     from s to e there are 4 numbers, easy to calculate is 4(4+1)/2=10,
+       pre s        e     and we plus count to pos pre, which is 4-3+1=2
+
+  if there exist duplicate number, just set the latter one to 1
+
+  finally, we acculate all count.
 */
 int candy(std::vector<int>& ratings) {
     size_t len = ratings.size();
     auto two_iter_method = [&] {
-        std::vector<int> nums(len, 1);
+        std::vector<int> nums(len, 1); // at least 1
         for (size_t i = 0; i < len; ++i) {
             if (i > 0 && ratings[i] > ratings[i - 1] && nums[i] <= nums[i - 1]) {
                 nums[i] = nums[i - 1] + 1;

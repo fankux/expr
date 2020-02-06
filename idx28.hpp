@@ -36,12 +36,12 @@ THOUGHTS:
     j is the index of last found not 0
 
     condition 1: if i, j adjucent, after swap, i++ still at the index of 0
-    0 1 2   =>    0 1 2
-    i j           i j
+    0 1 2   =>    1 0 2
+    i j             i j
 
     condition 2: if i, j not adjucent, the gap between must be all 0 or i, j must be adjucent.
         so i++ still at the index of 0 too.
-    0 0 2 4   =>   0 0 2 4
+    0 0 2 4   =>   2 0 0 4
     i   j            i   j
 
     condition 3: if i==j≠0, next number is not 0, there still at condition 3 after swap(do nothing)

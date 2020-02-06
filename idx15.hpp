@@ -54,6 +54,12 @@ Example 2:
 Input: [-2,0,-1]
 Output: 0
 Explanation: The result cannot be 2, because [-2,-1] is not a subarray.
+
+THOUGHTS:
+           / max * nums[i]
+ max = max - nums[i]
+           \ min * nums[i]
+
  */
 int maxProduct(std::vector<int>& nums) {
     size_t len = nums.size();
@@ -187,6 +193,7 @@ public:
         int t = _ss.top();
         _ss.pop();
         if (t == _min) {
+            assert(!_ss.empty());
             _min = _ss.top();
             _ss.pop();
         }
@@ -241,6 +248,16 @@ Here's an example:
     \
      5
 The above binary tree is serialized as [1,2,3,#,#,4,#,#,5].
+
+THOUGHTS:
+    1           1         4           4
+   / \         / \       / \         / \
+  2   3       4   3     5   2       5   2
+ / \         / \             \         / \
+4   5       5   2             1       3   1
+                               \
+                                3
+
  */
 TreeNode* upsideDownBinaryTree(TreeNode* root) {
     return nullptr;

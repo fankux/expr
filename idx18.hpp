@@ -94,6 +94,20 @@ Note:
 Try to come up as many solutions as you can, there are at least 3 different ways to
  solve this problem.
 Could you do it in-place with O(1) extra space?
+
+THOUGHTS(swap index):
+ k=2, start=0
+ ┌───┐
+ 1 2 1 4 5    t=3
+     ┌───┐
+ 1 2 1 4 3    t=5
+ ──┐     ┌─
+ 1 5 1 4 3    t=2
+   ┌───┐
+ 1 5 1 2 3    t=4
+ ┐     ┌───
+ 4 5 1 2 3    pos=start, ++pos
+
  */
 void rotateArray(std::vector<int>& nums, int k) {
     size_t len = nums.size();

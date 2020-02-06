@@ -395,6 +395,13 @@ Given n = 3, there are a total of 5 unique BST's:
      3     2     1      1   3      2
     /     /       \                 \
    2     1         2                 3
+
+THOUGHTS:
+    dp[i]    dp[i-1]               dp[i]
+    /             \               /    \
+   dp[i-1]         dp[i]      dp[i-1]  dp[len-i-1]
+      dp[i-1] * 2         FROM i to len, += dp[i-1] * dp[len-i-1]
+                          if length(i-1) = length(len-i-1) += dp[i / 2 - 1] * dp[i / 2 - 1]
 */
 int numBSTrees(int n) {
     if (n <= 0) {
@@ -404,7 +411,7 @@ int numBSTrees(int n) {
     dp[0] = 1;
     for (size_t i = 1; i < n; ++i) {
         dp[i] = 0;
-        for (size_t j = 1; j < (i + 1) / 2; ++j) {
+        for (size_t j = 1; j < (i + 1) / 2; ++j) { // current as middle
             dp[i] += dp[j - 1] * dp[i - j - 1];
         }
         dp[i] = dp[i] * 2 + dp[i - 1] * 2;
@@ -472,14 +479,14 @@ FTEST(test_isInterleave) {
         return re;
     };
 
-//    FEXP(t("", "", ""), true);
-//    FEXP(t("1", "", ""), false);
-//    FEXP(t("", "1", ""), false);
-//    FEXP(t("", "", "1"), false);
-//    FEXP(t("1", "", "1"), true);
-//    FEXP(t("", "1", "1"), true);
-//    FEXP(t("aabcc", "dbbca", "aadbbcbcac"), true);
-//    FEXP(t("aabcc", "dbbca", "aadbbbaccc"), false);
+    FEXP(t("", "", ""), true);
+    FEXP(t("1", "", ""), false);
+    FEXP(t("", "1", ""), false);
+    FEXP(t("", "", "1"), false);
+    FEXP(t("1", "", "1"), true);
+    FEXP(t("", "1", "1"), true);
+    FEXP(t("aabcc", "dbbca", "aadbbcbcac"), true);
+    FEXP(t("aabcc", "dbbca", "aadbbbaccc"), false);
     FEXP(t("aabc", "abad", "aabadabc"), true);
 }
 
@@ -603,6 +610,9 @@ Output: [2,1,4,null,null,3]
 Follow up:
 A solution using O(n) space is pretty straight forward.
 Could you devise a constant space solution?
+
+THOUGHTS:
+    morris traversal
 */
 void recoverTree(TreeNode* root) {
     TreeNode* p = nullptr;

@@ -480,12 +480,24 @@ There must be no consecutive horizontal lines of equal height in the output skyl
  For instance, [...[2 3], [4 5], [7 5], [11 5], [12 7]...] is not acceptable;
  the three lines of height 5 should be merged into one in the final
  output as such: [...[2 3], [4 5], [12 7], ...]
+
+THOUGHTS:
+    Sort start edge and end edge as below RULE:
+    1. for start edge, when x equal, height at descent order, make value to negative is a easy way.
+    2. for end edge, when x equal, height asend order
+
+    There is a multi priority_queue record current max height.
+    We put start edge in it, and pop queue when end edge occured.
+    Once height changed, record a node with queue top value as height.
+    RULE_1 make sure start edge as higher as possible
+    RULE_2 make sure end edge as lower as possible
+        which avoid duplicated height changing cause duplicated result.
  */
 std::vector<std::vector<int>> getSkyline(std::vector<std::vector<int>>& buildings) {
     std::vector<std::pair<int, int>> vv;
     for (auto& building : buildings) {
         vv.emplace_back(building[0], -building[2]); // start when x equal, height descent order
-        vv.emplace_back(building[1], building[2]); // when x equal, height asend order
+        vv.emplace_back(building[1], building[2]);     // end when x equal, height asend order
     }
     std::sort(vv.begin(), vv.end());
     std::vector<std::vector<int>> res;
@@ -493,10 +505,10 @@ std::vector<std::vector<int>> getSkyline(std::vector<std::vector<int>>& building
     qq.emplace(0);
     for (auto& v : vv) {
         int pre = *(qq.rbegin());
-        if (v.second < 0) {          // start edge
+        if (v.second < 0) {                 // start edge
             qq.emplace(-v.second);
-        } else {                    // end edge
-            qq.erase(qq.find(v.second)); // delete first one
+        } else {                            // end edge
+            qq.erase(qq.find(v.second));    // delete first one
         }
         int top = *qq.rbegin();
         if (pre != top) {

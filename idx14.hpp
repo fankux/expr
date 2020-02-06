@@ -192,7 +192,7 @@ void reorderList(ListNode* head) {
             s = s->next;
             f = f->next->next;
         }
-        // break to two list;
+        // find middle and break to two list;
         f = s->next;
         s->next = nullptr;
 
@@ -205,7 +205,7 @@ void reorderList(ListNode* head) {
             f = s;
         }
 
-        // inter connect two list
+        // interleave connect two list
         s = head;
         while (s && p) {
             f = p->next;
@@ -490,7 +490,7 @@ ListNode* insertionSortList(ListNode* head) {
         while (d->next && d->next != p && p->val >= d->next->val) {
             d = d->next;
         }
-        if (d->next == p) { // no insert happend
+        if (d->next == p) {     // no insert happend
             pre = p;
         } else {
             pre->next = n;      // detach p
@@ -665,6 +665,7 @@ Explanation:
 0  1  2  3  4  5  6
 
  THOUGHTS:
+    gcd(a,b) = gcd(b,a mod b)
     notice that greatest common divisor (GCD) must concern signature.
     gradient of two points also need,
     as follow, if we ignore signature of GCD:

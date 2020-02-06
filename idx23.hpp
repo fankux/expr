@@ -236,6 +236,11 @@ Note: Please solve it without division and in O(n).
 Follow up:
 Could you solve it with constant space complexity?
  (The output array does not count as extra space for the purpose of space complexity analysis.)
+
+THOUGHTS:
+    First, from end to start, accumulative factories,
+    Then, from start to end, accumulative factories.
+
  */
 std::vector<int> productExceptSelf(std::vector<int>& nums) {
     size_t len = nums.size();

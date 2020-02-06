@@ -43,28 +43,45 @@ Input: [5,4,3,2,1]
 Output: false
  */
 bool increasingTriplet(std::vector<int>& nums) {
-    std::vector<int> vv;
-    for (auto num : nums) {
-        size_t l = 0;
-        size_t r = vv.size();
-        while (l < r) {
-            size_t mid = l + (r - l) / 2;
-            if (vv[mid] < num) {
-                l = mid + 1;
+    auto space_cost_method = [&] {
+        std::vector<int> vv;
+        for (auto num : nums) {
+            size_t l = 0;
+            size_t r = vv.size();
+            while (l < r) {
+                size_t mid = l + (r - l) / 2;
+                if (vv[mid] < num) {
+                    l = mid + 1;
+                } else {
+                    r = mid;
+                }
+            }
+            if (l >= vv.size()) {
+                vv.emplace_back(num);
+                if (vv.size() >= 3) {
+                    return true;
+                }
             } else {
-                r = mid;
+                vv[l] = num;
             }
         }
-        if (l >= vv.size()) {
-            vv.emplace_back(num);
-            if (vv.size() >= 3) {
+        return false;
+    };
+    auto linear_method = [&] {
+        int a = INT_MAX;
+        int b = INT_MAX;
+        for (int num : nums) {
+            if (a >= num) {
+                a = num;
+            } else if (b >= num) {  // a < num = b
+                b = num;
+            } else {                // a < num && b < num, means 'a < b < num' occured
                 return true;
             }
-        } else {
-            vv[l] = num;
         }
-    }
-    return false;
+        return false;
+    };
+    return linear_method();
 }
 
 FTEST(test_increasingTriplet) {
@@ -130,6 +147,13 @@ Input: [3,4,5,1,3,null,1]
 
 Output: 9
 Explanation: Maximum amount of money the thief can rob = 4 + 5 = 9.
+
+THOUGHTS:
+    At node P:
+        /  ll + lr + rl + rr + P->v   (rob P and P's grandchilds)
+    max
+        \  l + r            (not rob P but P's childs)
+
  */
 int robIII(TreeNode* root) {
     std::function<int(TreeNode*, int&, int&)> rfunc;
@@ -188,6 +212,17 @@ It is very easy to come up with a solution with run time O(n*sizeof(integer)).
 Space complexity should be O(n).
 Can you do it like a boss? Do it without using any builtin function like
  __builtin_popcount in c++ or in any other language.
+
+THOUGHTS:
+ For each group, add 1 bit at most significant left
+ 0: 0  0: 00  0: 000  0: 000
+       1: 01  1: 001  1: 001
+              2: 010  2: 010
+              3: 011  3: 011
+                      4: 100
+                      5: 101
+                      6: 110
+                      7: 111
  */
 std::vector<int> countBits(int num) {
     std::vector<int> res(num + 1, 0);
