@@ -513,3 +513,88 @@ FTEST(test_graph) {
     spfa({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}}, C);
     reverse({A, B, C}, {{3, A, B}, {4, B, C}, {-8, C, A}});
 }
+
+int count_of_graph(std::vector<std::vector<int>>& matrix) {
+    if (matrix.empty() || matrix.front().size() != matrix.size()) {
+        return 0;
+    }
+    int n = matrix.size();
+
+    auto BFS_method = [&] {
+        std::map<int, std::vector<int>> nexts;
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                if (matrix[i][j]) {
+                    nexts[i].emplace_back(j);
+                }
+            }
+        }
+        int res = 0;
+        while (!nexts.empty()) {
+            std::queue<int> qq{{nexts.begin()->first}};
+            while (!qq.empty()) {
+                for (size_t i = qq.size(); i > 0; --i) {
+                    int x = qq.front();
+                    qq.pop();
+                    if (nexts.count(x) == 0) {
+                        continue;
+                    }
+                    for (int next : nexts[x]) {
+                        qq.emplace(next);
+                    }
+                    nexts.erase(x);
+                }
+            }
+            ++res;
+        }
+        return res;
+    };
+    auto DFS_method = [&] {
+        std::function<bool(int)> rfunc;
+        rfunc = [&](int start) {
+            bool flag = false;
+            for (int i = start + 1; i < n; ++i) {
+                if (matrix[start][i]) {
+                    flag = true;
+                    matrix[start][i] = 0;
+                    rfunc(i);
+                }
+            }
+            return flag;
+        };
+        int res = 0;
+        for (int i = 0; i < n; ++i) {
+            if (rfunc(i)) {
+                ++res;
+            }
+        }
+        return res;
+    };
+    return DFS_method();
+}
+
+FTEST(test_count_of_graph) {
+    auto t = [](const std::vector<std::vector<int>>& matrix) {
+        std::vector<std::vector<int>> nns = matrix;
+        auto re = count_of_graph(nns);
+        LOG(INFO) << matrix << " count of graph: " << re;
+        return re;
+    };
+
+    FEXP(t({
+            {1, 1, 0},
+            {1, 1, 1},
+            {0, 1, 1}}), 1);
+    FEXP(t({
+            {1, 1, 1, 0, 0},
+            {1, 1, 1, 0, 0},
+            {1, 1, 1, 0, 0},
+            {0, 0, 0, 1, 1},
+            {0, 0, 0, 1, 1}}), 2);
+    FEXP(t({
+            {1, 1, 0, 0, 1},
+            {1, 1, 0, 0, 0},
+            {0, 0, 1, 1, 0},
+            {0, 0, 1, 1, 0},
+            {1, 0, 0, 0, 1}}), 2);
+}
