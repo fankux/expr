@@ -387,7 +387,7 @@ std::vector<std::pair<size_t, size_t>> len_of_longest_substr(const std::string& 
     for (int i = 0; i < s.size(); ++i) {
         left = std::max(left, m[s[i]]);
         m[s[i]] = i;
-
+        //max_len = std::max(max_len, i - left);
         int delta = i - left;
         if (delta >= max_len) {
             if (delta > max_len) {
@@ -400,7 +400,7 @@ std::vector<std::pair<size_t, size_t>> len_of_longest_substr(const std::string& 
     return res;
 }
 
-std::vector<std::pair<size_t, size_t>> len_of_longest_substr_two_distinct(const std::string& s) {
+std::vector<std::pair<size_t, size_t>> longest_substr_two_distinct(const std::string& s) {
     std::vector<std::pair<size_t, size_t>> res;
 
     int max_len = 0, left = 0;
@@ -426,21 +426,47 @@ std::vector<std::pair<size_t, size_t>> len_of_longest_substr_two_distinct(const 
     return res;
 }
 
+std::vector<std::pair<size_t, size_t>> longest_substr_k_distinct(const std::string& s, int k) {
+    std::vector<std::pair<size_t, size_t>> res;
+
+    int max_len = 0, left = 0;
+    std::unordered_map<char, size_t> m;
+    for (size_t i = 0; i < s.size(); ++i) {
+        ++m[s[i]];
+        while (m.size() > k) {
+            if (--m[s[left]] == 0) {
+                m.erase(s[left]);
+            }
+            ++left;
+        }
+        //max_len = std::max(max_len, i - left + 1);
+        size_t delta = i - left + 1;
+        if (delta >= max_len) {
+            if (delta > max_len) {
+                res.clear();
+            }
+            res.emplace_back(std::make_pair(left, i));
+            max_len = delta;
+        }
+    }
+    return res;
+}
+
 FTEST(test_len_of_longest_substr) {
-    LOG(INFO) << "len_of_longest_substr";
+    LOG(INFO) << "longest_substr";
     LOG(INFO) << len_of_longest_substr("abc");
     LOG(INFO) << len_of_longest_substr("ababc");
     LOG(INFO) << len_of_longest_substr("ababcabc");
     LOG(INFO) << len_of_longest_substr("aaaaaaa");
     LOG(INFO) << len_of_longest_substr("abcdef");
 
-    LOG(INFO) << "len_of_longest_substr_two_distinct";
-    LOG(INFO) << len_of_longest_substr_two_distinct("eceba");
-    LOG(INFO) << len_of_longest_substr_two_distinct("abc");
-    LOG(INFO) << len_of_longest_substr_two_distinct("ababc");
-    LOG(INFO) << len_of_longest_substr_two_distinct("ababcabc");
-    LOG(INFO) << len_of_longest_substr_two_distinct("aaaaaaa");
-    LOG(INFO) << len_of_longest_substr_two_distinct("abcdef");
+    LOG(INFO) << "longest_substr_two_distinct";
+    LOG(INFO) << longest_substr_two_distinct("eceba");
+    LOG(INFO) << longest_substr_two_distinct("abc");
+    LOG(INFO) << longest_substr_two_distinct("ababc");
+    LOG(INFO) << longest_substr_two_distinct("ababcabc");
+    LOG(INFO) << longest_substr_two_distinct("aaaaaaa");
+    LOG(INFO) << longest_substr_two_distinct("abcdef");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
