@@ -37,7 +37,93 @@ Follow up:
 For C programmers, try to solve it in-place in O(1) extra space.
  */
 std::string reverseWords(std::string s) {
-    return "";
+    int len = s.size();
+    bool state = false;
+
+    int begin = 0;
+    while (begin < len && isspace(s[begin])) {
+        ++begin;
+    }
+    int end = len;
+    while (end > 0 && isspace(s[end - 1])) {
+        --end;
+    }
+
+    len = end;
+    int left = begin;
+    int space_idx = begin;
+    int shrink_delta = 0;
+    for (int i = begin; i < len;) {
+        char c = s[i];
+        if (space_idx != i) {
+            s[space_idx] = c;
+        }
+
+        if (i > 0 && isspace(s[i - 1]) && isspace(c)) {
+            space_idx = i - shrink_delta;
+            while (i < len && isspace(s[i])) {
+                ++i;
+                ++shrink_delta;
+            }
+            if (i >= len) {
+                break;
+            }
+            left = space_idx;
+            state = true;
+            continue;
+        }
+        if (!state) {
+            if (!isspace(c)) {
+                left = space_idx;
+                state = true;
+            }
+        } else {
+            if (isspace(c)) {
+                for (int r = space_idx - 1; left < r; ++left, --r) {
+                    std::swap(s[left], s[r]);
+                }
+                state = false;
+            }
+        }
+        ++i;
+        ++space_idx;
+    }
+    end -= shrink_delta;
+    if (space_idx != end) {
+        s[space_idx] = s[len - 1];
+    }
+    if (state) {
+        for (int r = end - 1; left < r; ++left, --r) {
+            std::swap(s[left], s[r]);
+        }
+    }
+    s = s.substr(begin, end - begin);
+    for (int i = 0, end = s.size() - 1; i < end; ++i, --end) {
+        std::swap(s[i], s[end]);
+    }
+    return s;
+}
+
+FTEST(test_reverseWords) {
+    auto t = [](const std::string& s) {
+        auto re = reverseWords(s);
+        LOG(INFO) << s << " reverse: " << re;
+        return re;
+    };
+
+    FEXP(t(""), "");
+    FEXP(t("a"), "a");
+    FEXP(t("ab"), "ab");
+    FEXP(t("ab!"), "ab!");
+    FEXP(t("ab c"), "c ab");
+    FEXP(t("ab! c"), "c ab!");
+    FEXP(t("ab c!"), "c! ab");
+    FEXP(t("the sky is blue"), "blue is sky the");
+    FEXP(t("  hello world!  "), "world! hello");
+    FEXP(t("d   ex"), "ex d");
+    FEXP(t("d   ex fg"), "fg ex d");
+    FEXP(t("d   ex  fg"), "fg ex d");
+    FEXP(t("a good   example"), "example good a");
 }
 
 /**
@@ -115,7 +201,41 @@ Input: [4,5,6,7,0,1,2]
 Output: 0
  */
 int findMinRotate(std::vector<int>& nums) {
-    return 0;
+    int l = 0;
+    int r = nums.size() - 1;
+    while (l < r) {
+        int m = l + (r - l) / 2;
+        if (nums[m] > nums[r]) {
+            l = m + 1;
+        } else {
+            r = m;
+        }
+    }
+    return nums.empty() ? -1 : nums[l];
+}
+
+FTEST(test_findMinRotate) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = findMinRotate(nns);
+        LOG(INFO) << nums << " min: " << re;
+        return re;
+    };
+
+    FEXP(t({}), -1);
+    FEXP(t({0}), 0);
+    FEXP(t({1, 0}), 0);
+    FEXP(t({0, 1}), 0);
+    FEXP(t({0, 1, 2}), 0);
+    FEXP(t({2, 0, 1}), 0);
+    FEXP(t({1, 2, 0}), 0);
+    FEXP(t({1, 2, 3, 4, 5}), 1);
+    FEXP(t({2, 3, 4, 5, 1}), 1);
+    FEXP(t({3, 4, 5, 1, 2}), 1);
+    FEXP(t({4, 5, 1, 2, 3}), 1);
+    FEXP(t({5, 1, 2, 3, 4}), 1);
+    FEXP(t({1, 2, 3, 4, 5}), 1);
+    FEXP(t({4, 5, 6, 7, 0, 1, 2}), 0);
 }
 
 /**
@@ -138,7 +258,61 @@ This is a follow up problem to Find Minimum in Rotated Sorted Array.
 Would allow duplicates affect the run-time complexity? How and why?
  */
 int findMinRotateII(std::vector<int>& nums) {
-    return 0;
+    int l = 0;
+    int r = nums.size() - 1;
+    while (l < r) {
+        int m = l + (r - l) / 2;
+        if (nums[m] > nums[r]) {
+            l = m + 1;
+        } else if (nums[m] < nums[r]) {
+            r = m;
+        } else {
+            --r;
+        }
+    }
+    return nums.empty() ? -1 : nums[l];
+}
+
+FTEST(test_findMinRotateII) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = findMinRotateII(nns);
+        LOG(INFO) << nums << " min: " << re;
+        return re;
+    };
+
+    FEXP(t({}), -1);
+    FEXP(t({0}), 0);
+    FEXP(t({0, 0}), 0);
+    FEXP(t({1, 0}), 0);
+    FEXP(t({1, 0, 0}), 0);
+    FEXP(t({1, 1, 0}), 0);
+    FEXP(t({0, 1}), 0);
+    FEXP(t({1, 3, 5}), 1);
+    FEXP(t({0, 0, 1}), 0);
+    FEXP(t({0, 1, 1}), 0);
+    FEXP(t({0, 1, 2}), 0);
+    FEXP(t({0, 0, 1, 2}), 0);
+    FEXP(t({0, 0, 0, 1, 2}), 0);
+    FEXP(t({0, 1, 1, 2}), 0);
+    FEXP(t({0, 1, 1, 1, 2}), 0);
+    FEXP(t({0, 1, 2, 2}), 0);
+    FEXP(t({0, 1, 2, 2, 2}), 0);
+    FEXP(t({2, 0, 1}), 0);
+    FEXP(t({2, 2, 0, 1}), 0);
+    FEXP(t({2, 2, 2, 0, 1}), 0);
+    FEXP(t({2, 0, 0, 1}), 0);
+    FEXP(t({2, 0, 0, 0, 1}), 0);
+    FEXP(t({2, 0, 1, 1}), 0);
+    FEXP(t({2, 0, 1, 1, 1}), 0);
+    FEXP(t({1, 2, 0}), 0);
+    FEXP(t({1, 1, 2, 0}), 0);
+    FEXP(t({1, 1, 1, 2, 0}), 0);
+    FEXP(t({1, 2, 2, 0}), 0);
+    FEXP(t({1, 2, 2, 2, 0}), 0);
+    FEXP(t({1, 2, 0, 0}), 0);
+    FEXP(t({1, 2, 0, 0, 0}), 0);
+    FEXP(t({1, 2, 2, 2, 0, 1, 1}), 0);
 }
 
 /**

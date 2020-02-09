@@ -122,9 +122,61 @@ Note:
 You may assume all elements in the array are non-negative integers
  and fit in the 32-bit signed integer range.
 Try to solve it in linear time/space.
+
+THOUGHTS:
+ slot sort, then max gap must between adjucent slot;
  */
 int maximumGap(std::vector<int>& nums) {
-    return 0;
+    int len = nums.size();
+    if (len == 0) {
+        return 0;
+    }
+    int mx = INT_MIN;
+    int mn = INT_MAX;
+    for (auto& n : nums) {
+        mx = std::max(mx, n);
+        mn = std::min(mn, n);
+    }
+
+    int slot_size = (mx - mn) / len + 1;
+    int slot_count = (mx - mn) / slot_size + 1;
+    std::vector<int> slot_maxs(slot_count, INT_MIN);
+    std::vector<int> slot_mins(slot_count, INT_MAX);
+    for (auto& n: nums) {
+        int idx = (n - mn) / slot_size;
+        slot_maxs[idx] = std::max(slot_maxs[idx], n);
+        slot_mins[idx] = std::min(slot_mins[idx], n);
+    }
+    int res = 0;
+    int pre = 0;
+    for (int i = 1; i < slot_count; ++i) {
+        if (slot_maxs[i] == INT_MIN || slot_mins[i] == INT_MAX) {
+            continue;
+        }
+        res = std::max(res, slot_mins[i] - slot_maxs[pre]);
+        pre = i;
+    }
+    return res;
+}
+
+FTEST(test_maximumGap) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = maximumGap(nns);
+        LOG(INFO) << nums << " maximum gap: " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({0}), 0);
+    FEXP(t({1}), 0);
+    FEXP(t({10}), 0);
+    FEXP(t({1, 1}), 0);
+    FEXP(t({1, 0}), 1);
+    FEXP(t({0, 1}), 1);
+    FEXP(t({0, 1, 3}), 2);
+    FEXP(t({0, 3, 1}), 2);
+    FEXP(t({3, 6, 9, 1}), 3);
 }
 
 /**
@@ -170,7 +222,83 @@ Version strings are composed of numeric strings separated by dots .
 Version strings do not start or end with dots, and they will not be two consecutive dots.
  */
 int compareVersion(std::string version1, std::string version2) {
+    int i = 0;
+    int j = 0;
+    int len1 = version1.size();
+    int len2 = version2.size();
+
+    int left = 0;
+    while (i < len1 && j < len2) {
+        left = i;
+        while (i < len1 && version1[i] != '.') {
+            ++i;
+        }
+        int v1 = std::strtoul(version1.c_str() + left, nullptr, 10);
+
+        left = j;
+        while (j < len2 && version2[j] != '.') {
+            ++j;
+        }
+        int v2 = std::strtoul(version2.c_str() + left, nullptr, 10);
+        ++i;
+        ++j;
+        if (v1 == v2) {
+            continue;
+        }
+        return v1 < v2 ? -1 : 1;
+    }
+    while (i < len1) {
+        left = i;
+        while (i < len1 && version1[i] != '.') {
+            ++i;
+        }
+        int v = std::strtoul(version1.c_str() + left, nullptr, 10);
+        ++i;
+        if (v == 0) {
+            continue;
+        }
+        return v < 0 ? -1 : 1;
+    }
+    while (j < len2) {
+        left = j;
+        while (j < len2 && version2[j] != '.') {
+            ++j;
+        }
+        int v = std::strtoul(version2.c_str() + left, nullptr, 10);
+        ++j;
+        if (v == 0) {
+            continue;
+        }
+        return 0 < v ? -1 : 1;
+    }
     return 0;
+}
+
+FTEST(test_compareVersion) {
+    auto t = [](const std::string& version1, const std::string& version2) {
+        auto re = compareVersion(version1, version2);
+        LOG(INFO) << version1 << " compare " << version2 << ": " << re;
+        return re;
+    };
+
+    FEXP(t("", ""), 0);
+    FEXP(t("0", ""), 0);
+    FEXP(t("0.0", ""), 0);
+    FEXP(t("", "0"), 0);
+    FEXP(t("", "0.0"), 0);
+    FEXP(t("0.1", ""), 1);
+    FEXP(t("", "0.1"), -1);
+    FEXP(t("1", ""), 1);
+    FEXP(t("", "1"), -1);
+    FEXP(t("1.0", "1.0"), 0);
+    FEXP(t("1.1", "1.1"), 0);
+    FEXP(t("1.0", "1.1"), -1);
+    FEXP(t("1.1", "1.0"), 1);
+    FEXP(t("0.1", "1.1"), -1);
+    FEXP(t("1.0.1", "1"), 1);
+    FEXP(t("7.5.2.4", "7.5.3"), -1);
+    FEXP(t("1.01", "1.001"), 0);
+    FEXP(t("1.0", "1.0.0"), 0);
 }
 
 /**
@@ -279,6 +407,19 @@ Output: [1,2]
 Explanation: The sum of 2 and 7 is 9. Therefore index1 = 1, index2 = 2.
  */
 std::vector<int> twoSumII(std::vector<int>& numbers, int target) {
+    int l = 0;
+    int r = numbers.size() - 1;
+    while (l < r) {
+        int sum = numbers[l] + numbers[r];
+        if (sum == target) {
+            return {l + 1, r + 1};
+        }
+        if (sum < target) {
+            ++l;
+        } else {
+            --r;
+        }
+    }
     return {};
 }
 

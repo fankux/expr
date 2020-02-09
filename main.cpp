@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_count_of_graph();
+    test_compareVersion();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree
