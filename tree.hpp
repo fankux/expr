@@ -934,6 +934,347 @@ FTEST(test_SegmentTree) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct PathNode {
+    typedef std::function<void(PathNode*)> Callback;
+
+    explicit PathNode(const std::string& k, const std::string& v, PathNode* parent) : key(k),
+            val(v), p(parent) {}
+
+    PathNode* p = nullptr;
+    std::string key;
+    std::string val;
+    std::unordered_map<std::string, PathNode*> childs;
+    std::vector<Callback> cbs;
+};
+
+/**
+ /aa/bb/cc
+ /aa/ee/ff
+
+        /
+        ↓
+        aa
+       ↙   ↘
+      bb   ee
+      ↓    ↓
+      cc   ff
+ */
+class PathStore {
+public:
+    bool create(const std::string& path, const std::string& value) {
+        std::deque<std::string> sections;
+        PathNode* cur = nullptr;
+        PathNode* p = fetch_last_node(path, sections, cur);
+        if (root == nullptr && path == "/") {   // handle root
+            root = new PathNode("", value, nullptr);
+            return true;
+        } else if (p && sections.size() == 1) {
+            p->childs.emplace(sections.front(), new PathNode(sections.front(), value, p));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    std::string get(const std::string& path) {
+        std::deque<std::string> sections;
+        PathNode* cur = nullptr;
+        fetch_last_node(path, sections, cur);
+        return cur == nullptr ? "" : cur->val;
+    }
+
+    bool set(const std::string& path, const std::string& value) {
+        std::deque<std::string> sections;
+        PathNode* cur = nullptr;
+        fetch_last_node(path, sections, cur);
+        if (cur) {
+            cur->val = value;
+
+            while (cur) {
+                for (auto& cb : cur->cbs) {
+                    cb(cur);
+                }
+                cur = cur->p;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    bool watch(const std::string& path, PathNode::Callback callback) {
+        std::deque<std::string> sections;
+        PathNode* cur = nullptr;
+        fetch_last_node(path, sections, cur);
+        if (cur) {
+            cur->cbs.emplace_back(callback);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static std::deque<std::string> explode_path(const std::string& path) {
+        std::deque<std::string> res;
+        std::size_t pos = 0;
+        std::size_t left = pos;
+        while (pos != std::string::npos) {
+            if (left < pos) {
+                res.emplace_back(path.substr(left, pos - left));
+            }
+            left = pos + 1;
+            pos = path.find('/', left);
+        }
+        if (left < path.size()) {
+            res.emplace_back(path.substr(left));
+        }
+        return res;
+    }
+
+private:
+    PathNode* fetch_last_node(const std::string& path, std::deque<std::string>& sections,
+            PathNode*& cur) {
+        sections = explode_path(path);
+
+        PathNode* p = root;
+        cur = root;
+        while (cur && !sections.empty()) {
+            p = cur;
+
+            std::string section = sections.front();
+            auto entry = cur->childs.find(section);
+            if (entry == cur->childs.end()) {
+                cur = nullptr;
+                break;
+            }
+            cur = entry->second;
+            sections.pop_front();
+        }
+        return p;
+    }
+
+private:
+    PathNode* root = nullptr;
+};
+
+FTEST(test_PathStore) {
+    auto t_path = [](const std::string& path) {
+        auto re = PathStore::explode_path(path);
+        LOG(INFO) << path << " explode: (" << re.size() << ")" << re;
+    };
+
+    t_path("");
+    t_path("/");
+    t_path("//");
+    t_path("///");
+    t_path("/a");
+    t_path("//a");
+    t_path("///a");
+    t_path("/a/");
+    t_path("//a/");
+    t_path("///a/");
+    t_path("/a//");
+    t_path("/a///");
+    t_path("//a///");
+    t_path("///a///");
+    t_path("/a/b");
+    t_path("/a/b/");
+    t_path("/a//b");
+    t_path("/a///b");
+    t_path("/a/b/c");
+    t_path("/a/b/c/");
+    t_path("/a/b//c/");
+    t_path("/a/b///c/");
+    t_path("/aa");
+    t_path("//aa");
+    t_path("///aa");
+    t_path("/aa/");
+    t_path("//aa/");
+    t_path("///aa/");
+    t_path("/aa//");
+    t_path("/aa///");
+    t_path("//aa///");
+    t_path("///aa///");
+    t_path("/aa/bb");
+    t_path("/aa/bb/");
+    t_path("/aa//bb");
+    t_path("/aa///bb");
+    t_path("/aa/bb/cc");
+    t_path("/aa/bb/cc/");
+    t_path("/aa/bb//cc/");
+    t_path("/aa/bb///cc/");
+
+    PathStore ps;
+    FEXP(ps.create("/a", "a"), false);
+    FEXP(ps.create("/", "root"), true);
+    FEXP(ps.get("/"), "root");
+    FEXP(ps.create("/aa", "aa"), true);
+    FEXP(ps.get("/aa"), "aa");
+    FEXP(ps.create("/bb", "bb"), true);
+    FEXP(ps.get("/bb"), "bb");
+    FEXP(ps.create("/aa/cc", "cc"), true);
+    FEXP(ps.get("/aa/cc"), "cc");
+    FEXP(ps.set("/aa/cc1", "cc1"), false);
+    FEXP(ps.set("/aa/cc", "cc1"), true);
+    FEXP(ps.get("/aa/cc"), "cc1");
+
+    LOG(INFO) << "------";
+    FEXP(ps.watch("/ff", [](PathNode* c) { LOG(INFO) << "cb " << c->val; }), false);
+    FEXP(ps.watch("/", [](PathNode* c) { LOG(INFO) << "cb1 " << c->val; }), true);
+    FEXP(ps.watch("/", [](PathNode* c) { LOG(INFO) << "cb2 " << c->val; }), true);
+    FEXP(ps.set("/", "root_set"), true);
+
+    LOG(INFO) << "------";
+    FEXP(ps.watch("/aa", [](PathNode* c) { LOG(INFO) << "cb1 " << c->val; }), true);
+    FEXP(ps.watch("/aa", [](PathNode* c) { LOG(INFO) << "cb2 " << c->val; }), true);
+    FEXP(ps.set("/aa", "aa_set"), true);
+
+    LOG(INFO) << "------";
+    FEXP(ps.watch("/bb", [](PathNode* c) { LOG(INFO) << "cb1 " << c->val; }), true);
+    FEXP(ps.watch("/bb", [](PathNode* c) { LOG(INFO) << "cb2 " << c->val; }), true);
+    FEXP(ps.set("/bb", "bb_set"), true);
+
+    LOG(INFO) << "------";
+    FEXP(ps.watch("/aa/cc", [](PathNode* c) { LOG(INFO) << "cb1 " << c->val; }), true);
+    FEXP(ps.watch("/aa/cc", [](PathNode* c) { LOG(INFO) << "cb2 " << c->val; }), true);
+    FEXP(ps.set("/aa/cc", "cc_set"), true);
+}
+
+struct NormalTreeNode {
+    NormalTreeNode() = default;
+
+    explicit NormalTreeNode(int i, int value) : id(i), val(value) {}
+
+    int id;
+    int val;
+    std::vector<NormalTreeNode*> childs;
+};
+
+class NormalTree {
+public:
+    /**
+     * @param pairs <node number from, node number to>
+     * @param values values of each node
+     */
+    bool build(const std::vector<std::pair<int, int>>& pairs, const std::vector<int>& values) {
+        std::map<int, NormalTreeNode*> nodes;
+        // ensure size match, then do right things
+        for (auto& pair : pairs) {
+            NormalTreeNode* from;
+            auto entry = nodes.find(pair.first);
+            if (entry == nodes.end()) {
+                if (pair.first > values.size()) {
+                    goto fail;
+                }
+                from = new NormalTreeNode(pair.first, values[pair.first - 1]);
+                from->val = values[pair.first - 1];
+                nodes[pair.first] = from;
+            } else {
+                from = entry->second;
+            }
+
+            NormalTreeNode* to;
+            entry = nodes.find(pair.second);
+            if (entry == nodes.end()) {
+                if (pair.second > values.size()) {
+                    goto fail;
+                }
+                to = new NormalTreeNode(pair.second, values[pair.second - 1]);
+                to->val = values[pair.second - 1];
+                nodes[pair.second] = to;
+            } else {
+                to = entry->second;
+            }
+
+            from->childs.emplace_back(to);
+            if (from->id == 1) {
+                _root = from;
+            }
+        }
+        return true;
+
+        fail:
+        for (auto& entry : nodes) {
+            delete entry.second;
+        }
+        return false;
+    }
+
+    ~NormalTree() {
+        clear(_root);
+    }
+
+    NormalTreeNode* root() {
+        return _root;
+    }
+
+private:
+    void clear(NormalTreeNode* node) {
+        if (node == nullptr) {
+            return;
+        }
+        for (auto& entry : node->childs) {
+            clear(entry);
+            delete entry;
+        }
+        delete node;
+    }
+
+private:
+    NormalTreeNode* _root = nullptr;
+};
+
+std::vector<int> interlaced_transfer_to(NormalTree& from, NormalTree& to) {
+    std::vector<int> res;
+    std::function<void(NormalTreeNode*, NormalTreeNode*, int, int)> rfunc;
+    rfunc = [&](NormalTreeNode* f, NormalTreeNode* t, int ccnt, int gcnt) {
+        int value = f->val;
+        if (gcnt % 2 == 1) {
+            value = !value;
+        }
+        if (value != t->val) {
+            ++gcnt;
+            res.emplace_back(f->id);
+        }
+        for (size_t i = 0; i < f->childs.size(); ++i) {
+            rfunc(f->childs[i], t->childs[i], gcnt, ccnt);
+        }
+    };
+    rfunc(from.root(), to.root(), 0, 0);
+    return res;
+}
+
+FTEST(test_interlaced_transfer_to) {
+    /**
+                1(0)                        1(0)
+             /   |   \                   /   |   \
+          2(1)  3(1)  4(0)   ==>      2(0)  3(1)  4(0)   ==> [2, 6, 9, 8]
+         /  |    |      \            /  |    |      \
+      5(1) 6(0) 7(1)   8(0)       5(1) 6(1) 7(1)   8(1)
+            |                           |
+           9(1)                        9(1)
+    */
+    std::vector<std::pair<int, int>> nodes = {
+            {1, 2},
+            {1, 3},
+            {1, 4},
+            {2, 5},
+            {2, 6},
+            {3, 7},
+            {4, 8},
+            {6, 9},
+    };
+    NormalTree from;
+    FEXP(from.build(nodes, {1}), false);
+    FEXP(from.build(nodes, {0, 1, 1, 0, 1, 0, 1, 0, 1}), true);
+    NormalTree to;
+    FEXP(to.build(nodes, {0, 0, 1, 0, 1, 1, 1, 1, 1}), true);
+
+    LOG(INFO) << "interlaced_transfer_to: " << interlaced_transfer_to(from, to);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void rb_tree() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

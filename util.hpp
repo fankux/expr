@@ -373,16 +373,17 @@ public:
             const std::string& delims = " ") {
         std::size_t current;
         std::size_t previous = 0;
-        current = str.find_first_of(delims);
+        current = str.find(delims);
         while (current != std::string::npos) {
-            std::string section = str.substr(previous, current - previous);
-            if (!section.empty()) {
-                cont.emplace_back(std::move(section));
+            if (previous < current) {
+                cont.emplace_back(str.substr(previous, current - previous));
             }
             previous = current + 1;
-            current = str.find_first_of(delims, previous);
+            current = str.find(delims, previous);
         }
-        cont.emplace_back(str.substr(previous, current - previous));
+        if (previous < str.size()) {
+            cont.emplace_back(str.substr(previous, current - previous));
+        }
     }
 
     static std::vector<std::string> line_strs() {
