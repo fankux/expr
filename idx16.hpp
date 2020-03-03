@@ -451,7 +451,33 @@ Input: 701
 Output: "ZY"
  */
 std::string convertToTitle(int n) {
-    return "";
+    std::string res;
+    while (n) {
+        int remainder = (n - 1) % 26;
+        res.insert(res.begin(), remainder + 'A');
+        n = (n - remainder) / 26;
+    }
+    return res;
+}
+
+FTEST(test_convertToTitle) {
+    auto t = [](int n) {
+        auto re = convertToTitle(n);
+        LOG(INFO) << n << " number: " << re;
+        return re;
+    };
+
+    FEXP(t(0), "");
+    FEXP(t(1), "A");
+    FEXP(t(2), "B");
+    FEXP(t(25), "Y");
+    FEXP(t(26), "Z");
+    FEXP(t(27), "AA");
+    FEXP(t(28), "AB");
+    FEXP(t(701), "ZY");
+    FEXP(t(702), "ZZ");
+    FEXP(t(703), "AAA");
+
 }
 
 /**

@@ -100,7 +100,11 @@ Implement an iterator over a binary search tree (BST).
 Calling next() will return the next smallest number in the BST.
 
 Example:
-TODO...graph
+        7
+       / \
+      3  15
+         / \
+        9  20
 
 BSTIterator iterator = new BSTIterator(root);
 iterator.next();    // return 3
@@ -129,19 +133,46 @@ You may assume that next() call will always be valid, that is,
 class BSTIterator {
 public:
     explicit BSTIterator(TreeNode* root) {
+        _p = root;
     }
 
     /** @return the next smallest number */
     int next() {
-        return 0;
+        while (_p) {
+            _qq.push(_p);
+            _p = _p->left;
+        }
+        _p = _qq.top()->right;
+        int v = _qq.top()->val;
+        _qq.pop();
+        return v;
     }
 
     /** @return whether we have a next smallest number */
     bool hasNext() {
-        return false;
+        return _p || !_qq.empty();
     }
+
+private:
+    TreeNode* _p = nullptr;
+    std::stack<TreeNode*> _qq;
 };
 
+FTEST(test_BSTIterator) {
+    TreeNode* tree = create_tree({7, 3, 15, nullptr, nullptr, 9, 20});
+    BSTIterator iterator(tree);
+    FEXP(iterator.hasNext(), true); // return true
+    FEXP(iterator.next(), 3);    // return 3
+    FEXP(iterator.hasNext(), true); // return true
+    FEXP(iterator.next(), 7);    // return 7
+    FEXP(iterator.hasNext(), true); // return true
+    FEXP(iterator.next(), 9);    // return 9
+    FEXP(iterator.hasNext(), true); // return true
+    FEXP(iterator.next(), 15);    // return 15
+    FEXP(iterator.hasNext(), true); // return true
+    FEXP(iterator.next(), 20);    // return 20
+    FEXP(iterator.hasNext(), false); // return false
+}
 
 /**
  ///////////// 174. Dungeon Game
@@ -170,9 +201,43 @@ Note:
 The knight's health has no upper bound.
 Any room can contain threats or power-ups,
  even the first room the knight enters and the bottom-right room where the princess is imprisoned.
+
+THOUGHTS:
+    p       | right |
+    bottom  |       |
+
+    if (right or bottom) - p <=0, means next step is positive or health enough
+    if (right or bottom) - p >0, means minium health of p = min(right, bottom) - p
+
  */
 int calculateMinimumHP(std::vector<std::vector<int>>& dungeon) {
-    return 0;
+    if (dungeon.empty() || dungeon.front().empty()) {
+        return 0;
+    }
+    int n = dungeon.size();
+    int m = dungeon.front().size();
+    std::vector<std::vector<int>> dp(n + 1, std::vector<int>(m + 1, INT_MAX));
+    dp[n][m - 1] = 1;
+    dp[n - 1][m] = 1;
+    for (int i = n - 1; i >= 0; --i) {
+        for (int j = m - 1; j >= 0; --j) {
+            dp[i][j] = std::max(1, std::min(dp[i + 1][j], dp[i][j + 1]) - dungeon[i][j]);
+        }
+    }
+    return dp.front().front();
+}
+
+FTEST(test_calculateMinimumHP) {
+    auto t = [](const std::vector<std::vector<int>>& dungeon) {
+        std::vector<std::vector<int>> nns = dungeon;
+        auto re = calculateMinimumHP(nns);
+        LOG(INFO) << dungeon << " min health: " << re;
+        return re;
+    };
+
+    FEXP(t({{-2, -3, 3}, {-5, -10, 1}, {10, 30, -5}}), 7);
+    FEXP(t({{3, -20, 30}, {-3, 4, 0}}), 1);
+    FEXP(t({{1, -3, 3}, {0, -2, 0}, {-3, -3, -3}}), 3);
 }
 
 /**

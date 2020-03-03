@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_interlaced_transfer_to();
+    test_calculateMinimumHP();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree

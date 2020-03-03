@@ -171,6 +171,11 @@ Output:
 The longest substring is "ababb", as 'a' is repeated 2 times and 'b' is repeated 3 times.
 
  THOUGHTS:
+    sliding window
+    Try to find count of different chars is i(1~26) that at least K in target string.
+    Using 'count of char' to check if it's the expect, note that 'unique' or 'lek' changing is
+    'level trigger', means this happend when 'count of char' come to 0.
+
     divide and conquer
     1. count each char appears count from left to right
     2. find the first appears count less than k, then split to left half.
@@ -191,9 +196,9 @@ int longestSubstringAtLeast(std::string s, int k) {
     auto sliding_window_method = [&] {
         int counts[26] = {0};
         for (int cnt = 1; cnt <= 26; ++cnt) {
-            int unique = 0;
-            int lek = 0;
-            int start = 0;
+            int unique = 0;     // count of different char
+            int lek = 0;        // count of char which count at least K
+            int start = 0;      // start is window left border, i is right border
             for (int i = 0; i < len;) {
                 if (cnt >= unique) {        // window right expand
                     int idx = s[i] - 'a';
