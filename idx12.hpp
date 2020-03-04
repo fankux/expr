@@ -147,7 +147,7 @@ THOUGTHS:
 
                  / dp[i][j-1]                                                   j(th) no transaction
   dp[i][j] = max
-                 \ dp[i-1][m] + max(prices[j] - prices[m])[m from 0 to j-1]     j(th) day sell,
+                 \ max(dp[i-1][m] + prices[j] - prices[m])[m from 0 to j-1]     j(th) day sell,
                  there must was a buy action at m(th) day,
                  find the minimium m got the maxmium  prices[j] - prices[m]
 
@@ -174,10 +174,7 @@ int maxProfitIII(std::vector<int>& prices) {
         int maxdiff = -prices[0]; // make prices[1] + maxdiff = prices[1] - prices[0]
         for (size_t j = 1; j < len; ++j) {
             state[i][j] = std::max(state[i][j - 1], prices[j] + maxdiff);
-            int delta = state[i - 1][j] - prices[j];
-            if (maxdiff < delta) {
-                maxdiff = delta;
-            }
+            maxdiff = std::max(maxdiff, state[i - 1][j] - prices[j]);
         }
     }
     return state.back().back();
@@ -201,7 +198,6 @@ FTEST(test_maxProfitIII) {
     FEXP(t({1, 2}), 1);
     FEXP(t({1, 2, 3}), 2);
     FEXP(t({1, 2, 4}), 3);
-    FEXP(t({1, 2, 3, 4}), 3);
     FEXP(t({1, 2, 3, 4}), 3);
     FEXP(t({1, 2, 3, 4, 5}), 4);
 }

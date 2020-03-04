@@ -214,7 +214,7 @@ THOUGHTS:
  buy[i] =  max(buy[i-1],  sell[i-2] - price)
  sell[i] = max(sell[i-1], buy[i-1] + price)
  */
-int maxProfit(std::vector<int>& prices) {
+int maxProfitCooldown(std::vector<int>& prices) {
 //    size_t len = prices.size();
 //    std::vector<int> buy(len + 1, 0);
 //    std::vector<int> sell(len + 1, 0);
@@ -239,10 +239,10 @@ int maxProfit(std::vector<int>& prices) {
     return sell;
 }
 
-FTEST(test_maxProfit) {
+FTEST(test_maxProfitCooldown) {
     auto t = [&](const std::vector<int>& prices) {
         std::vector<int> nns = prices;
-        auto re = maxProfit(nns);
+        auto re = maxProfitCooldown(nns);
         LOG(INFO) << prices << " max profit whit cooldown: " << re;
         return re;
     };

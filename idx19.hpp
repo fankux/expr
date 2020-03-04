@@ -134,7 +134,39 @@ Explanation:
 
  */
 std::vector<int> rightSideView(TreeNode* root) {
-    return {};
+    if (root == nullptr) {
+        return {};
+    }
+    std::vector<int> res;
+    std::queue<TreeNode*> qq{{root}};
+    while (!qq.empty()) {
+        for (size_t len = qq.size(); len > 0; --len) {
+            TreeNode* p = qq.front();
+            qq.pop();
+            if (len == 1) {
+                res.emplace_back(p->val);
+            }
+            if (p->left) {
+                qq.emplace(p->left);
+            }
+            if (p->right) {
+                qq.emplace(p->right);
+            }
+        }
+    }
+    return res;
+}
+
+FTEST(test_rightSideView) {
+    auto t = [](const std::vector<TreeNodeStub>& nodes) {
+        TreeNode* tree = create_tree(nodes);
+        auto re = rightSideView(tree);
+        LOG(INFO) << re << " is side view of:\n " << print_tree(tree);
+        return re;
+    };
+
+    t({1, 2});
+    t({1, 2, 3, nullptr, 5, nullptr, 4});
 }
 
 /**

@@ -28,7 +28,37 @@ The input string does not contain leading or trailing spaces.
 The words are always separated by a single space.
 Follow up: Could you do it in-place without allocating extra space?
  */
-void reverseWords(std::vector<char>& str) {
+void reverseWordChars(std::vector<char>& str) {
+    std::reverse(str.begin(), str.end());
+    size_t i = 0;
+    size_t left = 0;
+    for (; i < str.size(); ++i) {
+        if (str[i] == ' ') {
+            std::reverse(str.begin() + left, str.begin() + i);
+            left = i + 1;
+        }
+    }
+    std::reverse(str.begin() + left, str.begin() + i);
+}
+
+FTEST(test_reverseWordChars) {
+    auto t = [](const std::vector<char>& s) {
+        std::vector<char> nns = s;
+        reverseWordChars(nns);
+        LOG(INFO) << s << " reverse: " << nns;
+        std::string re;
+        for (char c : nns) {
+            re += c;
+        }
+        return re;
+    };
+
+    FEXP(t({'a'}), "a");
+    FEXP(t({'a', 'b'}), "ab");
+    FEXP(t({'a', ' ', 'b', ' ', 'c'}), "c b a");
+    FEXP(t({'a', 'b', ' ', 'c'}), "c ab");
+    FEXP(t({'t', 'h', 'e', ' ', 's', 'k', 'y', ' ', 'i', 's', ' ', 'b', 'l', 'u', 'e'}),
+            "blue is sky the");
 }
 
 /**
@@ -44,7 +74,36 @@ Input: s = "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT"
 Output: ["AAAAACCCCC", "CCCCCAAAAA"]
  */
 std::vector<std::string> findRepeatedDnaSequences(std::string s) {
-    return {};
+    size_t len = s.size();
+    if (len <= 10) {
+        return {};
+    }
+    int key = 0;
+    int i = 0;
+    for (; i < 9; ++i) {
+        key = (key << 3) | (s[i] & 7);
+    }
+    std::vector<std::string> res;
+    std::map<int, int> mm;
+    for (; i < len; ++i) {
+        key = ((key & 0x7ffffff) << 3) | (s[i] & 7);
+        if (mm[key] == 1) {
+            res.emplace_back(s.substr(i - 9, 10));
+        }
+        ++mm[key];
+    }
+    return res;
+}
+
+FTEST(test_findRepeatedDnaSequences) {
+    auto t = [](const std::string& s) {
+        auto re = findRepeatedDnaSequences(s);
+        LOG(INFO) << s << " repeated: " << re;
+        return re;
+    };
+
+    t("AAAAAAAAAAAA");
+    t("AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT");
 }
 
 /**
@@ -66,9 +125,70 @@ Input: [3,2,6,5,0,3], k = 2
 Output: 7
 Explanation: Buy on day 2 (price = 2) and sell on day 3 (price = 6), profit = 6-2 = 4.
              Then buy on day 5 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.
+
+THOUGTHS:
+  dp[i][j] means max profit of i(th) transaction at j(th) day.
+
+                 / dp[i][j-1]                                                   j(th) no transaction
+  dp[i][j] = max
+                 \ max(dp[i-1][m] + prices[j] - prices[m])[m from 0 to j-1]     j(th) day sell,
+                 there must was a buy action at m(th) day,
+                 find the minimium m got the maxmium  prices[j] - prices[m]
+
+        notice that we can hold the m day by holding max_diff, like i=2,j=3, looking progress:
+        dp[1][0] = {dp[1][0] - prices[0]} + prices[3]
+        dp[1][1] = {dp[1][1] - prices[1]} + prices[3]
+        dp[1][2] = {dp[1][2] - prices[2]} + prices[3]
+                   └──────────┬─────────┘
+                            maxdiff
+
+                 / dp[i][j-1]               j(th) no transaction
+  dp[i][j] = max
+                 \ prices[j] + maxdiff      j(th) day sell
+                   maxdiff = max(maxdiff, dp[i-1][j] - prices[j])
+
  */
-int maxProfit(int k, std::vector<int>& prices) {
-    return 0;
+int maxProfitK(int k, std::vector<int>& prices) {
+    size_t len = prices.size();
+    if (len < 2) {
+        return 0;
+    }
+    if (k >= len) {
+        return LCIndex12::maxProfitII(prices);
+    }
+    std::vector<std::vector<int>> dp(k + 1, std::vector<int>(len, 0));
+    for (int i = 1; i <= k; ++i) {
+        int max_diff = -prices[0];
+        for (int j = 1; j < len; ++j) {
+            dp[i][j] = std::max(dp[i][j - 1], prices[j] + max_diff);
+            max_diff = std::max(max_diff, dp[i - 1][j] - prices[j]);
+        }
+    }
+    return dp.back().back();
+}
+
+FTEST(test_maxProfitK) {
+    auto t = [](int k, const std::vector<int>& prices) {
+        std::vector<int> nns = prices;
+        auto re = maxProfitK(k, nns);
+        LOG(INFO) << prices << " max " << k << " transaction profit: " << re;
+        return re;
+    };
+
+    FEXP(t(0, {}), 0);
+    FEXP(t(2, {0}), 0);
+    FEXP(t(2, {1}), 0);
+    FEXP(t(2, {2, 1}), 0);
+    FEXP(t(2, {4, 3, 1}), 0);
+    FEXP(t(2, {6, 4, 3, 1}), 0);
+    FEXP(t(2, {7, 6, 4, 3, 1}), 0);
+    FEXP(t(2, {1, 2}), 1);
+    FEXP(t(2, {1, 2, 3}), 2);
+    FEXP(t(2, {1, 2, 4}), 3);
+    FEXP(t(2, {1, 2, 3, 4}), 3);
+    FEXP(t(2, {1, 2, 3, 4, 5}), 4);
+    FEXP(t(2, {2, 4, 1}), 2);
+    FEXP(t(2, {3, 2, 6, 5, 0, 3}), 7);
 }
 
 /**
