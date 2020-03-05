@@ -400,8 +400,10 @@ THOUGHTS:
     dp[i]    dp[i-1]               dp[i]
     /             \               /    \
    dp[i-1]         dp[i]      dp[i-1]  dp[len-i-1]
-      dp[i-1] * 2         FROM i to len, += dp[i-1] * dp[len-i-1]
-                          if length(i-1) = length(len-i-1) += dp[i / 2 - 1] * dp[i / 2 - 1]
+      dp[i-1] * 2         from second number to middle(exclude or not exist):
+                                    += dp[i-1] * dp[len-i-1] * 2(two sides)
+                          if n is odd, there is a middle as root, if length(i-1) = length(len-i-1):
+                                    += dp[i / 2 - 1] * dp[i / 2 - 1]
 */
 int numBSTrees(int n) {
     if (n <= 0) {

@@ -312,7 +312,7 @@ Therefore, you can't travel around the circuit once no matter where you start.
 
 THOUGHTS:
   RULE_1: total gas must >= total cost
-  RULE_1: SUM is the cost from START to current pos, once SUM less than 0 means no gas station
+  RULE_2: SUM is the cost from START to current pos, once SUM less than 0 means no gas station
           from the START could be a valid one.
 */
 int canCompleteCircuit(std::vector<int>& gas, std::vector<int>& cost) {
