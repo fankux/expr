@@ -21,9 +21,58 @@ Output: 4
 Example 2:
 Input: [0,1]
 Output: 0
+
+ THOUGHTS:
+    find common binary prefix from left.
+
  */
 int rangeBitwiseAnd(int m, int n) {
-    return 0;
+    auto find_zero_func = [&] {
+        if (m == n) {
+            return m;
+        }
+
+        uint32_t res = 0;
+        while (m < n) {
+            uint32_t level_lower = m == 0 ? 0 : 1u << (sizeof(m) * 8u - __builtin_clz(m) - 1u);
+            uint32_t level_upper = n == 0 ? 0 : 1u << (sizeof(n) * 8u - __builtin_clz(n) - 1u);
+            if (level_lower != level_upper) {
+                break;
+            }
+            res = res | level_upper;
+            m = (level_upper - 1) & m;
+            n = (level_upper - 1) & n;
+        }
+        return (int) res;
+    };
+    auto find_left_common = [&] {
+        uint32_t d = UINT_MAX;
+        while ((m & d) != (n & d)) {
+            d <<= 1;
+        }
+        return m & d;
+    };
+    return find_left_common();
+}
+
+FTEST(test_rangeBitwiseAnd) {
+    auto t = [](int m, int n) {
+        auto re = rangeBitwiseAnd(m, n);
+        LOG(INFO) << m << " to " << n << " bitwise AND: " << re;
+        return re;
+    };
+
+    FEXP(t(0, 0), 0);
+    FEXP(t(1, 1), 1);
+    FEXP(t(2, 2), 2);
+    FEXP(t(3, 3), 3);
+    FEXP(t(4, 4), 4);
+    FEXP(t(0, 1), 0);
+    FEXP(t(1, 2), 0);
+    FEXP(t(1, 3), 0);
+    FEXP(t(2, 3), 2);
+    FEXP(t(5, 7), 4);
+    FEXP(t(6, 7), 6);
 }
 
 /**

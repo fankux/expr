@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_rightSideView();
+    test_rangeBitwiseAnd();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree
