@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_rangeBitwiseAnd();
+    test_minSubArrayLen();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree

@@ -40,19 +40,19 @@ int rangeBitwiseAnd(int m, int n) {
                 break;
             }
             res = res | level_upper;
-            m = (level_upper - 1) & m;
-            n = (level_upper - 1) & n;
+            m = (level_upper - 1u) & m;
+            n = (level_upper - 1u) & n;
         }
         return (int) res;
     };
     auto find_left_common = [&] {
         uint32_t d = UINT_MAX;
-        while ((m & d) != (n & d)) {
-            d <<= 1;
+        while (((uint32_t) m & d) != ((uint32_t) n & d)) {
+            d <<= 1u;
         }
-        return m & d;
+        return (uint32_t) m & d;
     };
-    return find_left_common();
+    return (int) find_left_common();
 }
 
 FTEST(test_rangeBitwiseAnd) {
@@ -131,7 +131,41 @@ Input:  1->2->6->3->4->5->6, val = 6
 Output: 1->2->3->4->5
  */
 ListNode* removeElements(ListNode* head, int val) {
-    return nullptr;
+    ListNode* pre = nullptr;
+    ListNode* p = head;
+    while (p) {
+        ListNode* n = p->next;
+        if (val == p->val) {
+            (pre ? pre->next : head) = n;
+        } else {
+            pre = p;
+        }
+        p = n;
+    }
+    return head;
+}
+
+FTEST(test_removeElements) {
+    auto t = [](const std::vector<int>& nums, int v) {
+        ListNode* list = list_convert_leetcode(create_list(nums));
+        auto re = removeElements(list, v);
+        LOG(INFO) << nums << " remove " << v << " : " << print_list(re);
+        return re;
+    };
+
+    t({}, 0);
+    t({1}, 0);
+    t({1}, 1);
+    t({1, 1}, 1);
+    t({1, 2}, 1);
+    t({1, 2}, 2);
+    t({1, 2, 1}, 1);
+    t({1, 1, 2}, 1);
+    t({2, 1, 1}, 1);
+    t({1, 2, 3}, 1);
+    t({1, 2, 3}, 2);
+    t({1, 2, 3}, 3);
+    t({1, 2, 6, 3, 4, 5, 6}, 6);
 }
 
 /**
@@ -200,7 +234,44 @@ Note:
 You may assume both s and t have the same length.
  */
 bool isIsomorphic(std::string s, std::string t) {
-    return false;
+    int len = s.size();
+    if (t.size() != len) {
+        return false;
+    }
+    int mm[128] = {0};
+    int rmm[128] = {0};
+    for (int i = 0; i < len; ++i) {
+        int from = s[i] + 1;
+        int to = t[i] + 1;
+        if (mm[from] == 0 && rmm[to] == 0) {
+            mm[from] = to;
+            rmm[to] = from;
+        } else if (mm[from] != to || rmm[to] != from) {
+            return false;
+        }
+    }
+    return true;
+}
+
+FTEST(test_isIsomorphic) {
+    auto t = [](const std::string& s, const std::string& t) {
+        auto re = isIsomorphic(s, t);
+        LOG(INFO) << "is isomorphic " << s << " and " << t << ": " << re;
+        return re;
+    };
+
+    FEXP(t("", ""), true);
+    FEXP(t("", "a"), false);
+    FEXP(t("a", ""), false);
+    FEXP(t("a", "a"), true);
+    FEXP(t("a", "b"), true);
+    FEXP(t("aa", "ba"), false);
+    FEXP(t("ac", "bb"), false);
+    FEXP(t("ac", "bd"), true);
+    FEXP(t("egg", "add"), true);
+    FEXP(t("foo", "bar"), false);
+    FEXP(t("paper", "title"), true);
+    FEXP(t("13", "42"), true);
 }
 
 /**
@@ -460,10 +531,74 @@ Input: s = 7, nums = [2,3,1,2,4,3]
 Output: 2
 Explanation: the subarray [4,3] has the minimal length under the problem constraint.
 Follow up:
-If you have figured out the O(n) solution, try coding another solution of which the time complexity is O(n log n).
+If you have figured out the O(n) solution,
+ try coding another solution of which the time complexity is O(n log n).
+
+THOUGHTS(map):
+    accmulate memeber and put pair<sum, index> to a map.
+    Once sum>=s, check if there exists sum-in-map<=sum-s, and we compare the minmium length.
+
+    0   1   2   3   4   5
+    2   3   1   2   4   3       map             res
+    2                        2                  0
+        5                    2,5                0
+            6                2,5,6              0
+                8            2,5,6,8            4, (8-7=1 not exist)
+                    12       2,5,6,8,12         3, (12-7=5, idx=1, res=4-1=3)
+                        15   2,5,6,8,12,15      2, (15-7=8, idx=3, res=5-3=2)
  */
 int minSubArrayLen(int s, std::vector<int>& nums) {
-    return 0;
+    auto map_method = [&] {
+        std::map<int, int> mm;
+        int res = INT_MAX;
+        int sum = 0;
+        for (int i = 0; i < nums.size(); ++i) {
+            sum += nums[i];
+            mm[sum] = i;
+
+            if (sum >= s) {
+                res = std::min(res, i + 1);
+                auto iter = mm.upper_bound(sum - s);
+                if (!mm.empty() && iter != mm.begin()) {
+                    --iter;
+                    res = std::min(res, i - iter->second);
+                }
+            }
+        }
+        return nums.empty() || sum < s ? 0 : res;
+    };
+    auto two_index_method = [&] {
+        int res = 0;
+        int sum = 0;
+        nums.emplace_back(0);
+        for (int i = 0, j = 0; i < nums.size();) {
+            if (sum < s) {
+                sum += nums[i++];
+                continue;
+            }
+            res = res == 0 ? i - j : std::min(res, i - j);
+            sum -= nums[j++];
+        }
+        return res;
+    };
+    return two_index_method();
+}
+
+FTEST(test_minSubArrayLen) {
+    auto t = [](int n, const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = minSubArrayLen(n, nns);
+        LOG(INFO) << n << ", " << nums << " min len: " << re;
+        return re;
+    };
+
+    FEXP(t(100, {}), 0);
+    FEXP(t(3, {1, 1}), 0);
+    FEXP(t(7, {2, 3, 1, 2, 4, 3}), 2);
+    FEXP(t(7, {2, 3, 1, 2, 4, 3, 7}), 1);
+    FEXP(t(7, {2, 3, 1, 2, 7, 4, 3}), 1);
+    FEXP(t(4, {1, 4, 4}), 1);
+    FEXP(t(11, {1, 2, 3, 4, 5}), 3);
 }
 
 /**
