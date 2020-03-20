@@ -249,7 +249,44 @@ Explanation: Rob house 1 (money = 1) and then rob house 3 (money = 3).
              Total amount you can rob = 1 + 3 = 4.
  */
 int robII(std::vector<int>& nums) {
-    return 0;
+    size_t len = nums.size();
+    if (len <= 2) {
+        return len == 0 ? 0 : (len == 1 ? nums[0] : std::max(nums[0], nums[1]));
+    }
+    auto robI = [&](int start, int end) {
+        int dp1 = nums[start];
+        int dp2 = std::max(nums[start], nums[start + 1]);
+        for (int i = start + 2; i < end; ++i) {
+            int n = std::max(dp1 + nums[i], dp2);
+            dp1 = dp2;
+            dp2 = n;
+        }
+        return std::max(dp1, dp2);
+    };
+    return std::max(robI(0, len - 1), robI(1, len));
+}
+
+FTEST(test_robII) {
+    auto t = [](const std::vector<int>& nums) {
+        std::vector<int> nns = nums;
+        auto re = robII(nns);
+        LOG(INFO) << nums << " robII max " << re;
+        return re;
+    };
+
+    FEXP(t({}), 0);
+    FEXP(t({1}), 1);
+    FEXP(t({1, 2}), 2);
+    FEXP(t({2, 1}), 2);
+    FEXP(t({1, 2, 3}), 3);
+    FEXP(t({1, 3, 2}), 3);
+    FEXP(t({2, 1, 3}), 3);
+    FEXP(t({2, 3, 1}), 3);
+    FEXP(t({3, 1, 2}), 3);
+    FEXP(t({3, 2, 1}), 3);
+    FEXP(t({2, 3, 2}), 3);
+    FEXP(t({1, 2, 3, 1}), 4);
+    FEXP(t({2, 7, 9, 3, 1}), 11);
 }
 
 /**
