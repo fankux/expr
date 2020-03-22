@@ -256,6 +256,22 @@ Output: 0
 Note:
 This is a follow up problem to Find Minimum in Rotated Sorted Array.
 Would allow duplicates affect the run-time complexity? How and why?
+
+THOUGHTS:
+ cond1:
+ 2 3 4 5 1    [1] length 1, less than half size, nums[m] > nums[r]
+ 3 4 5 1 2    [1,2] length 2, less than half size, nums[m] > nums[r]
+
+ cond2:
+ 4 5 1 2 3    [1,2,3] length 3, equal than half size, nums[m] < nums[r]
+ 5 1 2 3 4    [1,2,3,4] length 4, large than half size, nums[m] < nums[r]
+
+ cond3:
+ 2 2 2 5 1    same as cond1
+
+ cond4:
+ 5 1 2 2 2    when nums[m] = nums[r] occur, shrink right border: --r
+
  */
 int findMinRotateII(std::vector<int>& nums) {
     int l = 0;

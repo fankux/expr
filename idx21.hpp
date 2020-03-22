@@ -303,7 +303,35 @@ Input: "abcd"
 Output: "dcbabcd"
  */
 std::string shortestPalindrome(std::string s) {
-    return "";
+    size_t len = s.size();
+    int i = 0;
+    for (int j = len - 1; j >= 0; --j) {
+        if (s[i] == s[j]) {
+            ++i;
+        }
+    }
+    if (i == len) {
+        return s;
+    }
+    std::string prefix = s.substr(i);
+    std::reverse(prefix.begin(), prefix.end());
+    return prefix + shortestPalindrome(s.substr(0, i)) + s.substr(i);
+}
+
+FTEST(test_shortestPalindrome) {
+    auto t = [](const std::string& str) {
+        auto re = shortestPalindrome(str);
+        LOG(INFO) << str << " to palindrom: " << re;
+        return re;
+    };
+
+    t("");
+    FEXP(t("a"), "a");
+    FEXP(t("aa"), "aa");
+    FEXP(t("aba"), "aba");
+    FEXP(t("ab"), "bab");
+    FEXP(t("aacecaaa"), "aaacecaaa");
+    FEXP(t("abcd"), "dcbabcd");
 }
 
 /**

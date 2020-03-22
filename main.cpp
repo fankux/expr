@@ -314,7 +314,7 @@ int main() {
 
 //  ↑↓←→↗↘↖↙≠∞
 //  ┌ └ ┐ ┘ ─ │ ├ ┤ ┬ ┴ ┼
-    test_robII();
+    test_shortestPalindrome();
 
     // TODO... Manacher's palindrome
     // TODO... LSM tree
