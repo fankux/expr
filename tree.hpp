@@ -599,6 +599,52 @@ FTEST(test_next_node_of_inorder_travel) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+int max_sum_from_root_path(TreeNode* p, int& sum, std::vector<int>& path) {
+    if (p == nullptr) {
+        return 0;
+    }
+
+    std::vector<int> path_in_l;
+    int left = p->val+max_sum_from_root_path(p->left, sum, path_in_l);
+    std::vector<int> path_in_r;
+    int right = p->val+max_sum_from_root_path(p->right, sum, path_in_r);
+
+    if (left >= sum || right >= sum) {
+        if (left > right) {
+            path = path_in_l;
+            sum = left;
+        } else {
+            path = path_in_r;
+            sum = right;
+        }
+        path.emplace_back(p->val);
+    }
+    return std::max(left, right);
+}
+
+FTEST(test_max_sum_from_root_path) {
+    auto t = [](const std::vector<TreeNodeStub>& nodes) {
+        TreeNode* tree = create_tree(nodes);
+        int sum = 0;
+        std::vector<int> path;
+        auto re = max_sum_from_root_path(tree, sum, path);
+        LOG(INFO) << nodes << " max path from root, sum=" << sum << ", " << path << " of \n"
+                  << print_tree(tree);
+        return re;
+    };
+
+    t({});
+    t({1});
+    t({1, 1});
+    t({1, 2});
+    t({2, 1});
+    t({10, 1});
+    t({0, 1, 2});
+    t({1, 0, 2});
+    t({1, 2, 3});
+    t({10, 9, 20, nullptr, nullptr, 15, 7});
+}
+
 int max_sum_path(TreeNode* p, int& sum, std::vector<std::vector<TreeNode*>>& path) {
     // TODO...
     if (p == nullptr) {
